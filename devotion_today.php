@@ -1,4 +1,6 @@
 <?php
+date_default_timezone_set("Asia/Hong_Kong");
+
 $pageTitle = "Today's Devotion";
 require_once 'header.php';
 requireLogin();
@@ -11,31 +13,56 @@ $stmt = $db->prepare($user_query);
 $stmt->execute([$user_id]);
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
+// Calculate days since user creation - MIDNIGHT-BASED CALENDAR DAYS
 $created_at = new DateTime($user['created_at']);
-$today = new DateTime();
-$interval = $created_at->diff($today);
+$today = new DateTime('today');
+
+// Reset both dates to midnight for simple day counting
+$created_midnight = new DateTime($user['created_at']);
+$created_midnight->setTime(0, 0, 0);
+$today_midnight = new DateTime();
+$today_midnight->setTime(0, 0, 0);
+
+$interval = $created_midnight->diff($today_midnight);
 $day_offset = $interval->days + 1; // Start from day 1
 
-// If beyond 365 days, loop back (or show day 365)
+// If beyond 365 days, loop back to day 1 (or show day 365 as you prefer)
 if ($day_offset > 365) {
-    $day_offset = 365;
+    $day_offset = 365; // or $day_offset = (($day_offset - 1) % 365) + 1; to loop continuously
 }
-
 // Get today's devotion
 $devotion_query = "SELECT * FROM devotions WHERE devotion_day = ?";
 $stmt = $db->prepare($devotion_query);
 $stmt->execute([$day_offset]);
 $devotion = $stmt->fetch(PDO::FETCH_ASSOC);
 
-// Check if already completed today
-$completion_query = "SELECT id FROM devotional_reads WHERE user_id = ? AND devotion_id = ? AND date_read = CURDATE()";
+// Handle case where devotion for calculated day doesn't exist
+if (!$devotion) {
+    // If no devotion found for calculated day, find the closest available one
+    $max_day_query = "SELECT MAX(devotion_day) as max_day FROM devotions";
+    $stmt = $db->prepare($max_day_query);
+    $stmt->execute();
+    $max_day = $stmt->fetch(PDO::FETCH_ASSOC)['max_day'];
+    
+    if ($day_offset > $max_day) {
+        $day_offset = $max_day;
+    }
+    
+    // Try again with the adjusted day offset
+    $stmt = $db->prepare($devotion_query);
+    $stmt->execute([$day_offset]);
+    $devotion = $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+// Check if already completed today - IMPORTANT: Check by date, not devotion_id
+$completion_query = "SELECT id FROM devotional_reads WHERE user_id = ? AND date_read = CURDATE()";
 $stmt = $db->prepare($completion_query);
-$stmt->execute([$user_id, $devotion['id']]);
+$stmt->execute([$user_id]);
 $completed = $stmt->fetch(PDO::FETCH_ASSOC);
 
 // Handle form submission
 if ($_POST && isset($_POST['mark_completed'])) {
-    if (!$completed) {
+    if (!$completed && $devotion) {
         $insert_query = "INSERT INTO devotional_reads (user_id, devotion_id, date_read) VALUES (?, ?, CURDATE())";
         $stmt = $db->prepare($insert_query);
         $stmt->execute([$user_id, $devotion['id']]);
@@ -43,6 +70,13 @@ if ($_POST && isset($_POST['mark_completed'])) {
         echo "<script>window.location.href = 'devotion_today.php';</script>";
         exit();
     }
+}
+
+// If no devotion found for today's offset, show a message
+if (!$devotion) {
+    echo "<div class='alert alert-info'>No devotion found for today. Please check back tomorrow.</div>";
+    require_once 'footer.php';
+    exit();
 }
 ?>
 

@@ -1,4 +1,6 @@
 <?php
+date_default_timezone_set("Asia/Hong_Kong");
+
 $pageTitle = "Dashboard";
 require_once 'header.php';
 requireLogin();
@@ -71,6 +73,13 @@ $week_workouts_query = "SELECT COUNT(*) as workout_count FROM workout_logs
 $stmt = $db->prepare($week_workouts_query);
 $stmt->execute([$user_id, $week_start]);
 $week_workouts = $stmt->fetch(PDO::FETCH_ASSOC)['workout_count'] ?? 0;
+
+// Get devotion count for the week
+$week_devotions_query = "SELECT COUNT(*) as devotion_count FROM devotional_reads 
+                        WHERE user_id = ? AND date_read >= ?";
+$stmt = $db->prepare($week_devotions_query);
+$stmt->execute([$user_id, $week_start]);
+$week_devotions = $stmt->fetch(PDO::FETCH_ASSOC)['devotion_count'] ?? 0;
 ?>
 
 <style>
@@ -515,7 +524,7 @@ $week_workouts = $stmt->fetch(PDO::FETCH_ASSOC)['workout_count'] ?? 0;
                 <div class="stat-icon" style="background: var(--gradient-primary);">
                     <i class="fas fa-bible"></i>
                 </div>
-                <div class="stat-value">7</div>
+                <div class="stat-value"><?php echo $week_devotions; ?></div>
                 <div class="stat-label">Devotions This Week</div>
             </div>
         </div>

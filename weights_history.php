@@ -1,4 +1,6 @@
 <?php
+date_default_timezone_set("Asia/Hong_Kong");
+
 $pageTitle = "Weight History";
 require_once 'header.php';
 requireLogin();
