@@ -3,3 +3,5 @@ deployment:
   tasks:
     - export DEPLOYPATH=/home/fitfibma/public_html/
     - /bin/cp -R * $DEPLOYPATH
+
+    # glenwin
