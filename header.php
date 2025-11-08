@@ -455,7 +455,7 @@ require_once 'config.php';
                         <i class="fas fa-sign-out-alt"></i> Logout
                     </a>
                 <?php else: ?>
-                    <a href="auth.php" class="nav-link"><i class="fas fa-sign-in-alt"></i> Login</a>
+                    <a href="index.php" class="nav-link"><i class="fas fa-sign-in-alt"></i> Login</a>
                 <?php endif; ?>
             </nav>
         </div>
