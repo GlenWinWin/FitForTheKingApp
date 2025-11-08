@@ -17,81 +17,29 @@ if ($_POST && isset($_FILES['profile_picture'])) {
     }
     
     $file = $_FILES['profile_picture'];
+    $file_name = time() . '_' . basename($file['name']);
+    $target_path = $upload_dir . $file_name;
     
-    // Check if file was uploaded without errors
-    if ($file['error'] !== UPLOAD_ERR_OK) {
-        switch ($file['error']) {
-            case UPLOAD_ERR_INI_SIZE:
-            case UPLOAD_ERR_FORM_SIZE:
-                $error = "File size is too large. Maximum size is 5MB.";
-                break;
-            case UPLOAD_ERR_PARTIAL:
-                $error = "File was only partially uploaded.";
-                break;
-            case UPLOAD_ERR_NO_FILE:
-                $error = "No file was selected.";
-                break;
-            default:
-                $error = "Upload failed with error code: " . $file['error'];
+    // Check file type
+    $allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    $file_type = mime_content_type($file['tmp_name']);
+    
+    if (!in_array($file_type, $allowed_types)) {
+        $error = "Only JPG, PNG, GIF, and WebP images are allowed.";
+    } elseif ($file['size'] > 5 * 1024 * 1024) { // 5MB limit
+        $error = "File size must be less than 5MB.";
+    } elseif (move_uploaded_file($file['tmp_name'], $target_path)) {
+        // Update user profile picture in database
+        $update_query = "UPDATE users SET profile_picture = ? WHERE id = ?";
+        $stmt = $db->prepare($update_query);
+        if ($stmt->execute([$target_path, $user_id])) {
+            $_SESSION['user_profile_picture'] = $target_path;
+            $message = "Profile picture updated successfully!";
+        } else {
+            $error = "Failed to update profile picture in database.";
         }
     } else {
-        $file_name = time() . '_' . uniqid() . '_' . preg_replace("/[^a-zA-Z0-9\.]/", "_", $file['name']);
-        $target_path = $upload_dir . $file_name;
-        
-        // Check file type using both MIME type and extension
-        $allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-        $allowed_extensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-        $file_type = mime_content_type($file['tmp_name']);
-        $file_extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-        
-        if (!in_array($file_type, $allowed_types) || !in_array($file_extension, $allowed_extensions)) {
-            $error = "Only JPG, PNG, GIF, and WebP images are allowed.";
-        } elseif ($file['size'] > 5 * 1024 * 1024) { // 5MB limit
-            $error = "File size must be less than 5MB.";
-        } else {
-            // Validate image dimensions
-            $image_info = getimagesize($file['tmp_name']);
-            if ($image_info === false) {
-                $error = "Uploaded file is not a valid image.";
-            } else {
-                list($width, $height) = $image_info;
-                
-                // Check if image is too small or too large
-                if ($width < 50 || $height < 50) {
-                    $error = "Image must be at least 50x50 pixels.";
-                } elseif ($width > 4000 || $height > 4000) {
-                    $error = "Image dimensions are too large. Maximum is 4000x4000 pixels.";
-                } elseif (move_uploaded_file($file['tmp_name'], $target_path)) {
-                    // Delete old profile picture if it exists and is not the default
-                    $old_picture_query = "SELECT profile_picture FROM users WHERE id = ?";
-                    $stmt = $db->prepare($old_picture_query);
-                    $stmt->execute([$user_id]);
-                    $old_picture = $stmt->fetch(PDO::FETCH_ASSOC);
-                    
-                    if ($old_picture['profile_picture'] && 
-                        !str_contains($old_picture['profile_picture'], 'via.placeholder.com') &&
-                        file_exists($old_picture['profile_picture'])) {
-                        unlink($old_picture['profile_picture']);
-                    }
-                    
-                    // Update user profile picture in database
-                    $update_query = "UPDATE users SET profile_picture = ? WHERE id = ?";
-                    $stmt = $db->prepare($update_query);
-                    if ($stmt->execute([$target_path, $user_id])) {
-                        $_SESSION['user_profile_picture'] = $target_path;
-                        $message = "Profile picture updated successfully!";
-                    } else {
-                        $error = "Failed to update profile picture in database.";
-                        // Delete the uploaded file if database update failed
-                        if (file_exists($target_path)) {
-                            unlink($target_path);
-                        }
-                    }
-                } else {
-                    $error = "Failed to upload file. Please try again.";
-                }
-            }
-        }
+        $error = "Failed to upload file.";
     }
 }
 
@@ -144,128 +92,7 @@ $stats = $stmt->fetch(PDO::FETCH_ASSOC);
 ?>
 
 <style>
-/* Enhanced Upload Styles */
-.upload-area {
-    border: 2px dashed var(--accent);
-    border-radius: 12px;
-    padding: 2rem;
-    text-align: center;
-    transition: all 0.3s ease;
-    background: rgba(var(--accent-rgb), 0.05);
-    margin-bottom: 1.5rem;
-}
-
-.upload-area.drag-over {
-    background: rgba(var(--accent-rgb), 0.1);
-    border-color: var(--accent);
-    transform: scale(1.02);
-}
-
-.upload-icon {
-    font-size: 3rem;
-    color: var(--accent);
-    margin-bottom: 1rem;
-}
-
-.upload-text {
-    color: var(--light-text);
-    margin-bottom: 1rem;
-}
-
-.upload-features {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 1rem;
-    margin-top: 1rem;
-}
-
-.upload-feature {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.85rem;
-    color: var(--light-text);
-}
-
-.upload-feature i {
-    color: var(--accent);
-    font-size: 0.8rem;
-}
-
-.file-info {
-    background: rgba(255, 255, 255, 0.08);
-    border-radius: 8px;
-    padding: 1rem;
-    margin-top: 1rem;
-    display: none;
-}
-
-.file-info.show {
-    display: block;
-    animation: fadeIn 0.3s ease;
-}
-
-.file-info-content {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.file-preview {
-    width: 60px;
-    height: 60px;
-    border-radius: 8px;
-    overflow: hidden;
-}
-
-.file-preview img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.file-details {
-    flex: 1;
-}
-
-.file-name {
-    font-weight: 600;
-    margin-bottom: 0.25rem;
-}
-
-.file-size {
-    font-size: 0.85rem;
-    color: var(--light-text);
-}
-
-.upload-progress {
-    width: 100%;
-    height: 4px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 2px;
-    margin-top: 1rem;
-    overflow: hidden;
-    display: none;
-}
-
-.upload-progress.show {
-    display: block;
-}
-
-.progress-bar {
-    height: 100%;
-    background: var(--accent);
-    width: 0%;
-    transition: width 0.3s ease;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* Existing styles remain the same */
+/* Responsive Profile Styles */
 .profile-container {
     max-width: 1200px;
     margin: 0 auto;
@@ -341,14 +168,311 @@ $stats = $stmt->fetch(PDO::FETCH_ASSOC);
     color: var(--accent);
     cursor: pointer;
     transition: all 0.3s ease;
-    margin-bottom: 1rem;
+    margin-bottom: 1rem; /* Added space between buttons */
 }
 
 .upload-btn:hover {
     background: rgba(var(--accent-rgb), 0.1);
 }
 
-/* ... rest of existing styles ... */
+.account-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+}
+
+.info-label {
+    font-weight: 600;
+    color: var(--light-text);
+}
+
+.info-value {
+    color: var(--text-color);
+}
+
+.progress-section {
+    margin-top: 1.5rem;
+}
+
+.progress-title {
+    color: var(--accent);
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.stat-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 1rem;
+    text-align: center;
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.stat-number {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: var(--light-text);
+}
+
+/* Updated Password Section Styles */
+.password-section {
+    margin-top: 2rem;
+}
+
+.password-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: var(--shadow);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.password-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.password-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(var(--accent-rgb), 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+}
+
+.password-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.password-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.password-label {
+    font-weight: 600;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.password-input-container {
+    position: relative;
+    width: 100%;
+}
+
+.password-input {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    padding-right: 3rem;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: var(--text-color);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.password-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: rgba(255, 255, 255, 0.12);
+    box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.1);
+}
+
+.password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--light-text);
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.password-toggle:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-color);
+}
+
+.password-requirements {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-top: 0.5rem;
+}
+
+.requirements-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--light-text);
+    margin-bottom: 0.5rem;
+}
+
+.requirements-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--light-text);
+}
+
+.requirements-list li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+}
+
+.requirements-list li i {
+    font-size: 0.7rem;
+    color: var(--accent);
+}
+
+.password-submit-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 1rem;
+    background: var(--accent);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 0.5rem;
+}
+
+.password-submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(var(--accent-rgb), 0.3);
+}
+
+.account-actions {
+    text-align: center;
+    padding: 2rem 1rem;
+}
+
+.logout-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: transparent;
+    border: 2px solid #f44336;
+    border-radius: 8px;
+    color: #f44336;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.logout-btn:hover {
+    background: #f44336;
+    color: white;
+}
+
+/* Responsive adjustments */
+@media (max-width: 767px) {
+    .profile-container {
+        padding: 0.5rem;
+    }
+    
+    .profile-card {
+        padding: 1rem;
+    }
+    
+    .profile-picture-wrapper {
+        width: 120px;
+        height: 120px;
+    }
+    
+    .info-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .stat-number {
+        font-size: 1.5rem;
+    }
+    
+    .password-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.5rem;
+    }
+    
+    .password-icon {
+        align-self: center;
+    }
+}
+
+/* Message styles */
+.message {
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.message.success {
+    background: rgba(76, 175, 80, 0.2);
+    border: 1px solid rgba(76, 175, 80, 0.5);
+    color: #4caf50;
+}
+
+.message.error {
+    background: rgba(244, 67, 54, 0.2);
+    border: 1px solid rgba(244, 67, 54, 0.5);
+    color: #f44336;
+}
 </style>
 
 <!-- Premium Background -->
@@ -373,68 +497,31 @@ $stats = $stmt->fetch(PDO::FETCH_ASSOC);
     </div>
 
     <div class="profile-grid">
-        <!-- Enhanced Profile Picture Section -->
+        <!-- Profile Picture Section -->
         <div class="profile-card">
             <h2 class="card-title">Profile Picture</h2>
             
             <div class="profile-picture-container">
                 <div class="profile-picture-wrapper">
                     <img id="profilePreview" class="profile-picture" 
-                         src="<?php echo $user['profile_picture'] ?? 'imgs/profile.png'; ?>" 
+                         src="<?php echo $user['profile_picture'] ?? 'imgs/profile.png'; ?>"
                          alt="Profile Picture">
                 </div>
+                <p style="color: var(--light-text); text-align: center; margin-bottom: 1.5rem;">
+                    Click below to upload a new profile picture
+                </p>
             </div>
             
-            <form method="POST" enctype="multipart/form-data" class="profile-picture-upload" id="uploadForm">
-                <!-- Drag and Drop Area -->
-                <div class="upload-area" id="uploadArea">
-                    <div class="upload-icon">
-                        <i class="fas fa-cloud-upload-alt"></i>
-                    </div>
-                    <div class="upload-text">
-                        <p>Drag & drop your image here</p>
-                        <p style="font-size: 0.9rem; margin-top: 0.5rem;">or click to browse</p>
-                    </div>
-                    <div class="upload-features">
-                        <div class="upload-feature">
-                            <i class="fas fa-check-circle"></i>
-                            <span>JPG, PNG, GIF, WebP</span>
-                        </div>
-                        <div class="upload-feature">
-                            <i class="fas fa-check-circle"></i>
-                            <span>Max 5MB</span>
-                        </div>
-                        <div class="upload-feature">
-                            <i class="fas fa-check-circle"></i>
-                            <span>Min 50x50px</span>
-                        </div>
-                    </div>
+            <form method="POST" enctype="multipart/form-data" class="profile-picture-upload">
+                <div class="form-group">
+                    <label for="profile_picture" class="upload-btn">
+                        <i class="fas fa-camera"></i> Choose New Picture
+                    </label>
+                    <input type="file" id="profile_picture" name="profile_picture" accept="image/*" 
+                           style="display: none;" onchange="previewImage(this)">
                 </div>
                 
-                <!-- File Info Display -->
-                <div class="file-info" id="fileInfo">
-                    <div class="file-info-content">
-                        <div class="file-preview">
-                            <img id="filePreview" src="" alt="File preview">
-                        </div>
-                        <div class="file-details">
-                            <div class="file-name" id="fileName"></div>
-                            <div class="file-size" id="fileSize"></div>
-                        </div>
-                        <button type="button" class="btn btn-outline" onclick="clearFile()" style="padding: 0.5rem;">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                    <div class="upload-progress" id="uploadProgress">
-                        <div class="progress-bar" id="progressBar"></div>
-                    </div>
-                </div>
-                
-                <!-- Hidden File Input -->
-                <input type="file" id="profile_picture" name="profile_picture" accept="image/*" 
-                       style="display: none;" onchange="handleFileSelect(this.files)">
-                
-                <button type="submit" class="btn btn-primary" style="width: 100%;" id="uploadButton" disabled>
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
                     <i class="fas fa-save"></i> Update Picture
                 </button>
             </form>
@@ -477,7 +564,7 @@ $stats = $stmt->fetch(PDO::FETCH_ASSOC);
         </div>
     </div>
 
-    <!-- Password Update Section -->
+    <!-- Updated Password Update Section -->
     <div class="password-section">
         <div class="password-card">
             <div class="password-header">
@@ -560,55 +647,24 @@ $stats = $stmt->fetch(PDO::FETCH_ASSOC);
 </div>
 
 <script>
-// Enhanced Profile Picture Upload Functionality
+// Image preview functionality
+function previewImage(input) {
+    const preview = document.getElementById('profilePreview');
+    const file = input.files[0];
+    
+    if (file) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+        }
+        
+        reader.readAsDataURL(file);
+    }
+}
+
+// Password toggle functionality
 document.addEventListener('DOMContentLoaded', function() {
-    const uploadArea = document.getElementById('uploadArea');
-    const fileInput = document.getElementById('profile_picture');
-    const fileInfo = document.getElementById('fileInfo');
-    const uploadButton = document.getElementById('uploadButton');
-    const uploadForm = document.getElementById('uploadForm');
-    
-    // Click on upload area to trigger file input
-    uploadArea.addEventListener('click', function() {
-        fileInput.click();
-    });
-    
-    // Drag and drop functionality
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        uploadArea.addEventListener(eventName, preventDefaults, false);
-    });
-    
-    function preventDefaults(e) {
-        e.preventDefault();
-        e.stopPropagation();
-    }
-    
-    ['dragenter', 'dragover'].forEach(eventName => {
-        uploadArea.addEventListener(eventName, highlight, false);
-    });
-    
-    ['dragleave', 'drop'].forEach(eventName => {
-        uploadArea.addEventListener(eventName, unhighlight, false);
-    });
-    
-    function highlight() {
-        uploadArea.classList.add('drag-over');
-    }
-    
-    function unhighlight() {
-        uploadArea.classList.remove('drag-over');
-    }
-    
-    // Handle dropped files
-    uploadArea.addEventListener('drop', handleDrop, false);
-    
-    function handleDrop(e) {
-        const dt = e.dataTransfer;
-        const files = dt.files;
-        handleFileSelect(files);
-    }
-    
-    // Password toggle functionality
     const passwordToggles = document.querySelectorAll('.password-toggle');
     
     passwordToggles.forEach(toggle => {
@@ -628,90 +684,16 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+    
+    // Password strength indicator (optional enhancement)
+    const newPasswordInput = document.getElementById('new_password');
+    if (newPasswordInput) {
+        newPasswordInput.addEventListener('input', function() {
+            // You can add password strength validation here
+            // This is a placeholder for future enhancement
+        });
+    }
 });
-
-function handleFileSelect(files) {
-    if (files.length > 0) {
-        const file = files[0];
-        
-        // Validate file type
-        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-        if (!allowedTypes.includes(file.type)) {
-            alert('Please select a valid image file (JPG, PNG, GIF, or WebP).');
-            return;
-        }
-        
-        // Validate file size (5MB)
-        if (file.size > 5 * 1024 * 1024) {
-            alert('File size must be less than 5MB.');
-            return;
-        }
-        
-        // Display file info
-        document.getElementById('fileName').textContent = file.name;
-        document.getElementById('fileSize').textContent = formatFileSize(file.size);
-        document.getElementById('filePreview').src = URL.createObjectURL(file);
-        document.getElementById('fileInfo').classList.add('show');
-        
-        // Update profile preview
-        document.getElementById('profilePreview').src = URL.createObjectURL(file);
-        
-        // Enable upload button
-        document.getElementById('uploadButton').disabled = false;
-        
-        // Show upload progress (simulated)
-        simulateUploadProgress();
-    }
-}
-
-function clearFile() {
-    document.getElementById('profile_picture').value = '';
-    document.getElementById('fileInfo').classList.remove('show');
-    document.getElementById('uploadButton').disabled = true;
-    document.getElementById('uploadProgress').classList.remove('show');
-}
-
-function formatFileSize(bytes) {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-}
-
-function simulateUploadProgress() {
-    const progressBar = document.getElementById('progressBar');
-    const uploadProgress = document.getElementById('uploadProgress');
-    
-    uploadProgress.classList.add('show');
-    progressBar.style.width = '0%';
-    
-    let width = 0;
-    const interval = setInterval(() => {
-        if (width >= 100) {
-            clearInterval(interval);
-        } else {
-            width += Math.random() * 10;
-            progressBar.style.width = Math.min(width, 100) + '%';
-        }
-    }, 100);
-}
-
-// Image preview functionality
-function previewImage(input) {
-    const preview = document.getElementById('profilePreview');
-    const file = input.files[0];
-    
-    if (file) {
-        const reader = new FileReader();
-        
-        reader.onload = function(e) {
-            preview.src = e.target.result;
-        }
-        
-        reader.readAsDataURL(file);
-    }
-}
 </script>
 
 <?php require_once 'footer.php'; ?>
