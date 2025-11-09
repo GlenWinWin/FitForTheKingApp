@@ -443,7 +443,7 @@ require_once 'config.php';
                 <?php if (isLoggedIn()): ?>
                     <a href="dashboard.php" class="nav-link"><i class="fas fa-home"></i> Dashboard</a>
                     <a href="devotion_today.php" class="nav-link"><i class="fas fa-bible"></i> Devotion</a>
-                    <a href="workouts.php" class="nav-link"><i class="fas fa-dumbbell"></i> Workouts</a>
+                    <a href="workout_day.php" class="nav-link"><i class="fas fa-dumbbell"></i> Workouts</a>
                     <a href="steps_calendar.php" class="nav-link"><i class="fas fa-walking"></i> Steps</a>
                     <a href="profile.php" class="nav-link"><i class="fas fa-user"></i> Profile</a>
                     
