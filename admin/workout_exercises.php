@@ -81,7 +81,121 @@ $sample_youtube_links = [
     "Plank" => "https://www.youtube.com/embed/pSHjTRCQxIw"
 ];
 ?>
+<style>
+    .simple-form .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
 
+    .simple-form .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .simple-form .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: var(--text);
+        font-size: 0.95rem;
+    }
+
+    .simple-form .form-input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--input-bg, var(--glass-bg));
+        color: var(--text);
+        font-size: 0.95rem;
+        transition: border-color 0.2s ease;
+        box-sizing: border-box;
+    }
+
+    .simple-form .form-input:focus {
+        outline: none;
+        border-color: var(--primary);
+    }
+
+    .simple-form .form-input::placeholder {
+        color: var(--light-text);
+        opacity: 0.7;
+    }
+
+    .simple-form .form-hint {
+        color: var(--light-text);
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+        line-height: 1.4;
+    }
+
+    .simple-form .form-actions {
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border-light);
+    }
+
+    .card {
+        background: var(--card-bg);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border);
+        margin-bottom: 1.5rem;
+    }
+
+    .card-header {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--border);
+        background: var(--glass-bg);
+    }
+
+    .card-title {
+        color: var(--accent);
+        margin: 0;
+        font-size: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .card-title i {
+        color: var(--primary);
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        border: 1px solid;
+        border-radius: var(--radius);
+        font-weight: 600;
+        font-size: 0.95rem;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .card-body {
+            padding: 1.25rem;
+        }
+        
+        .card-header {
+            padding: 1rem 1.25rem;
+        }
+        
+        .simple-form .form-row {
+            grid-template-columns: 1fr;
+            gap: 0;
+        }
+    }
+</style>
 <div class="card">
     <div class="card-header">
         <h1 class="card-title">Manage Exercises</h1>
@@ -111,55 +225,64 @@ $sample_youtube_links = [
 </div>
 
 <!-- Add New Exercise Form -->
+<!-- Add New Exercise Form -->
 <div class="card">
-    <h2 class="card-title">Add New Exercise</h2>
-    
-    <form method="POST">
-        <div class="form-group">
-            <label for="exercise_name">Exercise Name</label>
-            <input type="text" id="exercise_name" name="exercise_name" class="input" 
-                   placeholder="e.g., Barbell Squats, Push-ups, Dumbbell Rows" required>
-        </div>
-        
-        <div class="form-group">
-            <label for="youtube_link">YouTube Video Link</label>
-            <input type="text" id="youtube_link" name="youtube_link" class="input" 
-                   placeholder="https://www.youtube.com/embed/..." 
-                   list="sample-links">
-            <datalist id="sample-links">
-                <?php foreach ($sample_youtube_links as $name => $link): ?>
-                <option value="<?php echo $link; ?>"><?php echo $name; ?></option>
-                <?php endforeach; ?>
-            </datalist>
-            <small style="color: var(--light-text); margin-top: 0.5rem; display: block;">
-                Use YouTube embed links (format: https://www.youtube.com/embed/VIDEO_ID) or paste regular YouTube URLs
-            </small>
-        </div>
-        
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+    <div class="card-header">
+        <h2 class="card-title">
+            <i class="fas fa-plus-circle"></i>
+            Add New Exercise
+        </h2>
+    </div>
+    <div class="card-body">
+        <form method="POST" class="simple-form">
             <div class="form-group">
-                <label for="default_sets">Default Sets</label>
-                <input type="number" id="default_sets" name="default_sets" class="input" 
-                       min="1" max="10" value="3" required>
+                <label for="exercise_name" class="form-label">Exercise Name</label>
+                <input type="text" id="exercise_name" name="exercise_name" class="form-input" 
+                       placeholder="e.g., Barbell Squats, Push-ups, Dumbbell Rows" required>
             </div>
             
             <div class="form-group">
-                <label for="default_reps">Default Reps</label>
-                <input type="number" id="default_reps" name="default_reps" class="input" 
-                       min="1" max="50" value="10" required>
+                <label for="youtube_link" class="form-label">YouTube Video Link</label>
+                <input type="text" id="youtube_link" name="youtube_link" class="form-input" 
+                       placeholder="https://www.youtube.com/embed/..." 
+                       list="sample-links">
+                <datalist id="sample-links">
+                    <?php foreach ($sample_youtube_links as $name => $link): ?>
+                    <option value="<?php echo $link; ?>"><?php echo $name; ?></option>
+                    <?php endforeach; ?>
+                </datalist>
+                <div class="form-hint">
+                    Use YouTube embed links (format: https://www.youtube.com/embed/VIDEO_ID) or paste regular YouTube URLs
+                </div>
             </div>
-        </div>
-        
-        <div class="form-group">
-            <label for="notes">Exercise Notes (Optional)</label>
-            <textarea id="notes" name="notes" class="input" 
-                      rows="3" placeholder="Technique tips, variations, or instructions..."></textarea>
-        </div>
-        
-        <button type="submit" name="add_exercise" class="btn btn-primary">
-            <i class="fas fa-plus"></i> Add Exercise
-        </button>
-    </form>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="default_sets" class="form-label">Default Sets</label>
+                    <input type="number" id="default_sets" name="default_sets" class="form-input" 
+                           min="1" max="10" value="3" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="default_reps" class="form-label">Default Reps</label>
+                    <input type="number" id="default_reps" name="default_reps" class="form-input" 
+                           min="1" max="50" value="10" required>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="notes" class="form-label">Exercise Notes (Optional)</label>
+                <textarea id="notes" name="notes" class="form-input" 
+                          rows="3" placeholder="Technique tips, variations, or instructions..."></textarea>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" name="add_exercise" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Add Exercise
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 
 <!-- Existing Exercises -->
