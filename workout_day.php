@@ -61,147 +61,6 @@ foreach ($all_exercises as $exercises) {
         $last_workout_data[$exercise['id']] = $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
-
-// Handle workout completion - FIXED VERSION
-if ($_POST && isset($_POST['complete_workout'])) {
-    $completed_day_id = (int)$_POST['day_id'];
-    
-    // Debug: Check what we received
-    error_log("=== WORKOUT COMPLETION STARTED ===");
-    error_log("Day ID: " . $completed_day_id);
-    error_log("POST data: " . print_r($_POST, true));
-    
-    // Find the day
-    $completed_day = null;
-    foreach ($all_days as $day) {
-        if ($day['id'] == $completed_day_id) {
-            $completed_day = $day;
-            break;
-        }
-    }
-    
-    if (!$completed_day) {
-        error_log("ERROR: Day not found with ID: " . $completed_day_id);
-        echo "<script>alert('Error: Day not found.');</script>";
-    } else {
-        error_log("Found day: " . $completed_day['title']);
-        $completed_exercises = $all_exercises[$completed_day['day_order']] ?? [];
-        error_log("Exercises for this day: " . count($completed_exercises));
-        
-        // Check if we have any data to save
-        $has_data = false;
-        $saved_data = false;
-        
-        if (isset($_POST['sets']) && is_array($_POST['sets'])) {
-            error_log("Sets data found: " . count($_POST['sets']) . " exercises");
-            
-            foreach ($_POST['sets'] as $exercise_id => $sets) {
-                error_log("Processing exercise ID: " . $exercise_id);
-                error_log("Sets for this exercise: " . print_r($sets, true));
-                
-                foreach ($sets as $set_index => $set_data) {
-                    if (!empty($set_data['reps']) && $set_data['reps'] > 0) {
-                        $has_data = true;
-                        error_log("Found valid reps: " . $set_data['reps'] . " at set " . $set_index);
-                        break 2;
-                    }
-                }
-            }
-        }
-        
-        if (!$has_data) {
-            error_log("ERROR: No valid workout data found");
-            echo "<script>alert('Please enter at least one set of reps to complete your workout.');</script>";
-        } else {
-            error_log("Valid workout data found, proceeding to save...");
-            
-            // Save workout data
-            foreach ($completed_exercises as $exercise) {
-                $exercise_id = $exercise['id'];
-                
-                if (isset($_POST['sets'][$exercise_id]) && is_array($_POST['sets'][$exercise_id])) {
-                    $sets_data = $_POST['sets'][$exercise_id];
-                    
-                    // Check if this exercise has any reps data
-                    $has_exercise_data = false;
-                    foreach ($sets_data as $set_data) {
-                        if (!empty($set_data['reps']) && $set_data['reps'] > 0) {
-                            $has_exercise_data = true;
-                            break;
-                        }
-                    }
-                    
-                    if ($has_exercise_data) {
-                        try {
-                            error_log("Saving exercise: " . $exercise['exercise_name']);
-                            
-                            // Create workout log entry
-                            $log_query = "INSERT INTO workout_logs (user_id, plan_id, plan_day_id, exercise_id, completed_at) 
-                                         VALUES (?, ?, ?, ?, NOW())";
-                            $stmt = $db->prepare($log_query);
-                            $result = $stmt->execute([
-                                $user_id, 
-                                $user_plan['id'], 
-                                $completed_day_id, 
-                                $exercise_id
-                            ]);
-                            
-                            if ($result) {
-                                $log_id = $db->lastInsertId();
-                                error_log("Successfully created workout_log ID: " . $log_id);
-                                
-                                // Save each set
-                                $set_number = 1;
-                                foreach ($sets_data as $set_data) {
-                                    if (!empty($set_data['reps']) && $set_data['reps'] > 0) {
-                                        $weight = !empty($set_data['weight']) ? floatval($set_data['weight']) : null;
-                                        $reps = intval($set_data['reps']);
-                                        
-                                        $set_query = "INSERT INTO workout_log_sets (workout_log_id, set_number, reps, weight, unit) 
-                                                     VALUES (?, ?, ?, ?, ?)";
-                                        $stmt = $db->prepare($set_query);
-                                        $set_result = $stmt->execute([
-                                            $log_id, 
-                                            $set_number, 
-                                            $reps, 
-                                            $weight, 
-                                            'kg'
-                                        ]);
-                                        
-                                        if ($set_result) {
-                                            error_log("Saved set " . $set_number . ": " . $reps . " reps, " . $weight . " kg");
-                                        } else {
-                                            error_log("ERROR saving set " . $set_number);
-                                        }
-                                        
-                                        $set_number++;
-                                    }
-                                }
-                                $saved_data = true;
-                            } else {
-                                error_log("ERROR creating workout_log entry");
-                            }
-                            
-                        } catch (PDOException $e) {
-                            error_log("Database error: " . $e->getMessage());
-                        }
-                    }
-                }
-            }
-            
-            if ($saved_data) {
-                error_log("=== WORKOUT SAVED SUCCESSFULLY - REDIRECTING ===");
-                // Clear output buffer and redirect
-                ob_clean();
-                header("Location: dashboard.php?message=workout_completed");
-                exit();
-            } else {
-                error_log("ERROR: No data was actually saved to database");
-                echo "<script>alert('Error saving workout data. Please try again.');</script>";
-            }
-        }
-    }
-}
 ?>
 
 <style>
@@ -623,6 +482,13 @@ if ($_POST && isset($_POST['complete_workout'])) {
         box-shadow: 0 8px 25px rgba(26, 35, 126, 0.3);
     }
     
+    .complete-button:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+    
     /* Timer Modal */
     .timer-modal {
         display: none;
@@ -690,6 +556,53 @@ if ($_POST && isset($_POST['complete_workout'])) {
         font-family: 'Courier New', monospace;
         font-size: 1.1rem;
         font-weight: 700;
+    }
+    
+    /* Success Modal */
+    .success-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.95);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+        backdrop-filter: blur(10px);
+    }
+    
+    .success-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius);
+        padding: 3rem 2rem;
+        text-align: center;
+        max-width: 400px;
+        width: 90%;
+        box-shadow: var(--shadow-lg);
+        animation: successPop 0.5s ease;
+    }
+    
+    @keyframes successPop {
+        0% { transform: scale(0.8); opacity: 0; }
+        70% { transform: scale(1.05); }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    
+    .success-icon {
+        font-size: 4rem;
+        color: #4CAF50;
+        margin-bottom: 1.5rem;
+        animation: bounce 1s ease;
+    }
+    
+    @keyframes bounce {
+        0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+        40% {transform: translateY(-10px);}
+        60% {transform: translateY(-5px);}
     }
     
     /* Scroll hint for mobile */
@@ -787,6 +700,14 @@ if ($_POST && isset($_POST['complete_workout'])) {
             right: 10px;
             left: 10px;
             justify-content: space-between;
+        }
+        
+        .success-card {
+            padding: 2rem 1.5rem;
+        }
+        
+        .success-icon {
+            font-size: 3rem;
         }
     }
     
@@ -932,8 +853,8 @@ if ($_POST && isset($_POST['complete_workout'])) {
             </div>
         </div>
 
-        <!-- FIXED FORM STRUCTURE -->
-        <form method="POST" class="workout-form">
+        <!-- AJAX FORM FOR THIS DAY -->
+        <form class="workout-form" id="workout-form-<?php echo $day['day_order']; ?>" data-day-id="<?php echo $day['id']; ?>">
             <input type="hidden" name="day_id" value="<?php echo $day['id']; ?>">
             
             <!-- Exercise Cards -->
@@ -1040,7 +961,7 @@ if ($_POST && isset($_POST['complete_workout'])) {
             
             <!-- Completion Section -->
             <div class="completion-section">
-                <button type="submit" name="complete_workout" class="btn btn-primary complete-button">
+                <button type="submit" class="btn btn-primary complete-button" id="complete-button-<?php echo $day['day_order']; ?>">
                     <i class="fas fa-check-circle"></i> Complete Day <?php echo $day['day_order']; ?> Workout
                 </button>
                 <p style="margin-top: 1rem; color: var(--light-text); font-size: 0.9rem;">
@@ -1089,6 +1010,20 @@ if ($_POST && isset($_POST['complete_workout'])) {
                 <i class="fas fa-times"></i> Close
             </button>
         </div>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div class="success-modal" id="successModal">
+    <div class="success-card">
+        <div class="success-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <h3 style="margin: 0 0 1rem 0; color: var(--text);">Workout Completed!</h3>
+        <p style="margin: 0 0 2rem 0; color: var(--light-text);">Great job! Your workout has been saved successfully.</p>
+        <button id="successContinue" class="btn btn-primary" style="width: 100%;">
+            <i class="fas fa-tachometer-alt"></i> Continue to Dashboard
+        </button>
     </div>
 </div>
 
@@ -1355,9 +1290,17 @@ function showCompletionNotification() {
     }, 3000);
 }
 
-// FIXED FORM SUBMISSION HANDLING
+// AJAX WORKOUT SUBMISSION
 document.querySelectorAll('.workout-form').forEach(form => {
     form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Only process the active day's form
+        const activeDay = document.querySelector('.day-content.active');
+        if (!activeDay.contains(this)) {
+            return;
+        }
+        
         // Check if we have at least one rep value
         const repInputs = this.querySelectorAll('input[name*="[reps]"]');
         let hasData = false;
@@ -1369,20 +1312,123 @@ document.querySelectorAll('.workout-form').forEach(form => {
         });
         
         if (!hasData) {
-            e.preventDefault();
             alert('Please enter at least one set of reps to complete your workout.');
             return;
         }
         
-        // Show loading state
-        const submitBtn = this.querySelector('button[type="submit"]');
+        // Get form data
+        const formData = new FormData(this);
+        const dayId = this.getAttribute('data-day-id');
+        const submitBtn = this.querySelector('.complete-button');
         const originalText = submitBtn.innerHTML;
+        
+        // Show loading state
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving Workout...';
         submitBtn.disabled = true;
         
-        // Allow form to submit naturally
+        // Add additional data
+        formData.append('ajax_complete_workout', 'true');
+        formData.append('day_id', dayId);
+        
+        console.log('Sending AJAX request...');
+        
+        // Send AJAX request to separate file
+        fetch('ajax_save_workout.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            console.log('Response received:', response);
+            
+            // First check if response is OK
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            // Get the response text first to see what we're getting
+            return response.text().then(text => {
+                console.log('Raw response:', text);
+                
+                try {
+                    // Try to parse as JSON
+                    return JSON.parse(text);
+                } catch (e) {
+                    console.error('JSON parse error:', e);
+                    throw new Error('Server returned invalid JSON. Response: ' + text.substring(0, 100));
+                }
+            });
+        })
+        .then(data => {
+            console.log('Parsed data:', data);
+            
+            if (data.success) {
+                // Show success modal
+                showSuccessModal();
+            } else {
+                // Show error
+                alert(data.message || 'Error saving workout. Please try again.');
+                // Reset button
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        })
+        .catch(error => {
+            console.error('Fetch error:', error);
+            alert('Error saving workout: ' + error.message + '. Please try again.');
+            // Reset button
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        });
     });
 });
+
+// Success modal functionality
+function showSuccessModal() {
+    const modal = document.getElementById('successModal');
+    modal.style.display = 'flex';
+    
+    // Add confetti effect
+    createConfetti();
+}
+
+document.getElementById('successContinue').addEventListener('click', function() {
+    window.location.href = 'dashboard.php?message=workout_completed';
+});
+
+// Confetti effect for success
+function createConfetti() {
+    const colors = ['#4CAF50', '#2196F3', '#FF9800', '#E91E63', '#9C27B0'];
+    const container = document.body;
+    
+    for (let i = 0; i < 50; i++) {
+        const confetti = document.createElement('div');
+        confetti.style.cssText = `
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: ${colors[Math.floor(Math.random() * colors.length)]};
+            top: -10px;
+            left: ${Math.random() * 100}vw;
+            border-radius: 50%;
+            opacity: 0.8;
+            z-index: 1002;
+            pointer-events: none;
+        `;
+        
+        container.appendChild(confetti);
+        
+        // Animation
+        const animation = confetti.animate([
+            { transform: 'translateY(0) rotate(0deg)', opacity: 1 },
+            { transform: `translateY(${window.innerHeight}px) rotate(${360 + Math.random() * 360}deg)`, opacity: 0 }
+        ], {
+            duration: 1000 + Math.random() * 2000,
+            easing: 'cubic-bezier(0.1, 0.8, 0.2, 1)'
+        });
+        
+        animation.onfinish = () => confetti.remove();
+    }
+}
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
