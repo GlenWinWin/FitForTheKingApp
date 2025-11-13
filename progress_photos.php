@@ -17,11 +17,6 @@ $stmt = $db->prepare($photo_check_query);
 $stmt->execute([$user_id, $today]);
 $already_uploaded = $stmt->fetch(PDO::FETCH_ASSOC);
 
-if (!$is_friday && !$already_uploaded) {
-    echo "<script>window.location.href = 'dashboard.php';</script>";
-    exit();
-}
-
 // Handle photo upload
 if ($_POST && isset($_FILES['front_photo'])) {
     $upload_dir = 'uploads/progress_photos/' . $user_id . '/';

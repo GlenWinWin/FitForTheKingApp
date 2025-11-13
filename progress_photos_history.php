@@ -26,7 +26,7 @@ $photos = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <h1 class="card-title">Progress Photos History</h1>
         <a href="dashboard.php" class="btn btn-outline">
             <i class="fas fa-arrow-left"></i> Back to Dashboard
-        </a>
+        </a>    
     </div>
     <p style="color: var(--light-text);">
         Track your transformation journey through weekly progress photos.
@@ -49,7 +49,7 @@ $photos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <h2 class="card-title">
                     <?php echo date('F j, Y', strtotime($photo['photo_date'])); ?>
                     <?php if ($photo['photo_date'] == date('Y-m-d')): ?>
-                        <span class="badge" style="background: #4CAF50;">
+                        <span class="badge">
                             Today
                         </span>
                     <?php endif; ?>

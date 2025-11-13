@@ -60,7 +60,7 @@ $stmt->execute([$user_id]);
 $recent_photos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Get weekly stats for progress
-$week_start = date('Y-m-d', strtotime('monday this week'));
+$week_start = date('Y-m-d', strtotime('sunday this week'));
 $week_steps_query = "SELECT SUM(steps_count) as total_steps FROM steps 
                     WHERE user_id = ? AND entry_date >= ?";
 $stmt = $db->prepare($week_steps_query);
