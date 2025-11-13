@@ -11,6 +11,11 @@ $stmt = $db->prepare($users_count_query);
 $stmt->execute();
 $users_count = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
 
+$pending_users_query = "SELECT COUNT(*) as count FROM users WHERE role = 'user' AND is_accept = 0";
+$stmt = $db->prepare($pending_users_query);
+$stmt->execute();
+$pending_users_count = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
+
 $prayers_count_query = "SELECT COUNT(*) as count FROM prayers";
 $stmt = $db->prepare($prayers_count_query);
 $stmt->execute();
@@ -44,6 +49,16 @@ $workouts_count = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
     </div>
     
     <div class="card stat-card">
+        <div class="stat-number" style="color: <?php echo $pending_users_count > 0 ? 'var(--accent)' : 'inherit'; ?>">
+            <?php echo $pending_users_count; ?>
+        </div>
+        <div class="stat-label">Pending Users</div>
+        <a href="users.php?filter=pending" class="btn btn-outline" style="margin-top: 1rem; width: 100%;">
+            <i class="fas fa-user-clock"></i> Review Pending
+        </a>
+    </div>
+    
+    <div class="card stat-card">
         <div class="stat-number"><?php echo $prayers_count; ?></div>
         <div class="stat-label">Prayer Requests</div>
         <a href="../prayers_testimonials.php?tab=prayers" class="btn btn-outline" style="margin-top: 1rem; width: 100%;">
@@ -58,21 +73,18 @@ $workouts_count = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
             <i class="fas fa-heart"></i> View Testimonies
         </a>
     </div>
-    
-    <div class="card stat-card">
-        <div class="stat-number"><?php echo $workouts_count; ?></div>
-        <div class="stat-label">Workout Plans</div>
-        <a href="workout_plans.php" class="btn btn-outline" style="margin-top: 1rem; width: 100%;">
-            <i class="fas fa-dumbbell"></i> Manage Plans
-        </a>
-    </div>
 </div>
 
 <div class="grid grid-2">
     <div class="card">
         <h2 class="card-title">Quick Actions</h2>
         <div style="display: grid; gap: 1rem;">
-            <a href="workout_plans.php" class="btn btn-primary">
+            <?php if ($pending_users_count > 0): ?>
+            <a href="users.php?filter=pending" class="btn btn-primary">
+                <i class="fas fa-user-check"></i> Review Pending Users (<?php echo $pending_users_count; ?>)
+            </a>
+            <?php endif; ?>
+            <a href="workout_plans.php" class="btn btn-outline">
                 <i class="fas fa-plus"></i> Create Workout Plan
             </a>
             <a href="users.php" class="btn btn-outline">
@@ -86,9 +98,47 @@ $workouts_count = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
     
     <div class="card">
         <h2 class="card-title">Recent Activity</h2>
+        
+        <!-- Pending Users Section -->
+        <?php
+        // Get pending users
+        $pending_users_query = "SELECT name, email, created_at FROM users 
+                              WHERE role = 'user' AND is_accept = 0
+                              ORDER BY created_at DESC 
+                              LIMIT 5";
+        $stmt = $db->prepare($pending_users_query);
+        $stmt->execute();
+        $pending_users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        ?>
+        
+        <h3 style="color: var(--accent); margin-bottom: 1rem;">Pending User Approvals</h3>
+        <?php if ($pending_users): ?>
+            <div style="display: grid; gap: 0.5rem; margin-bottom: 2rem;">
+                <?php foreach ($pending_users as $user): ?>
+                <div style="display: flex; justify-content: space-between; align-items: center; 
+                           padding: 0.75rem; background: var(--glass-bg); border-radius: var(--radius);">
+                    <div>
+                        <div style="font-weight: 600;"><?php echo htmlspecialchars($user['name']); ?></div>
+                        <div style="font-size: 0.9rem; color: var(--light-text);">
+                            <?php echo date('M j, Y', strtotime($user['created_at'])); ?>
+                        </div>
+                    </div>
+                    <span style="color: var(--light-text); font-size: 0.9rem;">
+                        <?php echo htmlspecialchars($user['email']); ?>
+                    </span>
+                </div>
+                <?php endforeach; ?>
+            </div>
+        <?php else: ?>
+            <p style="text-align: center; color: var(--light-text); padding: 1rem;">
+                No pending users.
+            </p>
+        <?php endif; ?>
+        
+        <!-- Recent Users Section -->
         <?php
         // Get recent user registrations
-        $recent_users_query = "SELECT name, email, created_at FROM users 
+        $recent_users_query = "SELECT name, email, created_at, is_accept FROM users 
                               WHERE role = 'user' 
                               ORDER BY created_at DESC 
                               LIMIT 5";
@@ -97,20 +147,25 @@ $workouts_count = $stmt->fetch(PDO::FETCH_ASSOC)['count'];
         $recent_users = $stmt->fetchAll(PDO::FETCH_ASSOC);
         ?>
         
-        <h3 style="color: var(--accent); margin-bottom: 1rem;">New Users</h3>
+        <h3 style="color: var(--accent); margin-bottom: 1rem;">Recent Users</h3>
         <?php if ($recent_users): ?>
             <div style="display: grid; gap: 0.5rem;">
                 <?php foreach ($recent_users as $user): ?>
-                <div style="display: flex; justify-content: between; align-items: center; 
+                <div style="display: flex; justify-content: space-between; align-items: center; 
                            padding: 0.75rem; background: var(--glass-bg); border-radius: var(--radius);">
                     <div>
-                        <div style="font-weight: 600;"><?php echo $user['name']; ?></div>
+                        <div style="font-weight: 600;"><?php echo htmlspecialchars($user['name']); ?></div>
                         <div style="font-size: 0.9rem; color: var(--light-text);">
                             <?php echo date('M j, Y', strtotime($user['created_at'])); ?>
+                            <span style="margin-left: 0.5rem; padding: 0.2rem 0.5rem; border-radius: 1rem; 
+                                  background: <?php echo $user['is_accept'] ? 'var(--success)' : 'var(--accent)'; ?>; 
+                                  color: white; font-size: 0.8rem;">
+                                <?php echo $user['is_accept'] ? 'Approved' : 'Pending'; ?>
+                            </span>
                         </div>
                     </div>
                     <span style="color: var(--light-text); font-size: 0.9rem;">
-                        <?php echo $user['email']; ?>
+                        <?php echo htmlspecialchars($user['email']); ?>
                     </span>
                 </div>
                 <?php endforeach; ?>

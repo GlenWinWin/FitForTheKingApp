@@ -16,30 +16,35 @@ if ($_POST && isset($_POST['login'])) {
     $email = sanitize($_POST['email']);
     $password = $_POST['password'];
     
-    $user_query = "SELECT id, name, password_hash, role FROM users WHERE email = ?";
+    $user_query = "SELECT id, name, password_hash, role, is_accept FROM users WHERE email = ?";
     $stmt = $db->prepare($user_query);
     $stmt->execute([$email]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
     
     if ($user && password_verify($password, $user['password_hash'])) {
-        $_SESSION['user_id'] = $user['id'];
-        $_SESSION['user_name'] = $user['name'];
-        $_SESSION['user_role'] = $user['role'];
-        
-        // Get profile picture for session
-        $profile_query = "SELECT profile_picture FROM users WHERE id = ?";
-        $stmt = $db->prepare($profile_query);
-        $stmt->execute([$user['id']]);
-        $profile_data = $stmt->fetch(PDO::FETCH_ASSOC);
-        $_SESSION['user_profile_picture'] = $profile_data['profile_picture'];
-        
-        if($user['role'] == 'admin'){
-            echo "<script>window.location.href = 'admin/index.php';</script>";
+        // Check if user is approved (for regular users)
+        if ($user['role'] == 'user' && $user['is_accept'] == 0) {
+            $error = "Your account is pending admin approval. Please wait for approval to access the system.";
+        } else {
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['user_name'] = $user['name'];
+            $_SESSION['user_role'] = $user['role'];
+            
+            // Get profile picture for session
+            $profile_query = "SELECT profile_picture FROM users WHERE id = ?";
+            $stmt = $db->prepare($profile_query);
+            $stmt->execute([$user['id']]);
+            $profile_data = $stmt->fetch(PDO::FETCH_ASSOC);
+            $_SESSION['user_profile_picture'] = $profile_data['profile_picture'];
+            
+            if($user['role'] == 'admin'){
+                echo "<script>window.location.href = 'admin/index.php';</script>";
+            }
+            else{
+                echo "<script>window.location.href = 'dashboard.php';</script>";
+            }
+            exit();
         }
-        else{
-            echo "<script>window.location.href = 'dashboard.php';</script>";
-        }
-        exit();
     } else {
         $error = "Invalid email or password!";
     }
@@ -68,21 +73,14 @@ if ($_POST && isset($_POST['signup'])) {
         if ($stmt->fetch()) {
             $error = "Email already exists!";
         } else {
-            // Create user
+            // Create user with is_accept = 0 (pending approval)
             $password_hash = password_hash($password, PASSWORD_DEFAULT);
-            $insert_query = "INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)";
+            $insert_query = "INSERT INTO users (name, email, password_hash, is_accept) VALUES (?, ?, ?, 0)";
             $stmt = $db->prepare($insert_query);
             
             if ($stmt->execute([$name, $email, $password_hash])) {
-                $user_id = $db->lastInsertId();
-                
-                $_SESSION['user_id'] = $user_id;
-                $_SESSION['user_name'] = $name;
-                $_SESSION['user_role'] = 'user';
-                $_SESSION['user_profile_picture'] = null;
-                
-                echo "<script>window.location.href = 'dashboard.php';</script>";
-                exit();
+                $message = "Registration successful! Your account is pending admin approval. You will be notified once approved.";
+                $active_tab = 'signin'; // Switch to signin tab after successful registration
             } else {
                 $error = "Registration failed! Please try again.";
             }
@@ -94,6 +92,8 @@ if ($_POST && isset($_POST['signup'])) {
 $active_tab = 'signin';
 if ($error && isset($_POST['signup'])) {
     $active_tab = 'create';
+} elseif ($message && isset($_POST['signup'])) {
+    $active_tab = 'signin';
 }
 ?>
 
@@ -634,6 +634,12 @@ if ($error && isset($_POST['signup'])) {
             border-color: rgba(76, 175, 80, 0.2);
         }
 
+        .message.info {
+            background: rgba(33, 150, 243, 0.1);
+            color: #2196f3;
+            border-color: rgba(33, 150, 243, 0.2);
+        }
+
         @keyframes slideIn {
             from {
                 opacity: 0;
@@ -671,6 +677,23 @@ if ($error && isset($_POST['signup'])) {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 1rem;
+        }
+
+        /* Approval Notice */
+        .approval-notice {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            color: #ff9800;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            text-align: center;
+            font-weight: 500;
+            animation: slideIn 0.5s ease;
+        }
+
+        .approval-notice i {
+            margin-right: 0.5rem;
         }
 
         /* MOBILE RESPONSIVE */
@@ -796,7 +819,22 @@ if ($error && isset($_POST['signup'])) {
 
                 <?php if ($error): ?>
                 <div class="message error">
+                    <i class="fas fa-exclamation-circle"></i>
                     <?php echo $error; ?>
+                </div>
+                <?php endif; ?>
+
+                <?php if ($message): ?>
+                <div class="message success">
+                    <i class="fas fa-check-circle"></i>
+                    <?php echo $message; ?>
+                </div>
+                <?php endif; ?>
+
+                <?php if ($active_tab === 'create'): ?>
+                <div class="approval-notice">
+                    <i class="fas fa-clock"></i>
+                    Note: All new accounts require admin approval before accessing the system.
                 </div>
                 <?php endif; ?>
 
@@ -917,6 +955,12 @@ if ($error && isset($_POST['signup'])) {
                     t.panel.removeAttribute('hidden');
                     title.textContent = t.title;
                     subtitle.textContent = t.subtitle;
+                    
+                    // Show/hide approval notice
+                    const approvalNotice = document.querySelector('.approval-notice');
+                    if (approvalNotice) {
+                        approvalNotice.style.display = tabName === 'create' ? 'block' : 'none';
+                    }
                 } else {
                     t.panel.setAttribute('hidden', '');
                 }
@@ -932,6 +976,12 @@ if ($error && isset($_POST['signup'])) {
                     t.panel.removeAttribute('hidden');
                     title.textContent = t.title;
                     subtitle.textContent = t.subtitle;
+                    
+                    // Show/hide approval notice
+                    const approvalNotice = document.querySelector('.approval-notice');
+                    if (approvalNotice) {
+                        approvalNotice.style.display = i === 1 ? 'block' : 'none';
+                    }
                 } else {
                     t.panel.setAttribute('hidden', '');
                 }
