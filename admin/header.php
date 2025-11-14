@@ -493,7 +493,7 @@ requireAdmin();
     <header class="app-header">
         <div class="header-content">
             <a href="index.php" class="logo">
-                <img src="https://via.placeholder.com/40x40/1a237e/ffffff?text=FFK" alt="Fit for the King" class="logo-img">
+                <img src="logo/logo.png" alt="Fit for the King" class="logo-img">
                 <span>Fit for the King</span>
                 <span class="admin-badge">Admin</span>
             </a>

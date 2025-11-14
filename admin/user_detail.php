@@ -35,7 +35,148 @@ $recent_devotions->execute([$user_id]);
 $recent_workouts = $db->prepare("SELECT wl.completed_at, wp.name as plan_name FROM workout_logs wl LEFT JOIN workout_plans wp ON wl.plan_id = wp.id WHERE wl.user_id = ? ORDER BY wl.completed_at DESC LIMIT 5");
 $recent_workouts->execute([$user_id]);
 ?>
+<style>
+.progress-link-card {
+    display: flex;
+    align-items: center;
+    padding: 1.5rem;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    gap: 1rem;
+}
 
+.progress-link-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    text-decoration: none;
+    color: inherit;
+}
+
+.progress-link-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, var(--accent), var(--primary));
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.progress-link-content {
+    flex: 1;
+}
+
+.progress-link-content h3 {
+    margin: 0 0 0.5rem 0;
+    color: var(--text);
+    font-size: 1.1rem;
+}
+
+.progress-link-content p {
+    margin: 0;
+    color: var(--light-text);
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.progress-link-stats {
+    margin-top: 0.75rem;
+}
+
+.stat-badge {
+    background: rgba(var(--accent-rgb), 0.1);
+    color: var(--accent);
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.progress-link-arrow {
+    color: var(--light-text);
+    font-size: 1.1rem;
+    transition: transform 0.3s ease;
+}
+
+.progress-link-card:hover .progress-link-arrow {
+    transform: translateX(3px);
+    color: var(--accent);
+}
+
+@media (max-width: 768px) {
+    .grid.grid-3 {
+        grid-template-columns: 1fr;
+    }
+    
+    .progress-link-card {
+        padding: 1rem;
+    }
+    
+    .progress-link-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 1.2rem;
+    }
+}
+</style>
+<div class="card">
+    <h2 class="card-title">Detailed Progress Tracking</h2>
+    <div class="grid grid-3">
+        <a href="user_weight_history.php?id=<?php echo $user_id; ?>" class="card progress-link-card">
+            <div class="progress-link-icon">
+                <i class="fas fa-weight-scale"></i>
+            </div>
+            <div class="progress-link-content">
+                <h3>Weight History</h3>
+                <p>View detailed weight progress with charts and statistics</p>
+                <div class="progress-link-stats">
+                    <span class="stat-badge"><?php echo $stats['weight_entries']; ?> entries</span>
+                </div>
+            </div>
+            <div class="progress-link-arrow">
+                <i class="fas fa-chevron-right"></i>
+            </div>
+        </a>
+        
+        <a href="user_steps_calendar.php?id=<?php echo $user_id; ?>" class="card progress-link-card">
+            <div class="progress-link-icon">
+                <i class="fas fa-walking"></i>
+            </div>
+            <div class="progress-link-content">
+                <h3>Steps History</h3>
+                <p>Analyze daily steps and activity levels</p>
+                <div class="progress-link-stats">
+                    <span class="stat-badge"><?php echo $stats['steps_entries']; ?> entries</span>
+                </div>
+            </div>
+            <div class="progress-link-arrow">
+                <i class="fas fa-chevron-right"></i>
+            </div>
+        </a>
+        
+        <a href="user_progress_photos.php?id=<?php echo $user_id; ?>" class="card progress-link-card">
+            <div class="progress-link-icon">
+                <i class="fas fa-camera"></i>
+            </div>
+            <div class="progress-link-content">
+                <h3>Progress Photos</h3>
+                <p>View visual transformation with comparison tools</p>
+                <div class="progress-link-stats">
+                    <span class="stat-badge">Photo entries</span>
+                </div>
+            </div>
+            <div class="progress-link-arrow">
+                <i class="fas fa-chevron-right"></i>
+            </div>
+        </a>
+    </div>
+</div>
 <div class="card">
     <div class="card-header">
         <h1 class="card-title">User Progress: <?php echo $user['name']; ?></h1>
