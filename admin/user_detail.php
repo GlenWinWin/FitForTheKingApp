@@ -175,6 +175,22 @@ $recent_workouts->execute([$user_id]);
                 <i class="fas fa-chevron-right"></i>
             </div>
         </a>
+
+        <a href="user_workout_plans.php?id=<?php echo $user_id; ?>" class="card progress-link-card">
+            <div class="progress-link-icon">
+                <i class="fas fa-dumbbell"></i>
+            </div>
+            <div class="progress-link-content">
+                <h3>Workout Plans</h3>
+                <p>Assign and manage workout plans for this user</p>
+                <div class="progress-link-stats">
+                    <span class="stat-badge">Manage plans</span>
+                </div>
+            </div>
+            <div class="progress-link-arrow">
+                <i class="fas fa-chevron-right"></i>
+            </div>
+        </a>
     </div>
 </div>
 <div class="card">

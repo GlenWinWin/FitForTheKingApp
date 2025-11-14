@@ -1141,7 +1141,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const src = e.target.getAttribute('data-src');
             const date = e.target.getAttribute('data-date');
             
-            modalImage.src = src;
+            modalImage.src = '../'+src;
             modalDate.textContent = date;
             modal.style.display = 'block';
             document.body.style.overflow = 'hidden';
