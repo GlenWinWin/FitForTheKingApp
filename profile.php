@@ -230,6 +230,43 @@ $stats = $stmt->fetch(PDO::FETCH_ASSOC);
     background: rgba(var(--accent-rgb), 0.1);
 }
 
+.upload-progress {
+    display: none;
+    width: 100%;
+    margin: 1rem 0;
+    text-align: center;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+    width: 0%;
+}
+
+.progress-text {
+    font-size: 0.8rem;
+    color: var(--light-text);
+    margin-bottom: 0.5rem;
+}
+
+.compression-info {
+    font-size: 0.75rem;
+    color: var(--light-text);
+    margin-top: 0.5rem;
+    text-align: center;
+}
+
 .account-info {
     display: flex;
     flex-direction: column;
@@ -590,6 +627,12 @@ $stats = $stmt->fetch(PDO::FETCH_ASSOC);
     gap: 0.5rem;
 }
 
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
 /* Improved touch targets for mobile */
 @media (max-width: 479px) {
     .password-toggle,
@@ -628,7 +671,49 @@ $stats = $stmt->fetch(PDO::FETCH_ASSOC);
         transform: none;
     }
 }
+
+/* Loading animation */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 1s ease-in-out infinite;
+}
+
+/* Compression quality indicator */
+.quality-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    font-size: 0.75rem;
+    color: var(--light-text);
+}
+
+.quality-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    opacity: 0.3;
+}
+
+.quality-dot.active {
+    opacity: 1;
+}
 </style>
+
+<!-- Include browser-image-compression library -->
+<script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.min.js"></script>
 
 <!-- Premium Background -->
 <div class="premium-bg"></div>
@@ -667,16 +752,33 @@ $stats = $stmt->fetch(PDO::FETCH_ASSOC);
                 </p>
             </div>
             
+            <!-- Upload Progress -->
+            <div class="upload-progress" id="uploadProgress">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-text" id="progressText">Compressing image... 0%</div>
+                <div class="compression-info" id="compressionInfo"></div>
+            </div>
+            
             <form method="POST" enctype="multipart/form-data" class="profile-picture-upload" id="profilePictureForm">
                 <div class="form-group">
-                    <label for="profile_picture" class="upload-btn">
+                    <label for="profile_picture" class="upload-btn" id="uploadBtn">
                         <i class="fas fa-camera"></i> Choose New Picture
                     </label>
                     <input type="file" id="profile_picture" name="profile_picture" accept="image/jpeg,image/png,image/gif,image/webp" 
-                        style="display: none;" onchange="previewImage(this)">
+                        style="display: none;" onchange="handleImageUpload(this)">
                 </div>
                 
-                <button type="submit" class="btn btn-primary" style="width: 100%;" name="update_picture">
+                <div class="quality-indicator">
+                    <span>Quality:</span>
+                    <div class="quality-dot active" data-quality="0.8"></div>
+                    <div class="quality-dot" data-quality="0.6"></div>
+                    <div class="quality-dot" data-quality="0.4"></div>
+                    <small>Auto</small>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%;" name="update_picture" id="submitBtn" disabled>
                     <i class="fas fa-save"></i> Update Picture
                 </button>
             </form>
@@ -802,61 +904,173 @@ $stats = $stmt->fetch(PDO::FETCH_ASSOC);
 </div>
 
 <script>
-// Enhanced mobile-friendly image preview with better error handling
-function previewImage(input) {
-    const preview = document.getElementById('profilePreview');
+// Compression configuration
+const compressionOptions = {
+    maxSizeMB: 1, // Maximum size in MB
+    maxWidthOrHeight: 1024, // Maximum width or height
+    useWebWorker: true, // Use web worker for better performance
+    fileType: 'image/jpeg', // Output file type
+    initialQuality: 0.8, // Initial quality
+};
+
+let currentCompressionQuality = 0.8;
+
+// Initialize quality indicators
+document.addEventListener('DOMContentLoaded', function() {
+    const qualityDots = document.querySelectorAll('.quality-dot');
+    qualityDots.forEach(dot => {
+        dot.addEventListener('click', function() {
+            // Update active dot
+            qualityDots.forEach(d => d.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Update compression quality
+            currentCompressionQuality = parseFloat(this.dataset.quality);
+        });
+    });
+});
+
+// Enhanced image upload with compression
+async function handleImageUpload(input) {
     const file = input.files[0];
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    const preview = document.getElementById('profilePreview');
+    const uploadProgress = document.getElementById('uploadProgress');
+    const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progressText');
+    const compressionInfo = document.getElementById('compressionInfo');
+    const submitBtn = document.getElementById('submitBtn');
+    const uploadBtn = document.getElementById('uploadBtn');
     
-    if (file) {
-        // Check file size
-        if (file.size > maxSize) {
-            alert('File size must be less than 5MB');
-            input.value = '';
-            return;
-        }
-        
-        // Check file type
+    if (!file) return;
+
+    // Show upload progress
+    uploadProgress.style.display = 'block';
+    submitBtn.disabled = true;
+    uploadBtn.innerHTML = '<i class="fas fa-spinner loading-spinner"></i> Processing...';
+
+    try {
+        // Validate file type
         const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
         if (!validTypes.includes(file.type)) {
-            alert('Please select a valid image file (JPG, PNG, GIF, or WebP)');
-            input.value = '';
-            return;
+            throw new Error('Please select a valid image file (JPG, PNG, GIF, or WebP)');
         }
+
+        // Validate file size (max 10MB before compression)
+        const maxSizeBeforeCompression = 10 * 1024 * 1024;
+        if (file.size > maxSizeBeforeCompression) {
+            throw new Error('File size must be less than 10MB before compression');
+        }
+
+        // Update progress
+        updateProgress(10, 'Reading image...');
+
+        // Show original file info
+        const originalSize = (file.size / 1024 / 1024).toFixed(2);
+        compressionInfo.innerHTML = `Original: ${originalSize}MB`;
+
+        // Update compression options with current quality
+        const options = {
+            ...compressionOptions,
+            initialQuality: currentCompressionQuality,
+            onProgress: (progress) => {
+                const percent = Math.round(progress);
+                updateProgress(10 + percent * 0.8, `Compressing... ${percent}%`);
+            }
+        };
+
+        // Compress image
+        updateProgress(20, 'Starting compression...');
         
+        const compressedFile = await imageCompression(file, options);
+
+        // Update progress
+        updateProgress(95, 'Finalizing...');
+
+        // Show compression results
+        const compressedSize = (compressedFile.size / 1024 / 1024).toFixed(2);
+        const savings = ((1 - compressedFile.size / file.size) * 100).toFixed(1);
+        
+        compressionInfo.innerHTML = `
+            Original: ${originalSize}MB → Compressed: ${compressedSize}MB (${savings}% smaller)
+        `;
+
+        // Create preview
         const reader = new FileReader();
-        
         reader.onload = function(e) {
             preview.src = e.target.result;
-            // Add loading state
             preview.style.opacity = '0.7';
             setTimeout(() => {
                 preview.style.opacity = '1';
             }, 200);
-        }
+        };
+        reader.readAsDataURL(compressedFile);
+
+        // Replace the original file with compressed one
+        const compressedFileWithName = new File([compressedFile], file.name, {
+            type: compressedFile.type,
+            lastModified: new Date().getTime()
+        });
         
-        reader.onerror = function() {
-            alert('Error reading file. Please try another image.');
-            input.value = '';
-            preview.style.opacity = '1';
-        }
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(compressedFileWithName);
+        input.files = dataTransfer.files;
+
+        // Complete progress
+        updateProgress(100, 'Ready to upload!');
         
-        reader.readAsDataURL(file);
+        setTimeout(() => {
+            submitBtn.disabled = false;
+            uploadBtn.innerHTML = '<i class="fas fa-check"></i> Image Ready!';
+        }, 500);
+
+    } catch (error) {
+        console.error('Compression error:', error);
+        
+        // Show error state
+        progressFill.style.background = '#f44336';
+        progressText.innerHTML = `Error: ${error.message}`;
+        compressionInfo.innerHTML = 'Compression failed. Please try another image.';
+        submitBtn.disabled = true;
+        uploadBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Try Again';
+        
+        // Reset file input
+        input.value = '';
+        
+        // Hide progress after delay
+        setTimeout(() => {
+            uploadProgress.style.display = 'none';
+            uploadBtn.innerHTML = '<i class="fas fa-camera"></i> Choose New Picture';
+        }, 3000);
     }
 }
 
-// Enhanced form submission validation with mobile-friendly alerts
+// Progress update function
+function updateProgress(percent, text) {
+    const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progressText');
+    
+    progressFill.style.width = percent + '%';
+    progressText.innerHTML = text;
+}
+
+// Enhanced form submission validation
 document.getElementById('profilePictureForm').addEventListener('submit', function(e) {
     const fileInput = document.getElementById('profile_picture');
-    if (fileInput.files.length === 0) {
+    const submitBtn = document.getElementById('submitBtn');
+    
+    if (fileInput.files.length === 0 || submitBtn.disabled) {
         e.preventDefault();
-        alert('Please select a profile picture to upload.');
+        alert('Please wait for image processing to complete or select a valid image.');
         fileInput.closest('.form-group').style.animation = 'shake 0.5s ease-in-out';
         setTimeout(() => {
             fileInput.closest('.form-group').style.animation = '';
         }, 500);
         return false;
     }
+    
+    // Show uploading state
+    submitBtn.innerHTML = '<i class="fas fa-spinner loading-spinner"></i> Uploading...';
+    submitBtn.disabled = true;
 });
 
 // Enhanced password toggle functionality for mobile
@@ -906,7 +1120,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Enhanced file input click for mobile
     const fileInput = document.getElementById('profile_picture');
-    const uploadBtn = document.querySelector('.upload-btn');
+    const uploadBtn = document.getElementById('uploadBtn');
     
     if (uploadBtn && fileInput) {
         uploadBtn.addEventListener('touchstart', function(e) {
@@ -917,6 +1131,17 @@ document.addEventListener('DOMContentLoaded', function() {
             this.style.backgroundColor = '';
         });
     }
+});
+
+// Reset form state when page loads
+window.addEventListener('load', function() {
+    const uploadProgress = document.getElementById('uploadProgress');
+    const submitBtn = document.getElementById('submitBtn');
+    const uploadBtn = document.getElementById('uploadBtn');
+    
+    if (uploadProgress) uploadProgress.style.display = 'none';
+    if (submitBtn) submitBtn.disabled = true;
+    if (uploadBtn) uploadBtn.innerHTML = '<i class="fas fa-camera"></i> Choose New Picture';
 });
 
 // Prevent zoom on focus for iOS

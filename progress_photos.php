@@ -1,4 +1,6 @@
 <?php
+date_default_timezone_set("Asia/Hong_Kong");
+
 $pageTitle = "Progress Photos";
 require_once 'header.php';
 requireLogin();
@@ -104,6 +106,11 @@ if ($already_uploaded) {
 <div class="premium-bg"></div>
 <div class="particles-container" id="particles-container"></div>
 
+<!-- Add the missing orientation warning element -->
+<div class="orientation-warning">
+    <i class="fas fa-mobile-alt"></i> For best results, please use portrait orientation when taking progress photos.
+</div>
+
 <div class="card">
     <h1 class="card-title">Progress Photos</h1>
     
@@ -129,10 +136,13 @@ if ($already_uploaded) {
         <p class="info-text">
             <strong>Tip:</strong> Wear similar clothing each time and take photos in the same location with consistent lighting.
         </p>
+        <p class="info-text" style="font-size: 0.8rem; margin-top: 0.5rem;">
+            <i class="fas fa-info-circle"></i> Photos are automatically optimized for faster upload and storage.
+        </p>
     </div>
 </div>
 
-<form method="POST" enctype="multipart/form-data">
+<form method="POST" enctype="multipart/form-data" id="photoForm">
     <div class="photo-grid">
         <!-- Front View -->
         <div class="photo-card">
@@ -140,13 +150,14 @@ if ($already_uploaded) {
             <div class="photo-preview-container">
                 <img id="frontPreview" src="<?php echo $today_photos['front_photo'] ?? 'imgs/template.jpg'; ?>" 
                      alt="Front View" class="photo-preview">
+                <div class="compression-info" id="frontInfo"></div>
             </div>
             <div class="form-group">
                 <label for="front_photo" class="btn btn-outline photo-upload-btn">
                     <i class="fas fa-camera"></i> Upload Front Photo
                 </label>
                 <input type="file" id="front_photo" name="front_photo" accept="image/*" 
-                       class="file-input" onchange="previewImage(this, 'frontPreview')" <?php echo !$today_photos ? 'required' : ''; ?>>
+                       class="file-input" data-preview="frontPreview" data-info="frontInfo" <?php echo !$today_photos ? 'required' : ''; ?>>
             </div>
         </div>
 
@@ -156,13 +167,14 @@ if ($already_uploaded) {
             <div class="photo-preview-container">
                 <img id="sidePreview" src="<?php echo $today_photos['side_photo'] ?? 'imgs/template.jpg'; ?>" 
                      alt="Side View" class="photo-preview">
+                <div class="compression-info" id="sideInfo"></div>
             </div>
             <div class="form-group">
                 <label for="side_photo" class="btn btn-outline photo-upload-btn">
                     <i class="fas fa-camera"></i> Upload Side Photo
                 </label>
                 <input type="file" id="side_photo" name="side_photo" accept="image/*" 
-                       class="file-input" onchange="previewImage(this, 'sidePreview')" <?php echo !$today_photos ? 'required' : ''; ?>>
+                       class="file-input" data-preview="sidePreview" data-info="sideInfo" <?php echo !$today_photos ? 'required' : ''; ?>>
             </div>
         </div>
 
@@ -172,13 +184,14 @@ if ($already_uploaded) {
             <div class="photo-preview-container">
                 <img id="backPreview" src="<?php echo $today_photos['back_photo'] ?? 'imgs/template.jpg'; ?>" 
                      alt="Back View" class="photo-preview">
+                <div class="compression-info" id="backInfo"></div>
             </div>
             <div class="form-group">
                 <label for="back_photo" class="btn btn-outline photo-upload-btn">
                     <i class="fas fa-camera"></i> Upload Back Photo
                 </label>
                 <input type="file" id="back_photo" name="back_photo" accept="image/*" 
-                       class="file-input" onchange="previewImage(this, 'backPreview')" <?php echo !$today_photos ? 'required' : ''; ?>>
+                       class="file-input" data-preview="backPreview" data-info="backInfo" <?php echo !$today_photos ? 'required' : ''; ?>>
             </div>
         </div>
     </div>
@@ -188,13 +201,16 @@ if ($already_uploaded) {
             <a href="dashboard.php" class="btn btn-outline">
                 <i class="fas fa-arrow-left"></i> Back to Dashboard
             </a>
-            <button type="submit" class="btn btn-primary">
+            <button type="submit" class="btn btn-primary" id="submitBtn">
                 <i class="fas fa-save"></i> 
                 <?php echo $today_photos ? 'Update Photos' : 'Save Progress Photos'; ?>
             </button>
         </div>
     </div>
 </form>
+
+<!-- Include image compression library -->
+<script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
 
 <style>
 /* Mobile-first responsive styles for portrait photos */
@@ -295,6 +311,19 @@ if ($already_uploaded) {
     object-position: top; /* Focus on upper body for fitness photos */
 }
 
+.compression-info {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.7rem;
+    text-align: center;
+    display: none;
+}
+
 .photo-upload-btn {
     width: 100%;
     max-width: var(--photo-preview-width);
@@ -338,16 +367,14 @@ if ($already_uploaded) {
 
 .btn-outline {
     background: transparent;
+    border: 1px solid var(--border);
     color: var(--text);
 }
 
-.btn-primary {
-    color: white;
-}
-
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
 }
 
 .message {
@@ -367,6 +394,38 @@ if ($already_uploaded) {
     background: rgba(244, 67, 54, 0.2);
     border: 1px solid rgba(244, 67, 54, 0.5);
     color: #F44336;
+}
+
+.loading {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 1s ease-in-out infinite;
+    margin-right: 0.5rem;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Orientation warning styles */
+.orientation-warning {
+    display: none;
+    background: rgba(255, 193, 7, 0.2);
+    border: 1px solid rgba(255, 193, 7, 0.5);
+    color: #FFC107;
+    padding: 0.75rem 1rem;
+    border-radius: var(--border-radius);
+    margin-bottom: 1rem;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+.orientation-warning i {
+    margin-right: 0.5rem;
 }
 
 /* Portrait orientation helper */
@@ -450,56 +509,82 @@ if ($already_uploaded) {
 /* Landscape orientation warning */
 @media (max-height: 500px) and (orientation: landscape) {
     .orientation-warning {
-        display: block;
-        background: rgba(255, 193, 7, 0.2);
-        border: 1px solid rgba(255, 193, 7, 0.5);
-        color: #FFC107;
-        padding: 0.75rem 1rem;
-        border-radius: var(--border-radius);
-        margin-bottom: 1rem;
-        text-align: center;
-        font-size: 0.9rem;
+        display: block !important;
     }
-}
-
-.orientation-warning {
-    display: none;
 }
 </style>
 
 <script>
-function previewImage(input, previewId) {
-    const preview = document.getElementById(previewId);
-    const file = input.files[0];
-    
-    if (file) {
-        const reader = new FileReader();
-        
-        reader.onload = function(e) {
-            preview.src = e.target.result;
-            
-            // Auto-rotate portrait images if needed
-            const img = new Image();
-            img.onload = function() {
-                // If image is landscape but should be portrait, add a class
-                if (img.width > img.height) {
-                    preview.parentElement.classList.add('landscape-warning');
-                } else {
-                    preview.parentElement.classList.remove('landscape-warning');
-                }
-            };
-            img.src = e.target.result;
-        }
-        
-        reader.readAsDataURL(file);
-    }
-}
+// Image compression configuration
+const compressionOptions = {
+    maxSizeMB: 1, // Maximum file size in MB
+    maxWidthOrHeight: 1200, // Maximum width or height
+    useWebWorker: true, // Use web worker for better performance
+    fileType: 'image/jpeg', // Convert to JPEG for better compression
+    initialQuality: 0.8 // Initial quality (0.8 = 80%)
+};
 
-// Add touch-friendly improvements
+// Store compressed files
+const compressedFiles = {
+    front_photo: null,
+    side_photo: null,
+    back_photo: null
+};
+
+// Initialize file inputs
 document.addEventListener('DOMContentLoaded', function() {
-    // Make file inputs easier to tap on mobile
     const fileInputs = document.querySelectorAll('.file-input');
+    
     fileInputs.forEach(input => {
+        input.addEventListener('change', async function(e) {
+            const file = e.target.files[0];
+            const previewId = this.getAttribute('data-preview');
+            const infoId = this.getAttribute('data-info');
+            const fieldName = this.getAttribute('name');
+            
+            if (!file) return;
+            
+            // Show loading state
+            const infoElement = document.getElementById(infoId);
+            infoElement.textContent = 'Compressing...';
+            infoElement.style.display = 'block';
+            
+            try {
+                // Show original file size
+                const originalSize = (file.size / 1024 / 1024).toFixed(2);
+                
+                // Compress the image
+                const compressedFile = await imageCompression(file, compressionOptions);
+                
+                // Calculate compressed size
+                const compressedSize = (compressedFile.size / 1024 / 1024).toFixed(2);
+                const sizeReduction = ((1 - compressedFile.size / file.size) * 100).toFixed(1);
+                
+                // Store compressed file
+                compressedFiles[fieldName] = compressedFile;
+                
+                // Update preview
+                const preview = document.getElementById(previewId);
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    infoElement.textContent = `Reduced: ${originalSize}MB → ${compressedSize}MB (${sizeReduction}% smaller)`;
+                    infoElement.style.display = 'block';
+                };
+                reader.readAsDataURL(compressedFile);
+                
+            } catch (error) {
+                console.error('Compression error:', error);
+                infoElement.textContent = 'Compression failed, using original';
+                infoElement.style.display = 'block';
+                
+                // Fallback to original file
+                compressedFiles[fieldName] = file;
+                previewImage(this, previewId);
+            }
+        });
+        
+        // Make file inputs easier to tap on mobile
         input.addEventListener('touchstart', function(e) {
             e.stopPropagation();
         }, { passive: true });
@@ -517,19 +602,77 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Check orientation on load and resize
+    // Handle form submission with compressed files
+    const form = document.getElementById('photoForm');
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const submitBtn = document.getElementById('submitBtn');
+        const originalText = submitBtn.innerHTML;
+        
+        // Show loading state
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="loading"></span> Processing...';
+        
+        try {
+            // Replace original files with compressed ones
+            const formData = new FormData(form);
+            
+            for (const [fieldName, compressedFile] of Object.entries(compressedFiles)) {
+                if (compressedFile) {
+                    formData.set(fieldName, compressedFile, compressedFile.name);
+                }
+            }
+            
+            // Submit the form with compressed files
+            const response = await fetch('', {
+                method: 'POST',
+                body: formData
+            });
+            
+            // If we get here, the form was submitted successfully
+            window.location.reload();
+            
+        } catch (error) {
+            console.error('Upload error:', error);
+            alert('Error uploading photos. Please try again.');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+        }
+    });
+    
+    // Check orientation on load and resize with error handling
     function checkOrientation() {
         const warning = document.querySelector('.orientation-warning');
-        if (window.innerHeight < 500 && window.matchMedia("(orientation: landscape)").matches) {
-            warning.style.display = 'block';
-        } else {
-            warning.style.display = 'none';
+        if (warning) {
+            if (window.innerHeight < 500 && window.matchMedia("(orientation: landscape)").matches) {
+                warning.style.display = 'block';
+            } else {
+                warning.style.display = 'none';
+            }
         }
     }
     
-    window.addEventListener('resize', checkOrientation);
-    checkOrientation();
+    // Safe event listener with error handling
+    if (window.addEventListener) {
+        window.addEventListener('resize', checkOrientation);
+        checkOrientation();
+    }
 });
+
+// Fallback preview function
+function previewImage(input, previewId) {
+    const preview = document.getElementById(previewId);
+    const file = input.files[0];
+    
+    if (file && preview) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+}
 </script>
 
 <?php require_once 'footer.php'; ?>
