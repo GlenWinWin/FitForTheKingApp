@@ -112,56 +112,90 @@ $stats = $stmt->fetch(PDO::FETCH_ASSOC);
 ?>
 
 <style>
-/* Responsive Profile Styles */
+/* Enhanced Mobile-First Responsive Profile Styles */
 .profile-container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 1rem;
+    padding: 0.5rem;
 }
 
 .profile-header {
     text-align: center;
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
+    padding: 0 0.5rem;
 }
 
 .profile-grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 1.5rem;
-    margin-bottom: 2rem;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+@media (min-width: 480px) {
+    .profile-container {
+        padding: 1rem;
+    }
+    
+    .profile-grid {
+        gap: 1.25rem;
+    }
 }
 
 @media (min-width: 768px) {
     .profile-grid {
         grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
     }
 }
 
 .profile-card {
     background: var(--glass-bg);
     backdrop-filter: blur(10px);
-    border-radius: 16px;
-    padding: 1.5rem;
+    border-radius: 12px;
+    padding: 1.25rem;
     box-shadow: var(--shadow);
     border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@media (min-width: 480px) {
+    .profile-card {
+        border-radius: 16px;
+        padding: 1.5rem;
+    }
 }
 
 .profile-picture-container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.25rem;
 }
 
 .profile-picture-wrapper {
-    width: 150px;
-    height: 150px;
+    width: 120px;
+    height: 120px;
     border-radius: 50%;
     overflow: hidden;
     margin-bottom: 1rem;
-    border: 4px solid var(--accent);
+    border: 3px solid var(--accent);
     box-shadow: var(--shadow);
     position: relative;
+}
+
+@media (min-width: 375px) {
+    .profile-picture-wrapper {
+        width: 140px;
+        height: 140px;
+    }
+}
+
+@media (min-width: 480px) {
+    .profile-picture-wrapper {
+        width: 150px;
+        height: 150px;
+        border-width: 4px;
+    }
 }
 
 .profile-picture {
@@ -181,14 +215,15 @@ $stats = $stmt->fetch(PDO::FETCH_ASSOC);
     justify-content: center;
     gap: 0.5rem;
     width: 100%;
-    padding: 0.75rem 1rem;
+    padding: 0.875rem 1rem;
     background: transparent;
     border: 2px dashed var(--accent);
     border-radius: 8px;
     color: var(--accent);
     cursor: pointer;
     transition: all 0.3s ease;
-    margin-bottom: 1rem; /* Added space between buttons */
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
 }
 
 .upload-btn:hover {
@@ -198,86 +233,139 @@ $stats = $stmt->fetch(PDO::FETCH_ASSOC);
 .account-info {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    gap: 0.875rem;
 }
 
 .info-item {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
+    gap: 0.5rem;
     padding: 1rem;
     background: rgba(255, 255, 255, 0.05);
     border-radius: 8px;
 }
 
+@media (min-width: 480px) {
+    .info-item {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+    }
+}
+
 .info-label {
     font-weight: 600;
     color: var(--light-text);
+    font-size: 0.9rem;
 }
 
 .info-value {
     color: var(--text-color);
+    font-size: 0.95rem;
+    word-break: break-word;
 }
 
 .progress-section {
-    margin-top: 1.5rem;
+    margin-top: 1.25rem;
 }
 
 .progress-title {
     color: var(--accent);
     margin-bottom: 1rem;
     font-size: 1.1rem;
+    text-align: center;
+}
+
+@media (min-width: 480px) {
+    .progress-title {
+        text-align: left;
+    }
 }
 
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
+    gap: 0.875rem;
+}
+
+@media (min-width: 480px) {
+    .stats-grid {
+        gap: 1rem;
+    }
 }
 
 .stat-card {
     background: rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
+    border-radius: 10px;
     padding: 1rem;
     text-align: center;
     transition: transform 0.3s ease;
 }
 
 .stat-card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-3px);
 }
 
 .stat-number {
-    font-size: 1.8rem;
+    font-size: 1.5rem;
     font-weight: 700;
     color: var(--accent);
     margin-bottom: 0.5rem;
 }
 
+@media (min-width: 480px) {
+    .stat-number {
+        font-size: 1.8rem;
+    }
+}
+
 .stat-label {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: var(--light-text);
+}
+
+@media (min-width: 480px) {
+    .stat-label {
+        font-size: 0.9rem;
+    }
 }
 
 /* Updated Password Section Styles */
 .password-section {
-    margin-top: 2rem;
+    margin-top: 1.5rem;
 }
 
 .password-card {
     background: var(--glass-bg);
     backdrop-filter: blur(10px);
-    border-radius: 16px;
-    padding: 1.5rem;
+    border-radius: 12px;
+    padding: 1.25rem;
     box-shadow: var(--shadow);
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+@media (min-width: 480px) {
+    .password-card {
+        border-radius: 16px;
+        padding: 1.5rem;
+    }
+}
+
 .password-header {
     display: flex;
+    flex-direction: column;
     align-items: center;
     gap: 0.75rem;
     margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+@media (min-width: 480px) {
+    .password-header {
+        flex-direction: row;
+        text-align: left;
+    }
 }
 
 .password-icon {
@@ -289,12 +377,13 @@ $stats = $stmt->fetch(PDO::FETCH_ASSOC);
     align-items: center;
     justify-content: center;
     color: var(--accent);
+    flex-shrink: 0;
 }
 
 .password-form {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 1.25rem;
 }
 
 .password-input-group {
@@ -309,6 +398,7 @@ $stats = $stmt->fetch(PDO::FETCH_ASSOC);
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    font-size: 0.95rem;
 }
 
 .password-input-container {
@@ -326,6 +416,7 @@ $stats = $stmt->fetch(PDO::FETCH_ASSOC);
     color: var(--text-color);
     font-size: 1rem;
     transition: all 0.3s ease;
+    -webkit-appearance: none;
 }
 
 .password-input:focus {
@@ -347,6 +438,11 @@ $stats = $stmt->fetch(PDO::FETCH_ASSOC);
     padding: 0.25rem;
     border-radius: 4px;
     transition: all 0.2s ease;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .password-toggle:hover {
@@ -362,7 +458,7 @@ $stats = $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
 .requirements-title {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     font-weight: 600;
     color: var(--light-text);
     margin-bottom: 0.5rem;
@@ -372,7 +468,7 @@ $stats = $stmt->fetch(PDO::FETCH_ASSOC);
     list-style: none;
     padding: 0;
     margin: 0;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: var(--light-text);
 }
 
@@ -404,6 +500,7 @@ $stats = $stmt->fetch(PDO::FETCH_ASSOC);
     cursor: pointer;
     transition: all 0.3s ease;
     margin-top: 0.5rem;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .password-submit-btn:hover {
@@ -413,20 +510,30 @@ $stats = $stmt->fetch(PDO::FETCH_ASSOC);
 
 .account-actions {
     text-align: center;
-    padding: 2rem 1rem;
+    padding: 1.5rem 1rem;
+}
+
+@media (min-width: 480px) {
+    .account-actions {
+        padding: 2rem 1rem;
+    }
 }
 
 .logout-btn {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 0.5rem;
-    padding: 0.75rem 1.5rem;
+    padding: 0.875rem 1.5rem;
     background: transparent;
     border: 2px solid #f44336;
     border-radius: 8px;
     color: #f44336;
     text-decoration: none;
     transition: all 0.3s ease;
+    font-size: 0.95rem;
+    min-width: 140px;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .logout-btn:hover {
@@ -434,52 +541,14 @@ $stats = $stmt->fetch(PDO::FETCH_ASSOC);
     color: white;
 }
 
-/* Responsive adjustments */
-@media (max-width: 767px) {
-    .profile-container {
-        padding: 0.5rem;
-    }
-    
-    .profile-card {
-        padding: 1rem;
-    }
-    
-    .profile-picture-wrapper {
-        width: 120px;
-        height: 120px;
-    }
-    
-    .info-item {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.5rem;
-    }
-    
-    .stats-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .stat-number {
-        font-size: 1.5rem;
-    }
-    
-    .password-header {
-        flex-direction: column;
-        text-align: center;
-        gap: 0.5rem;
-    }
-    
-    .password-icon {
-        align-self: center;
-    }
-}
-
-/* Message styles */
+/* Enhanced Message styles for mobile */
 .message {
-    padding: 1rem;
+    padding: 0.875rem 1rem;
     border-radius: 8px;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.25rem;
     text-align: center;
+    font-size: 0.95rem;
+    line-height: 1.4;
 }
 
 .message.success {
@@ -492,6 +561,72 @@ $stats = $stmt->fetch(PDO::FETCH_ASSOC);
     background: rgba(244, 67, 54, 0.2);
     border: 1px solid rgba(244, 67, 54, 0.5);
     color: #f44336;
+}
+
+/* Card title adjustments */
+.card-title {
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+@media (min-width: 480px) {
+    .card-title {
+        font-size: 1.5rem;
+        text-align: left;
+    }
+}
+
+/* Button improvements for mobile */
+.btn {
+    padding: 0.875rem 1rem;
+    font-size: 0.95rem;
+    border-radius: 8px;
+    -webkit-tap-highlight-color: transparent;
+    min-height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+/* Improved touch targets for mobile */
+@media (max-width: 479px) {
+    .password-toggle,
+    .upload-btn,
+    .logout-btn {
+        min-height: 44px;
+    }
+    
+    .info-item {
+        padding: 0.875rem;
+    }
+    
+    .stat-card {
+        padding: 0.875rem;
+    }
+}
+
+/* Safe area insets for notched devices */
+@supports(padding: max(0px)) {
+    .profile-container {
+        padding-left: max(0.5rem, env(safe-area-inset-left));
+        padding-right: max(0.5rem, env(safe-area-inset-right));
+    }
+}
+
+/* Reduced motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+    .profile-card,
+    .stat-card,
+    .password-submit-btn,
+    .logout-btn {
+        transition: none;
+    }
+    
+    .stat-card:hover {
+        transform: none;
+    }
 }
 </style>
 
@@ -527,7 +662,7 @@ $stats = $stmt->fetch(PDO::FETCH_ASSOC);
                          src="<?php echo $user['profile_picture'] ?? 'imgs/profile.png'; ?>"
                          alt="Profile Picture">
                 </div>
-                <p style="color: var(--light-text); text-align: center; margin-bottom: 1.5rem;">
+                <p style="color: var(--light-text); text-align: center; margin-bottom: 1.25rem; font-size: 0.9rem; line-height: 1.4;">
                     Click below to upload a new profile picture
                 </p>
             </div>
@@ -655,7 +790,7 @@ $stats = $stmt->fetch(PDO::FETCH_ASSOC);
     <!-- Logout Section -->
     <div class="profile-card account-actions">
         <h2 class="card-title">Account Actions</h2>
-        <p style="color: var(--light-text); margin-bottom: 2rem;">
+        <p style="color: var(--light-text); margin-bottom: 1.5rem; font-size: 0.9rem; line-height: 1.4;">
             Ready to take a break? You can log out and come back anytime.
         </p>
         
@@ -667,8 +802,7 @@ $stats = $stmt->fetch(PDO::FETCH_ASSOC);
 </div>
 
 <script>
-// Image preview functionality
-// Enhanced image preview with validation
+// Enhanced mobile-friendly image preview with better error handling
 function previewImage(input) {
     const preview = document.getElementById('profilePreview');
     const file = input.files[0];
@@ -694,32 +828,54 @@ function previewImage(input) {
         
         reader.onload = function(e) {
             preview.src = e.target.result;
+            // Add loading state
+            preview.style.opacity = '0.7';
+            setTimeout(() => {
+                preview.style.opacity = '1';
+            }, 200);
         }
         
         reader.onerror = function() {
             alert('Error reading file. Please try another image.');
             input.value = '';
+            preview.style.opacity = '1';
         }
         
         reader.readAsDataURL(file);
     }
 }
 
-// Add form submission validation
+// Enhanced form submission validation with mobile-friendly alerts
 document.getElementById('profilePictureForm').addEventListener('submit', function(e) {
     const fileInput = document.getElementById('profile_picture');
     if (fileInput.files.length === 0) {
         e.preventDefault();
         alert('Please select a profile picture to upload.');
+        fileInput.closest('.form-group').style.animation = 'shake 0.5s ease-in-out';
+        setTimeout(() => {
+            fileInput.closest('.form-group').style.animation = '';
+        }, 500);
         return false;
     }
 });
 
-// Password toggle functionality
+// Enhanced password toggle functionality for mobile
 document.addEventListener('DOMContentLoaded', function() {
     const passwordToggles = document.querySelectorAll('.password-toggle');
     
     passwordToggles.forEach(toggle => {
+        // Add touch event for better mobile support
+        toggle.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            this.style.transform = 'translateY(-50%) scale(0.95)';
+        });
+        
+        toggle.addEventListener('touchend', function(e) {
+            e.preventDefault();
+            this.style.transform = 'translateY(-50%) scale(1)';
+            this.click();
+        });
+        
         toggle.addEventListener('click', function() {
             const targetId = this.getAttribute('data-target');
             const passwordInput = document.getElementById(targetId);
@@ -737,13 +893,38 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Password strength indicator (optional enhancement)
-    const newPasswordInput = document.getElementById('new_password');
-    if (newPasswordInput) {
-        newPasswordInput.addEventListener('input', function() {
-            // You can add password strength validation here
-            // This is a placeholder for future enhancement
+    // Add shake animation for form errors
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    // Enhanced file input click for mobile
+    const fileInput = document.getElementById('profile_picture');
+    const uploadBtn = document.querySelector('.upload-btn');
+    
+    if (uploadBtn && fileInput) {
+        uploadBtn.addEventListener('touchstart', function(e) {
+            this.style.backgroundColor = 'rgba(var(--accent-rgb), 0.1)';
         });
+        
+        uploadBtn.addEventListener('touchend', function(e) {
+            this.style.backgroundColor = '';
+        });
+    }
+});
+
+// Prevent zoom on focus for iOS
+document.addEventListener('DOMContentLoaded', function() {
+    let viewport = document.querySelector('meta[name="viewport"]');
+    
+    if (viewport) {
+        viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
     }
 });
 </script>

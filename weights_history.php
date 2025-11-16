@@ -158,10 +158,10 @@ $success_message = $_GET['message'] ?? '';
 <?php endif; ?>
 
 <div class="card">
-    <div class="card-header">
+    <div class="card-header mobile-card-header">
         <h1 class="card-title">Weight Progress</h1>
-        <a href="weights_add.php" class="btn btn-primary">
-            <i class="fas fa-plus"></i> Add Weight
+        <a href="weights_add.php" class="btn btn-primary mobile-btn">
+            <i class="fas fa-plus"></i> <span class="btn-text">Add Weight</span>
         </a>
     </div>
     
@@ -174,33 +174,33 @@ $success_message = $_GET['message'] ?? '';
         </div>
         
         <div id="dailyChart" class="chart-container">
-            <div id="weightChart" style="height: 300px; margin: 2rem 0;">
+            <div class="chart-wrapper">
                 <canvas id="chartCanvas"></canvas>
             </div>
         </div>
         
         <div id="weeklyChart" class="chart-container" style="display: none;">
-            <div id="weeklyWeightChart" style="height: 300px; margin: 2rem 0;">
+            <div class="chart-wrapper">
                 <canvas id="weeklyChartCanvas"></canvas>
             </div>
         </div>
         
         <div id="monthlyChart" class="chart-container" style="display: none;">
-            <div id="monthlyWeightChart" style="height: 300px; margin: 2rem 0;">
+            <div class="chart-wrapper">
                 <canvas id="monthlyChartCanvas"></canvas>
             </div>
         </div>
         
         <div id="yearlyChart" class="chart-container" style="display: none;">
-            <div id="yearlyWeightChart" style="height: 300px; margin: 2rem 0;">
+            <div class="chart-wrapper">
                 <canvas id="yearlyChartCanvas"></canvas>
             </div>
         </div>
     <?php else: ?>
-        <div style="text-align: center; padding: 3rem; color: var(--light-text);">
-            <i class="fas fa-weight-scale" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+        <div class="empty-state">
+            <i class="fas fa-weight-scale"></i>
             <p>No weight data yet. Start tracking to see your progress!</p>
-            <a href="weights_add.php" class="btn btn-primary" style="margin-top: 1rem;">
+            <a href="weights_add.php" class="btn btn-primary">
                 <i class="fas fa-plus"></i> Add First Weight Entry
             </a>
         </div>
@@ -211,23 +211,23 @@ $success_message = $_GET['message'] ?? '';
 <?php if ($weekly_data): ?>
 <div class="card">
     <h2 class="card-title">Weekly Averages (Sunday to Saturday)</h2>
-    <div style="display: grid; gap: 0.5rem;">
+    <div class="data-grid">
         <?php foreach ($weekly_data as $week): ?>
-        <div class="card" style="padding: 1rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <div style="font-weight: 600;">
+        <div class="data-card">
+            <div class="data-card-header">
+                <div class="data-card-info">
+                    <div class="data-card-title">
                         Week of <?php echo date('F j', strtotime($week['week_start'])); ?> - <?php echo date('j', strtotime($week['week_end'])); ?>
                     </div>
-                    <div style="font-size: 0.9rem; color: var(--light-text);">
+                    <div class="data-card-subtitle">
                         <?php echo date('M j', strtotime($week['week_start'])); ?> (Sun) - <?php echo date('M j, Y', strtotime($week['week_end'])); ?> (Sat)
                     </div>
                 </div>
-                <div style="font-weight: 700; color: var(--accent); font-size: 1.2rem;">
+                <div class="data-card-value">
                     <?php echo round($week['average'], 1); ?> kg
                 </div>
             </div>
-            <div style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--light-text);">
+            <div class="data-card-footer">
                 <?php echo count($week['weights']); ?> reading<?php echo count($week['weights']) > 1 ? 's' : ''; ?> this week
             </div>
         </div>
@@ -240,23 +240,23 @@ $success_message = $_GET['message'] ?? '';
 <?php if ($monthly_data): ?>
 <div class="card">
     <h2 class="card-title">Monthly Averages</h2>
-    <div style="display: grid; gap: 0.5rem;">
+    <div class="data-grid">
         <?php foreach ($monthly_data as $month): ?>
-        <div class="card" style="padding: 1rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <div style="font-weight: 600;">
+        <div class="data-card">
+            <div class="data-card-header">
+                <div class="data-card-info">
+                    <div class="data-card-title">
                         <?php echo date('F Y', strtotime($month['month_start'])); ?>
                     </div>
-                    <div style="font-size: 0.9rem; color: var(--light-text);">
+                    <div class="data-card-subtitle">
                         <?php echo date('M j', strtotime($month['month_start'])); ?> - <?php echo date('M j, Y', strtotime($month['month_end'])); ?>
                     </div>
                 </div>
-                <div style="font-weight: 700; color: var(--accent); font-size: 1.2rem;">
+                <div class="data-card-value">
                     <?php echo round($month['average'], 1); ?> kg
                 </div>
             </div>
-            <div style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--light-text);">
+            <div class="data-card-footer">
                 <?php echo count($month['weights']); ?> reading<?php echo count($month['weights']) > 1 ? 's' : ''; ?> this month
             </div>
         </div>
@@ -269,23 +269,23 @@ $success_message = $_GET['message'] ?? '';
 <?php if ($yearly_data): ?>
 <div class="card">
     <h2 class="card-title">Yearly Averages</h2>
-    <div style="display: grid; gap: 0.5rem;">
+    <div class="data-grid">
         <?php foreach ($yearly_data as $year): ?>
-        <div class="card" style="padding: 1rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <div style="font-weight: 600;">
+        <div class="data-card">
+            <div class="data-card-header">
+                <div class="data-card-info">
+                    <div class="data-card-title">
                         <?php echo date('Y', strtotime($year['year_start'])); ?>
                     </div>
-                    <div style="font-size: 0.9rem; color: var(--light-text);">
+                    <div class="data-card-subtitle">
                         <?php echo date('M j, Y', strtotime($year['year_start'])); ?> - <?php echo date('M j, Y', strtotime($year['year_end'])); ?>
                     </div>
                 </div>
-                <div style="font-weight: 700; color: var(--accent); font-size: 1.2rem;">
+                <div class="data-card-value">
                     <?php echo round($year['average'], 1); ?> kg
                 </div>
             </div>
-            <div style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--light-text);">
+            <div class="data-card-footer">
                 <?php echo count($year['weights']); ?> reading<?php echo count($year['weights']) > 1 ? 's' : ''; ?> this year
             </div>
         </div>
@@ -298,17 +298,17 @@ $success_message = $_GET['message'] ?? '';
     <h2 class="card-title">Daily Weight History</h2>
     
     <?php if ($weights): ?>
-        <div style="display: grid; gap: 0.5rem;">
+        <div class="data-grid">
             <?php foreach ($weights as $weight): ?>
-            <div class="card" style="padding: 1rem;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <div style="font-weight: 600;"><?php echo date('F j, Y', strtotime($weight['entry_date'])); ?></div>
-                        <div style="font-size: 0.9rem; color: var(--light-text);">
+            <div class="data-card">
+                <div class="data-card-header">
+                    <div class="data-card-info">
+                        <div class="data-card-title"><?php echo date('F j, Y', strtotime($weight['entry_date'])); ?></div>
+                        <div class="data-card-subtitle">
                             <?php echo date('l', strtotime($weight['entry_date'])); ?>
                         </div>
                     </div>
-                    <div style="font-weight: 700; color: var(--accent); font-size: 1.2rem;">
+                    <div class="data-card-value">
                         <?php echo $weight['weight_kg']; ?> kg
                     </div>
                 </div>
@@ -316,7 +316,7 @@ $success_message = $_GET['message'] ?? '';
             <?php endforeach; ?>
         </div>
     <?php else: ?>
-        <div style="text-align: center; padding: 2rem; color: var(--light-text);">
+        <div class="empty-state">
             <p>No weight entries yet. <a href="weights_add.php" class="btn btn-outline">Add your first weight entry</a>.</p>
         </div>
     <?php endif; ?>
@@ -383,7 +383,8 @@ $success_message = $_GET['message'] ?? '';
                         color: 'rgba(26, 35, 126, 0.1)'
                     },
                     ticks: {
-                        color: '#1a237e'
+                        color: '#1a237e',
+                        maxTicksLimit: 6
                     }
                 }
             }
@@ -455,7 +456,8 @@ $success_message = $_GET['message'] ?? '';
                         color: 'rgba(76, 175, 80, 0.1)'
                     },
                     ticks: {
-                        color: '#4caf50'
+                        color: '#4caf50',
+                        maxTicksLimit: 6
                     }
                 }
             }
@@ -526,7 +528,8 @@ $success_message = $_GET['message'] ?? '';
                         color: 'rgba(255, 152, 0, 0.1)'
                     },
                     ticks: {
-                        color: '#ff9800'
+                        color: '#ff9800',
+                        maxTicksLimit: 6
                     }
                 }
             }
@@ -597,7 +600,8 @@ $success_message = $_GET['message'] ?? '';
                         color: 'rgba(156, 39, 176, 0.1)'
                     },
                     ticks: {
-                        color: '#9c27b0'
+                        color: '#9c27b0',
+                        maxTicksLimit: 6
                     }
                 }
             }
@@ -624,28 +628,41 @@ $success_message = $_GET['message'] ?? '';
             }
         });
     }
+    
+    // Handle window resize for charts
+    window.addEventListener('resize', function() {
+        weightChart.resize();
+        weeklyWeightChart.resize();
+        monthlyWeightChart.resize();
+        yearlyWeightChart.resize();
+    });
 </script>
 
 <style>
+/* Mobile-first responsive styles */
 .chart-tabs {
     display: flex;
     border-bottom: 2px solid var(--border-color);
     margin-bottom: 1rem;
     flex-wrap: wrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .tab-btn {
     background: none;
     border: none;
-    padding: 0.75rem 1.5rem;
+    padding: 0.75rem 1rem;
     cursor: pointer;
     color: var(--light-text);
     font-weight: 600;
     border-bottom: 3px solid transparent;
     transition: all 0.3s ease;
     flex: 1;
-    min-width: 80px;
+    min-width: 70px;
     text-align: center;
+    white-space: nowrap;
+    font-size: 0.9rem;
 }
 
 .tab-btn.active {
@@ -662,14 +679,191 @@ $success_message = $_GET['message'] ?? '';
     transition: all 0.3s ease;
 }
 
-@media (max-width: 768px) {
-    .chart-tabs {
+.chart-wrapper {
+    height: 300px;
+    margin: 1rem 0;
+    position: relative;
+}
+
+.data-grid {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.data-card {
+    padding: 1rem;
+    border-radius: 8px;
+    background: var(--card-bg);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.data-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.data-card-info {
+    flex: 1;
+    min-width: 0; /* Prevent flex item from overflowing */
+}
+
+.data-card-title {
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+    word-break: break-word;
+}
+
+.data-card-subtitle {
+    font-size: 0.85rem;
+    color: var(--light-text);
+    line-height: 1.3;
+}
+
+.data-card-value {
+    font-weight: 700;
+    color: var(--accent);
+    font-size: 1.1rem;
+    white-space: nowrap;
+}
+
+.data-card-footer {
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--light-text);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: var(--light-text);
+}
+
+.empty-state i {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.empty-state p {
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+}
+
+.mobile-card-header {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.mobile-btn {
+    width: 100%;
+    justify-content: center;
+}
+
+.btn-text {
+    margin-left: 0.5rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+    .card {
+        margin: 0.5rem;
+        padding: 1rem;
+    }
+    
+    .card-title {
+        font-size: 1.3rem;
+    }
+    
+    .data-card-header {
         flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .data-card-value {
+        align-self: flex-start;
+    }
+    
+    .chart-wrapper {
+        height: 250px;
     }
     
     .tab-btn {
-        flex: none;
-        text-align: left;
+        padding: 0.6rem 0.8rem;
+        font-size: 0.85rem;
+        min-width: 60px;
+    }
+    
+    .mobile-card-header {
+        align-items: stretch;
+    }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+    .mobile-card-header {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .mobile-btn {
+        width: auto;
+    }
+    
+    .data-card-header {
+        flex-direction: row;
+        align-items: center;
+    }
+}
+
+@media (min-width: 769px) {
+    .mobile-card-header {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .mobile-btn {
+        width: auto;
+    }
+}
+
+/* Improve touch targets for mobile */
+.btn, .tab-btn {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Prevent horizontal scrolling on mobile */
+body {
+    overflow-x: hidden;
+}
+
+/* Improve readability on small screens */
+@media (max-width: 360px) {
+    .data-card-title {
+        font-size: 0.95rem;
+    }
+    
+    .data-card-subtitle {
+        font-size: 0.8rem;
+    }
+    
+    .data-card-value {
+        font-size: 1rem;
+    }
+    
+    .tab-btn {
+        padding: 0.5rem 0.6rem;
+        font-size: 0.8rem;
+        min-width: 55px;
     }
 }
 </style>

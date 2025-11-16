@@ -384,6 +384,7 @@ $dates = array_column($photos, 'photo_date');
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
+    min-height: 80px;
 }
 
 .view-tab::before {
@@ -483,6 +484,7 @@ $dates = array_column($photos, 'photo_date');
     font-size: 0.9rem;
 }
 
+/* Improved Date Selector Styles */
 /* Improved Date Selector Styles */
 .date-selector-group {
     display: grid;
@@ -592,22 +594,163 @@ $dates = array_column($photos, 'photo_date');
     background-repeat: no-repeat;
     background-position: right 1rem center;
     background-size: 1rem;
+    min-height: 44px;
+    font-weight: 500;
 }
 
 .date-select:focus {
     outline: none;
     border-color: var(--accent);
     box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.1);
+    background-color: rgba(var(--accent-rgb), 0.02);
 }
 
-.comparison-arrow {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding-top: 2rem;
-    color: var(--accent);
-    font-size: 1.5rem;
-    animation: pulse 2s infinite;
+/* Custom select option styling */
+.date-select option {
+    padding: 0.75rem;
+    background: var(--bg-color);
+    color: var(--text);
+    font-size: 0.9rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.date-select option:first-child {
+    color: var(--light-text);
+    font-style: italic;
+}
+
+.date-select option:checked {
+    background: linear-gradient(135deg, var(--accent), var(--primary));
+    color: white;
+    font-weight: 600;
+}
+
+/* Modern select dropdown styling */
+.date-select:hover {
+    border-color: var(--accent);
+    background-color: rgba(var(--accent-rgb), 0.02);
+}
+
+.date-select:active {
+    transform: scale(0.98);
+}
+
+/* Selected state styling */
+.date-select:valid {
+    border-color: var(--accent);
+    background-color: rgba(var(--accent-rgb), 0.05);
+    font-weight: 600;
+}
+
+.date-select:invalid {
+    color: var(--light-text);
+}
+
+/* Mobile optimizations for date selectors */
+@media (max-width: 480px) {
+    .date-selector-group {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .date-selector {
+        padding: 1.25rem;
+    }
+    
+    .date-header {
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .date-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
+    
+    .date-label {
+        font-size: 0.95rem;
+    }
+    
+    .date-subtitle {
+        font-size: 0.75rem;
+    }
+    
+    .date-select {
+        padding: 0.75rem;
+        font-size: 0.85rem;
+        background-position: right 0.75rem center;
+    }
+    
+    /* Prevent zoom on iOS */
+    select.date-select {
+        font-size: 16px;
+    }
+}
+
+/* Extra small devices */
+@media (max-width: 360px) {
+    .date-selector {
+        padding: 1rem;
+    }
+    
+    .date-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 0.9rem;
+    }
+    
+    .date-select {
+        padding: 0.675rem 0.75rem;
+        font-size: 0.8rem;
+    }
+}
+
+/* Touch device improvements */
+@media (hover: none) and (pointer: coarse) {
+    .date-select {
+        min-height: 44px;
+    }
+    
+    .date-selector:hover {
+        transform: none;
+        border-color: var(--border);
+    }
+    
+    .date-selector:focus-within {
+        border-color: var(--accent);
+        transform: none;
+    }
+}
+
+/* Enhanced focus states for accessibility */
+.date-select:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+/* Loading state */
+.date-select:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background-color: rgba(var(--light-text-rgb), 0.1);
+}
+
+/* Success state when date is selected */
+.date-select.valid {
+    border-color: #4CAF50;
+    background-color: rgba(76, 175, 80, 0.05);
+}
+
+/* Comparison arrow mobile adjustment */
+@media (max-width: 480px) {
+    .comparison-arrow {
+        padding: 0.5rem 0;
+        transform: rotate(90deg);
+        font-size: 1.25rem;
+    }
 }
 
 @keyframes pulse {
@@ -631,6 +774,7 @@ $dates = array_column($photos, 'photo_date');
     gap: 0.5rem;
     border-radius: 10px;
     transition: all 0.3s ease;
+    min-height: 44px;
 }
 
 .comparison-btn:hover {
@@ -645,6 +789,7 @@ $dates = array_column($photos, 'photo_date');
     gap: 0.5rem;
     border-radius: 10px;
     transition: all 0.3s ease;
+    min-height: 44px;
 }
 
 .reset-btn:hover {
@@ -707,6 +852,7 @@ $dates = array_column($photos, 'photo_date');
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    min-height: 44px;
 }
 
 .tab-button:hover {
@@ -930,21 +1076,64 @@ $dates = array_column($photos, 'photo_date');
     flex-wrap: wrap;
 }
 
-/* Mobile responsive styles */
-@media (max-width: 768px) {
-    .mobile-hidden {
-        display: none;
+/* ==================== */
+/* MOBILE RESPONSIVE STYLES */
+/* ==================== */
+
+/* Enhanced Mobile Responsive Styles */
+@media (max-width: 480px) {
+    /* Base card adjustments */
+    .card {
+        margin: 0.5rem;
+        padding: 1rem;
+        border-radius: 12px;
     }
     
-    /* Date Selector Mobile */
+    /* Header improvements */
+    .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+    
+    .card-header > div {
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    /* Photo cards mobile optimization */
+    .photo-card,
+    .single-photo-card {
+        padding: 1rem;
+        margin: 0.5rem 0;
+    }
+    
+    .photo-card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .photo-date {
+        font-size: 1rem;
+        flex-wrap: wrap;
+    }
+    
+    .photo-days-ago {
+        font-size: 0.8rem;
+    }
+    
+    /* Single photo container */
+    .single-photo-container {
+        max-width: 100%;
+        margin: 0 auto;
+    }
+    
+    /* Date selector mobile optimization */
     .date-selector-group {
         grid-template-columns: 1fr;
         gap: 1rem;
-    }
-    
-    .comparison-arrow {
-        padding: 1rem 0;
-        transform: rotate(90deg);
+        margin-bottom: 1.5rem;
     }
     
     .date-selector {
@@ -953,15 +1142,37 @@ $dates = array_column($photos, 'photo_date');
     
     .date-header {
         gap: 0.75rem;
+        margin-bottom: 0.75rem;
     }
     
     .date-icon {
         width: 40px;
         height: 40px;
         font-size: 1rem;
+        flex-shrink: 0;
     }
     
-    /* Comparison Mobile */
+    .date-label {
+        font-size: 0.95rem;
+    }
+    
+    .date-subtitle {
+        font-size: 0.75rem;
+    }
+    
+    .date-select {
+        padding: 0.75rem;
+        font-size: 0.85rem;
+    }
+    
+    /* Comparison arrow rotation for mobile */
+    .comparison-arrow {
+        padding: 0.5rem 0;
+        transform: rotate(90deg);
+        font-size: 1.25rem;
+    }
+    
+    /* Comparison results mobile */
     .comparison-content {
         grid-template-columns: 1fr;
         gap: 1.5rem;
@@ -970,34 +1181,352 @@ $dates = array_column($photos, 'photo_date');
     .results-header {
         flex-direction: column;
         align-items: flex-start;
+        gap: 0.75rem;
     }
     
+    .time-difference {
+        font-size: 0.8rem;
+        padding: 0.375rem 0.75rem;
+    }
+    
+    /* Comparison actions mobile */
     .comparison-actions {
         flex-direction: column;
         width: 100%;
+        gap: 0.75rem;
     }
     
     .comparison-btn,
     .reset-btn {
         width: 100%;
         justify-content: center;
+        padding: 0.875rem 1rem;
     }
     
-    /* Tabs Mobile */
+    /* Tabs mobile optimization */
+    .view-tabs-container {
+        padding: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
     .view-tabs {
         grid-template-columns: 1fr;
         gap: 0.5rem;
     }
     
     .view-tab {
-        padding: 1rem 0.5rem;
+        padding: 1rem 0.75rem;
         flex-direction: row;
-        justify-content: center;
+        justify-content: flex-start;
         gap: 1rem;
+        border-radius: 10px;
+        min-height: 60px;
+    }
+    
+    .tab-icon {
+        width: 24px;
+        height: 24px;
+        font-size: 1rem;
+        flex-shrink: 0;
     }
     
     .tab-text {
         font-size: 0.9rem;
+        font-weight: 600;
+    }
+    
+    /* Comparison tabs mobile */
+    .comparison-tabs {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        padding-bottom: 0.5rem;
+        margin-bottom: 1rem;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .tab-button {
+        padding: 0.75rem 1rem;
+        white-space: nowrap;
+        font-size: 0.8rem;
+        flex-shrink: 0;
+    }
+    
+    /* Modal mobile optimization */
+    .modal-content {
+        margin: 5% auto;
+        width: 95%;
+        max-width: none;
+        border-radius: 8px;
+    }
+    
+    .modal-body {
+        padding: 1rem;
+    }
+    
+    .modal-header {
+        padding: 1rem;
+    }
+    
+    .modal-header h3 {
+        font-size: 1.1rem;
+    }
+    
+    .close-modal {
+        font-size: 1.5rem;
+        padding: 0.25rem;
+    }
+    
+    /* Empty state mobile */
+    .empty-state {
+        padding: 2rem 1rem;
+    }
+    
+    .empty-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+    
+    .empty-state h3 {
+        font-size: 1.25rem;
+    }
+    
+    .empty-state p {
+        font-size: 0.9rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .empty-actions {
+        flex-direction: column;
+        width: 100%;
+        gap: 0.75rem;
+    }
+    
+    .empty-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    /* View labels */
+    .view-label.large {
+        font-size: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    /* Notes section */
+    .photo-notes {
+        padding-top: 0.75rem;
+        margin-top: 0.75rem;
+    }
+    
+    .notes-label {
+        font-size: 0.85rem;
+    }
+    
+    .notes-content {
+        font-size: 0.8rem;
+        line-height: 1.4;
+    }
+}
+
+/* Extra small devices (iPhone 5/SE - 320px and below) */
+@media (max-width: 360px) {
+    .card {
+        margin: 0.25rem;
+        padding: 0.75rem;
+    }
+    
+    .photo-card,
+    .single-photo-card {
+        padding: 0.75rem;
+        margin: 0.25rem 0;
+    }
+    
+    .photo-date {
+        font-size: 0.9rem;
+    }
+    
+    .photo-days-ago {
+        font-size: 0.75rem;
+    }
+    
+    .date-selector {
+        padding: 1rem;
+    }
+    
+    .date-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 0.9rem;
+    }
+    
+    .comparison-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+    
+    .comparison-title {
+        font-size: 1.1rem;
+    }
+    
+    .view-tab {
+        padding: 0.875rem 0.5rem;
+        gap: 0.75rem;
+    }
+    
+    .tab-icon {
+        width: 22px;
+        height: 22px;
+        font-size: 0.9rem;
+    }
+    
+    .tab-text {
+        font-size: 0.85rem;
+    }
+    
+    /* Button adjustments for very small screens */
+    .btn {
+        padding: 0.75rem 1rem;
+        font-size: 0.85rem;
+    }
+    
+    .btn-sm {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8rem;
+    }
+    
+    /* Modal for very small screens */
+    .modal-content {
+        margin: 2% auto;
+        width: 98%;
+    }
+    
+    .modal-body {
+        padding: 0.5rem;
+    }
+    
+    .modal-header {
+        padding: 0.75rem;
+    }
+    
+    .modal-header h3 {
+        font-size: 1rem;
+    }
+}
+
+/* iPhone 12 Pro specific optimization (390px width) */
+@media (max-width: 390px) and (min-width: 361px) {
+    .card {
+        margin: 0.5rem;
+        padding: 1rem;
+    }
+    
+    .single-photo-container {
+        max-width: 340px;
+    }
+    
+    .view-tab {
+        padding: 1rem 0.5rem;
+    }
+}
+
+/* Touch device improvements */
+@media (hover: none) and (pointer: coarse) {
+    /* Increase tap targets for mobile */
+    .view-tab,
+    .tab-button,
+    .btn,
+    .date-select {
+        min-height: 44px;
+    }
+    
+    .single-progress-photo,
+    .comparison-photo {
+        cursor: default;
+    }
+    
+    /* Remove hover effects on touch devices */
+    .view-tab:hover {
+        transform: none;
+        border-color: transparent;
+    }
+    
+    .view-tab.active:hover {
+        border-color: rgba(var(--accent-rgb), 0.3);
+    }
+    
+    .single-photo-container:hover {
+        transform: none;
+    }
+    
+    .date-selector:hover {
+        transform: none;
+        border-color: var(--border);
+    }
+    
+    .date-selector:focus-within {
+        border-color: var(--accent);
+        transform: none;
+    }
+}
+
+/* Prevent zoom on input focus for iOS */
+@media (max-width: 480px) {
+    select.date-select {
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+}
+
+/* Safe area insets for notched devices */
+@supports (padding: max(0px)) {
+    @media (max-width: 480px) {
+        .card {
+            padding-left: max(1rem, env(safe-area-inset-left));
+            padding-right: max(1rem, env(safe-area-inset-right));
+        }
+        
+        .modal-content {
+            margin-left: max(0.5rem, env(safe-area-inset-left));
+            margin-right: max(0.5rem, env(safe-area-inset-right));
+        }
+        
+        .empty-actions {
+            padding-bottom: max(1rem, env(safe-area-inset-bottom));
+        }
+    }
+}
+
+/* High DPI screen optimizations */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .single-progress-photo,
+    .comparison-photo {
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: crisp-edges;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .view-tab,
+    .single-photo-container,
+    .date-selector,
+    .comparison-image,
+    .photo-card,
+    .single-photo-card,
+    .btn {
+        transition: none;
+        animation: none;
+    }
+    
+    .comparison-arrow {
+        animation: none;
+    }
+}
+
+/* Mobile responsive styles */
+@media (max-width: 768px) {
+    .mobile-hidden {
+        display: none;
     }
     
     /* Photo Cards Mobile */
@@ -1377,6 +1906,25 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     `;
     document.head.appendChild(style);
+
+    // Better touch handling for mobile
+    if ('ontouchstart' in window) {
+        document.body.classList.add('touch-device');
+    }
+    
+    // Prevent double-tap zoom on buttons
+    const interactiveElements = document.querySelectorAll('.btn, .view-tab, .tab-button');
+    interactiveElements.forEach(element => {
+        element.addEventListener('touchstart', function() {
+            // Add active state
+            this.style.transform = 'scale(0.98)';
+        });
+        
+        element.addEventListener('touchend', function() {
+            // Remove active state
+            this.style.transform = '';
+        });
+    });
 });
 </script>
 

@@ -765,6 +765,28 @@ if ($error && isset($_POST['signup'])) {
                 padding: 16px 18px;
             }
         }
+
+        @media (max-width: 768px) {
+            .left {
+                display: none;
+            }
+            
+            .title {
+                font-size: 36px;
+            }
+
+            .benefits {
+                gap: 18px;
+            }
+
+            .benefit {
+                padding: 16px 20px;
+            }
+
+            .name-fields {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>

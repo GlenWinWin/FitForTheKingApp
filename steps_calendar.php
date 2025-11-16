@@ -688,6 +688,350 @@ $next_month = date('Y-m', strtotime($current_month . ' +1 month'));
 .calendar-day:hover:not(.empty) {
     background: var(--glass-bg-hover);
 }
+
+/* Enhanced Mobile Responsiveness */
+@media (max-width: 768px) {
+    .calendar-header-compact {
+        flex-direction: column;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        padding: 1rem 0.5rem;
+    }
+    
+    .calendar-nav-section {
+        width: 100%;
+        justify-content: space-between;
+        order: 1;
+    }
+    
+    .calendar-stats-section {
+        width: 100%;
+        justify-content: center;
+        order: 2;
+    }
+    
+    .month-display {
+        font-size: 1.3rem;
+        text-align: center;
+    }
+    
+    .month-steps-total {
+        font-size: 0.9rem;
+        padding: 0.75rem 1.25rem;
+        text-align: center;
+        width: 100%;
+        max-width: 200px;
+    }
+    
+    .nav-arrow {
+        width: 2.5rem;
+        height: 2.5rem;
+        flex-shrink: 0;
+    }
+    
+    .calendar-container {
+        padding: 0.75rem;
+        border-radius: var(--radius);
+        margin: 0;
+        border: 1px solid var(--glass-border);
+    }
+    
+    .calendar-days-header {
+        gap: 0.2rem;
+        margin-bottom: 0.5rem;
+        min-width: 100%;
+    }
+    
+    .day-header {
+        padding: 0.5rem 0;
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+    
+    .calendar-grid {
+        gap: 0.2rem;
+        min-width: 100%;
+    }
+    
+    .calendar-day {
+        padding: 0.4rem 0.2rem;
+        border-radius: 6px;
+        min-height: 45px;
+        aspect-ratio: 1;
+    }
+    
+    .day-number {
+        font-size: 0.75rem;
+        margin-bottom: 0.1rem;
+        font-weight: 600;
+    }
+    
+    .steps-indicator, .no-steps {
+        font-size: 0.65rem;
+        line-height: 1;
+    }
+    
+    .steps-form {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+    
+    .stat-card {
+        padding: 1.25rem 1rem;
+        border-radius: 10px;
+    }
+    
+    .stat-number {
+        font-size: 1.5rem;
+    }
+    
+    .stat-icon {
+        font-size: 1.25rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Improve card spacing on mobile */
+    .card {
+        margin-bottom: 1rem;
+        border-radius: 12px;
+    }
+    
+    .card-header {
+        padding: 1rem 1rem 0.5rem;
+    }
+    
+    .add-steps-form {
+        padding: 0.5rem 1rem 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .calendar-header-compact {
+        padding: 0.75rem 0.25rem;
+        gap: 0.75rem;
+    }
+    
+    .calendar-container {
+        padding: 0.5rem;
+        border-radius: 10px;
+    }
+    
+    .calendar-days-header {
+        gap: 0.15rem;
+    }
+    
+    .day-header {
+        padding: 0.4rem 0;
+        font-size: 0.7rem;
+    }
+    
+    .calendar-grid {
+        gap: 0.15rem;
+    }
+    
+    .calendar-day {
+        padding: 0.3rem 0.1rem;
+        min-height: 40px;
+        border-radius: 5px;
+    }
+    
+    .day-number {
+        font-size: 0.7rem;
+    }
+    
+    .steps-indicator, .no-steps {
+        font-size: 0.6rem;
+    }
+    
+    .month-display {
+        font-size: 1.1rem;
+    }
+    
+    .month-steps-total {
+        font-size: 0.8rem;
+        padding: 0.6rem 1rem;
+        max-width: 180px;
+    }
+    
+    .nav-arrow {
+        width: 2.25rem;
+        height: 2.25rem;
+    }
+    
+    .nav-arrow i {
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 390px) { /* iPhone 12 Pro and similar */
+    .calendar-header-compact {
+        padding: 0.5rem 0.25rem;
+        gap: 0.5rem;
+    }
+    
+    .calendar-container {
+        padding: 0.4rem;
+        border-radius: 8px;
+    }
+    
+    .calendar-days-header {
+        gap: 0.1rem;
+        margin-bottom: 0.4rem;
+    }
+    
+    .day-header {
+        padding: 0.35rem 0;
+        font-size: 0.65rem;
+    }
+    
+    .calendar-grid {
+        gap: 0.1rem;
+    }
+    
+    .calendar-day {
+        padding: 0.25rem 0.1rem;
+        min-height: 38px;
+        border-radius: 4px;
+    }
+    
+    .day-number {
+        font-size: 0.65rem;
+        margin-bottom: 0.05rem;
+    }
+    
+    .steps-indicator, .no-steps {
+        font-size: 0.55rem;
+    }
+    
+    .month-display {
+        font-size: 1rem;
+    }
+    
+    .month-steps-total {
+        font-size: 0.75rem;
+        padding: 0.5rem 0.75rem;
+        max-width: 160px;
+    }
+    
+    .nav-arrow {
+        width: 2rem;
+        height: 2rem;
+    }
+    
+    .nav-arrow i {
+        font-size: 0.8rem;
+    }
+    
+    /* Adjust form inputs for very small screens */
+    .form-input {
+        padding: 0.6rem 0.8rem;
+        font-size: 0.9rem;
+    }
+    
+    .btn-full {
+        padding: 0.6rem 1rem;
+        font-size: 0.9rem;
+    }
+    
+    .stat-card {
+        padding: 1rem 0.75rem;
+    }
+    
+    .stat-number {
+        font-size: 1.3rem;
+    }
+    
+    .stat-icon {
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 320px) { /* Very small devices */
+    .calendar-day {
+        min-height: 35px;
+    }
+    
+    .day-number {
+        font-size: 0.6rem;
+    }
+    
+    .steps-indicator, .no-steps {
+        font-size: 0.5rem;
+    }
+    
+    .month-display {
+        font-size: 0.9rem;
+    }
+    
+    .month-steps-total {
+        font-size: 0.7rem;
+        padding: 0.4rem 0.6rem;
+        max-width: 140px;
+    }
+    
+    .nav-arrow {
+        width: 1.75rem;
+        height: 1.75rem;
+    }
+}
+
+/* Enhanced touch interactions for mobile */
+@media (max-width: 768px) {
+    .nav-arrow {
+        cursor: pointer;
+    }
+    
+    .calendar-day {
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+    }
+    
+    .form-input, .btn-full {
+        -webkit-appearance: none;
+        border-radius: 8px;
+    }
+}
+
+/* Prevent horizontal scrolling issues */
+.calendar-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+}
+
+.calendar-container::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Edge */
+}
+
+/* Ensure calendar grid doesn't break on very small screens */
+.calendar-grid {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.calendar-days-header {
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+/* Improve loading performance */
+.calendar-day {
+    will-change: transform;
+}
+
+/* Better focus states for accessibility */
+@media (max-width: 768px) {
+    .nav-arrow:focus,
+    .calendar-day:focus,
+    .form-input:focus,
+    .btn-full:focus {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+    }
+}
 </style>
 
 <?php require_once 'footer.php'; ?>

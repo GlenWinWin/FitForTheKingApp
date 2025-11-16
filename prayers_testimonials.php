@@ -69,16 +69,16 @@ if ($_POST && isset($_POST['comment_testimonial'])) {
     background: var(--glass-bg);
     backdrop-filter: blur(10px);
     border: 1px solid var(--glass-border);
-    border-radius: 20px;
-    margin-bottom: 2rem;
+    border-radius: 16px;
+    margin-bottom: 1.5rem;
     overflow: hidden;
     transition: all 0.3s ease;
     position: relative;
 }
 
 .prayer-testimonial-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
 }
 
 .prayer-testimonial-card::before {
@@ -87,21 +87,21 @@ if ($_POST && isset($_POST['comment_testimonial'])) {
     top: 0;
     left: 0;
     right: 0;
-    height: 4px;
+    height: 3px;
     background: linear-gradient(90deg, var(--accent), var(--secondary));
 }
 
 .card-header {
-    padding: 1.5rem 1.5rem 1rem;
+    padding: 1.25rem 1.25rem 0.75rem;
     border-bottom: 1px solid var(--border-light);
 }
 
 .card-body {
-    padding: 1.5rem;
+    padding: 1.25rem;
 }
 
 .card-footer {
-    padding: 1.5rem;
+    padding: 1.25rem;
     background: rgba(255,255,255,0.03);
     border-top: 1px solid var(--border-light);
 }
@@ -109,9 +109,9 @@ if ($_POST && isset($_POST['comment_testimonial'])) {
 .meta-info {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 0.75rem;
     color: var(--light-text);
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     margin-bottom: 0.5rem;
     flex-wrap: wrap;
 }
@@ -123,32 +123,34 @@ if ($_POST && isset($_POST['comment_testimonial'])) {
 .category-badge {
     background: linear-gradient(135deg, var(--accent), var(--secondary));
     color: white;
-    padding: 0.3rem 1rem;
-    border-radius: 20px;
-    font-size: 0.75rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.7rem;
     font-weight: 600;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
 }
 
 .interaction-bar {
     display: flex;
     align-items: center;
-    gap: 1.5rem;
+    gap: 1rem;
     margin-top: 1rem;
 }
 
 .like-btn, .comment-btn {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1.25rem;
-    border-radius: 25px;
+    gap: 0.4rem;
+    padding: 0.6rem 1rem;
+    border-radius: 20px;
     transition: all 0.3s ease;
     text-decoration: none;
     border: none;
     cursor: pointer;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     font-weight: 600;
+    flex: 1;
+    justify-content: center;
 }
 
 .like-btn {
@@ -161,7 +163,7 @@ if ($_POST && isset($_POST['comment_testimonial'])) {
     background: var(--accent);
     color: white;
     transform: scale(1.05);
-    box-shadow: 0 5px 15px rgba(var(--accent-rgb), 0.3);
+    box-shadow: 0 4px 12px rgba(var(--accent-rgb), 0.3);
 }
 
 .comment-btn {
@@ -174,21 +176,52 @@ if ($_POST && isset($_POST['comment_testimonial'])) {
     background: var(--secondary);
     color: white;
     transform: scale(1.05);
-    box-shadow: 0 5px 15px rgba(var(--secondary-rgb), 0.3);
+    box-shadow: 0 4px 12px rgba(var(--secondary-rgb), 0.3);
+}
+
+/* Updated Stats Display */
+.stats-display {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding: 0.75rem;
+    background: rgba(255,255,255,0.03);
+    border-radius: 12px;
+    border: 1px solid var(--border-light);
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--light-text);
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.stat-item i {
+    color: var(--accent);
+    font-size: 0.9rem;
+}
+
+.stat-count {
+    color: var(--text);
+    font-weight: 700;
 }
 
 .comments-section {
-    margin-top: 2rem;
-    padding-top: 2rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
     border-top: 1px solid var(--border-light);
 }
 
 .comment-card {
     background: rgba(255,255,255,0.05);
-    border-radius: 16px;
-    padding: 1.25rem;
-    margin-bottom: 1rem;
-    border-left: 4px solid var(--accent);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    border-left: 3px solid var(--accent);
     transition: all 0.3s ease;
     position: relative;
     animation: slideInUp 0.3s ease;
@@ -196,37 +229,37 @@ if ($_POST && isset($_POST['comment_testimonial'])) {
 
 .comment-card:hover {
     background: rgba(255,255,255,0.08);
-    transform: translateX(5px);
+    transform: translateX(3px);
 }
 
 .comment-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.5rem;
 }
 
 .comment-author {
     color: var(--accent);
     font-weight: 600;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
 }
 
 .comment-time {
     color: var(--light-text);
-    font-size: 0.8rem;
-    margin-top: 0.25rem;
+    font-size: 0.75rem;
+    margin-top: 0.2rem;
 }
 
 .comment-actions {
     display: flex;
-    gap: 0.5rem;
+    gap: 0.4rem;
 }
 
 .comment-text {
     margin: 0;
-    line-height: 1.6;
-    font-size: 0.95rem;
+    line-height: 1.5;
+    font-size: 0.9rem;
     color: var(--text);
 }
 
@@ -237,15 +270,16 @@ if ($_POST && isset($_POST['comment_testimonial'])) {
 
 .comment-input-container textarea {
     width: 100%;
-    border-radius: 16px;
+    border-radius: 12px;
     resize: vertical;
-    padding: 1.5rem 1rem 3.5rem 1rem;
+    padding: 1rem 1rem 4rem 1rem;
     border: 2px solid var(--border-light);
     background: var(--glass-bg);
-    font-size: 1rem;
+    font-size: 0.95rem;
     transition: all 0.3s ease;
-    line-height: 1.5;
+    line-height: 1.4;
     box-sizing: border-box;
+    min-height: 100px;
 }
 
 .comment-input-container textarea:focus {
@@ -258,17 +292,18 @@ if ($_POST && isset($_POST['comment_testimonial'])) {
 .comment-input-container textarea::placeholder {
     color: var(--light-text);
     opacity: 0.7;
+    font-size: 0.9rem;
 }
 
 .empty-state {
     text-align: center;
-    padding: 4rem 2rem;
+    padding: 3rem 1.5rem;
     color: var(--light-text);
 }
 
 .empty-state i {
-    font-size: 4rem;
-    margin-bottom: 1.5rem;
+    font-size: 3rem;
+    margin-bottom: 1.25rem;
     opacity: 0.5;
 }
 
@@ -276,14 +311,16 @@ if ($_POST && isset($_POST['comment_testimonial'])) {
     color: var(--text);
     margin-bottom: 1rem;
     font-weight: 700;
+    font-size: 1.3rem;
 }
 
 .empty-state p {
     margin-bottom: 2rem;
-    max-width: 400px;
+    max-width: 100%;
     margin-left: auto;
     margin-right: auto;
-    line-height: 1.6;
+    line-height: 1.5;
+    font-size: 0.95rem;
 }
 
 .tab-content {
@@ -291,8 +328,8 @@ if ($_POST && isset($_POST['comment_testimonial'])) {
 }
 
 .content-text {
-    line-height: 1.7;
-    font-size: 1.05rem;
+    line-height: 1.6;
+    font-size: 0.95rem;
     color: var(--text);
     white-space: pre-line;
 }
@@ -300,13 +337,13 @@ if ($_POST && isset($_POST['comment_testimonial'])) {
 .btn-icon {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.4rem;
     transition: all 0.3s ease;
 }
 
 .comment-avatar {
-    width: 36px;
-    height: 36px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     background: linear-gradient(135deg, var(--accent), var(--secondary));
     display: flex;
@@ -314,46 +351,47 @@ if ($_POST && isset($_POST['comment_testimonial'])) {
     justify-content: center;
     color: white;
     font-weight: bold;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     flex-shrink: 0;
 }
 
 .no-comments {
     text-align: center;
-    padding: 2.5rem;
+    padding: 2rem 1.5rem;
     color: var(--light-text);
     background: rgba(255,255,255,0.03);
-    border-radius: 16px;
-    margin-bottom: 2rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
     border: 2px dashed var(--border-light);
 }
 
 .comment-tips {
     background: linear-gradient(135deg, rgba(var(--accent-rgb), 0.1), rgba(var(--secondary-rgb), 0.1));
-    padding: 1.25rem;
-    border-radius: 16px;
-    border-left: 4px solid var(--accent);
-    margin-top: 1.5rem;
+    padding: 1rem;
+    border-radius: 12px;
+    border-left: 3px solid var(--accent);
+    margin-top: 1.25rem;
 }
 
 .comment-input-actions {
     position: absolute;
     bottom: 1rem;
     right: 1rem;
+    left: 1rem;
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 0.75rem;
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
+    from { opacity: 0; transform: translateY(15px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes slideInUp {
     from {
         opacity: 0;
-        transform: translateY(20px);
+        transform: translateY(15px);
     }
     to {
         opacity: 1;
@@ -361,36 +399,284 @@ if ($_POST && isset($_POST['comment_testimonial'])) {
     }
 }
 
-/* Responsive design */
-@media (max-width: 768px) {
-    .comment-input-actions {
-        position: static !important;
-        margin-top: 1rem;
-        justify-content: space-between;
+/* Enhanced Mobile Responsive Design */
+@media (max-width: 480px) {
+    .card {
+        margin: 0.5rem;
+        border-radius: 12px;
+    }
+    
+    .tabs {
         flex-direction: column;
-        gap: 1rem;
+        gap: 0.5rem;
+        padding: 0.75rem;
+        border-radius: 12px;
+        margin-bottom: 1.5rem;
+    }
+    
+    .tabs a {
+        flex: none;
+        padding: 0.875rem;
+        font-size: 0.95rem;
+        border-radius: 10px;
+    }
+    
+    .prayer-testimonial-card {
+        margin-bottom: 1.25rem;
+        border-radius: 14px;
+    }
+    
+    .card-header {
+        padding: 1rem 1rem 0.5rem;
+    }
+    
+    .card-header h3 {
+        font-size: 1.2rem !important;
+        margin-bottom: 0.4rem !important;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+    
+    .card-footer {
+        padding: 1rem;
+    }
+    
+    .meta-info {
+        gap: 0.5rem;
+        font-size: 0.75rem;
+    }
+    
+    .interaction-bar {
+        gap: 0.75rem;
+        margin-top: 0.75rem;
+    }
+    
+    .like-btn, .comment-btn {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8rem;
+        border-radius: 16px;
+    }
+    
+    /* Updated Stats Display for Mobile */
+    .stats-display {
+        flex-direction: column;
+        gap: 0.75rem;
+        padding: 0.875rem;
+        margin-top: 0.875rem;
+    }
+    
+    .stat-item {
+        justify-content: center;
+        width: 100%;
+        padding: 0.5rem;
+        background: rgba(255,255,255,0.02);
+        border-radius: 8px;
+    }
+    
+    .comments-section {
+        margin-top: 1.25rem;
+        padding-top: 1.25rem;
+    }
+    
+    .comments-section h4 {
+        font-size: 1rem !important;
+        margin-bottom: 1rem !important;
+    }
+    
+    .comment-count {
+        padding: 0.2rem 0.6rem !important;
+        font-size: 0.7rem !important;
+    }
+    
+    .comment-card {
+        padding: 0.875rem;
+        border-radius: 10px;
+        margin-bottom: 0.625rem;
+    }
+    
+    .comment-header {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: flex-start;
+    }
+    
+    .comment-avatar {
+        width: 28px;
+        height: 28px;
+        font-size: 0.75rem;
+    }
+    
+    .comment-author {
+        font-size: 0.85rem;
+    }
+    
+    .comment-time {
+        font-size: 0.7rem;
+    }
+    
+    .comment-text {
+        font-size: 0.85rem;
+        line-height: 1.4;
+    }
+    
+    .comment-input-container textarea {
+        padding: 0.875rem 0.875rem 3.5rem 0.875rem;
+        font-size: 0.9rem;
+        border-radius: 10px;
+        min-height: 90px;
+    }
+    
+    .comment-input-actions {
+        bottom: 0.75rem;
+        right: 0.75rem;
+        left: 0.75rem;
+        flex-direction: column;
+        gap: 0.5rem;
     }
     
     .comment-input-actions .btn {
         width: 100%;
         justify-content: center;
+        padding: 0.75rem 1rem !important;
+        font-size: 0.9rem;
+        border-radius: 20px !important;
+    }
+    
+    .comment-tips {
+        padding: 0.875rem;
+        border-radius: 10px;
+        margin-top: 1rem;
+    }
+    
+    .comment-tips ul {
+        padding-left: 1.25rem;
+        font-size: 0.8rem;
+        line-height: 1.4;
+    }
+    
+    .empty-state {
+        padding: 2.5rem 1.25rem;
+    }
+    
+    .empty-state i {
+        font-size: 2.5rem;
+    }
+    
+    .empty-state h3 {
+        font-size: 1.2rem;
+    }
+    
+    .empty-state p {
+        font-size: 0.9rem;
+    }
+    
+    .empty-state .btn {
+        padding: 0.875rem 2rem !important;
+        font-size: 1rem !important;
+        width: 100%;
+        max-width: 280px;
+    }
+    
+    .no-comments {
+        padding: 1.5rem 1rem;
+    }
+    
+    .no-comments i {
+        font-size: 2rem !important;
+    }
+    
+    .no-comments p {
+        font-size: 0.85rem !important;
+    }
+    
+    /* Add button mobile optimization */
+    .card > div:has(.btn-primary) {
+        margin-bottom: 2rem;
+    }
+    
+    .card > div:has(.btn-primary) .btn {
+        padding: 0.875rem 2rem !important;
+        font-size: 1rem !important;
+        width: 100%;
+        max-width: 280px;
+        margin: 0 auto;
+        display: block;
+    }
+}
+
+@media (max-width: 360px) {
+    .card {
+        margin: 0.25rem;
+    }
+    
+    .tabs {
+        padding: 0.5rem;
+    }
+    
+    .tabs a {
+        padding: 0.75rem;
+        font-size: 0.9rem;
     }
     
     .meta-info {
-        gap: 0.5rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
     }
     
     .interaction-bar {
-        gap: 1rem;
+        flex-direction: column;
+        gap: 0.5rem;
     }
     
     .like-btn, .comment-btn {
-        padding: 0.6rem 1rem;
-        font-size: 0.85rem;
+        width: 100%;
+    }
+    
+    .stats-display {
+        padding: 0.75rem;
+        gap: 0.5rem;
     }
     
     .comment-input-container textarea {
-        padding: 1.25rem 1rem 1rem 1rem;
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+}
+
+/* Safe area insets for notch devices */
+@supports(padding: max(0px)) {
+    .card {
+        padding-left: max(0.5rem, env(safe-area-inset-left));
+        padding-right: max(0.5rem, env(safe-area-inset-right));
+    }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+    .prayer-testimonial-card:hover {
+        transform: none;
+    }
+    
+    .comment-card:hover {
+        transform: none;
+        background: rgba(255,255,255,0.05);
+    }
+    
+    .like-btn:active, .comment-btn:active {
+        transform: scale(0.95);
+    }
+}
+
+/* High DPI screen optimizations */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .prayer-testimonial-card {
+        border-width: 0.5px;
+    }
+    
+    .comment-card {
+        border-left-width: 2px;
     }
 }
 </style>
@@ -400,21 +686,21 @@ if ($_POST && isset($_POST['comment_testimonial'])) {
 <div class="particles-container" id="particles-container"></div>
 
 <div class="card">
-    <!-- Enhanced Tabs -->
+    <!-- Enhanced Mobile-Friendly Tabs -->
     <div class="tabs" style="display: flex; gap: 0.5rem; margin-bottom: 2rem; background: var(--glass-bg); padding: 0.5rem; border-radius: 16px; border: 1px solid var(--glass-border);">
         <a href="?tab=prayers" 
            class="btn <?php echo $active_tab === 'prayers' ? 'btn-primary' : 'btn-outline'; ?>" 
            style="flex: 1; text-align: center; padding: 1rem; border-radius: 12px; font-weight: 700; font-size: 1rem; transition: all 0.3s ease;">
-            <i class="fas fa-hands-praying"></i> Prayer Requests
+            <i class="fas fa-hands-praying"></i> <span class="tab-text">Prayer Requests</span>
         </a>
         <a href="?tab=testimonials" 
            class="btn <?php echo $active_tab === 'testimonials' ? 'btn-primary' : 'btn-outline'; ?>" 
            style="flex: 1; text-align: center; padding: 1rem; border-radius: 12px; font-weight: 700; font-size: 1rem; transition: all 0.3s ease;">
-            <i class="fas fa-heart"></i> Testimonials
+            <i class="fas fa-heart"></i> <span class="tab-text">Testimonials</span>
         </a>
     </div>
 
-    <!-- Add Button -->
+    <!-- Add Button - Mobile Optimized -->
     <div style="text-align: center; margin-bottom: 3rem;">
         <a href="<?php echo $active_tab === 'prayers' ? 'prayer_add.php' : 'testimonial_add.php'; ?>" 
            class="btn btn-primary" style="padding: 1rem 2.5rem; border-radius: 50px; font-weight: 700; font-size: 1.1rem; box-shadow: 0 8px 25px rgba(var(--accent-rgb), 0.3);">
@@ -465,23 +751,37 @@ if ($_POST && isset($_POST['comment_testimonial'])) {
                 </div>
                 
                 <div class="card-footer">
-                    <div class="interaction-bar">
-                        <form method="POST" style="margin: 0;">
-                            <input type="hidden" name="prayer_id" value="<?php echo $prayer['id']; ?>">
-                            <button type="submit" name="like_prayer" class="like-btn <?php echo $prayer['user_liked'] ? 'active' : ''; ?>">
-                                <i class="fas fa-heart"></i> 
-                                <span><?php echo $prayer['like_count']; ?> Prayers</span>
-                            </button>
-                        </form>
-                        
-                        <div class="comment-btn">
+                    <!-- Updated Stats Display -->
+                    <div class="stats-display">
+                        <div class="stat-item">
+                            <i class="fas fa-heart"></i>
+                            <span class="stat-count"><?php echo $prayer['like_count']; ?></span>
+                            <span>Prayers</span>
+                        </div>
+                        <div class="stat-item">
                             <i class="fas fa-comment"></i>
-                            <span><?php echo $prayer['comment_count']; ?> Comments</span>
+                            <span class="stat-count"><?php echo $prayer['comment_count']; ?></span>
+                            <span>Comments</span>
                         </div>
                     </div>
                     
+                    <div class="interaction-bar">
+                        <form method="POST" style="margin: 0; width: 100%;">
+                            <input type="hidden" name="prayer_id" value="<?php echo $prayer['id']; ?>">
+                            <button type="submit" name="like_prayer" class="like-btn <?php echo $prayer['user_liked'] ? 'active' : ''; ?>">
+                                <i class="fas fa-heart"></i> 
+                                <span>Pray for This</span>
+                            </button>
+                        </form>
+                        
+                        <button type="button" class="comment-btn" onclick="toggleComments(this)">
+                            <i class="fas fa-comment"></i>
+                            <span>Add Comment</span>
+                        </button>
+                    </div>
+                    
                     <!-- Enhanced Comments Section -->
-                    <div class="comments-section">
+                    <div class="comments-section" style="display: none;">
                         <h4 style="color: var(--text); margin-bottom: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
                             <i class="fas fa-comments" style="color: var(--accent);"></i> 
                             Comments <span class="comment-count" style="background: var(--accent); color: white; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.8rem; margin-left: 0.5rem;"><?php
@@ -540,7 +840,7 @@ if ($_POST && isset($_POST['comment_testimonial'])) {
                             <div class="form-group" style="margin-bottom: 1rem;">
                                 <div class="comment-input-container">
                                     <textarea name="comment_text" placeholder="Share your encouragement, prayer, or thoughts..." 
-                                             rows="4" required></textarea>
+                                             rows="3" required></textarea>
                                     
                                     <div class="comment-input-actions">                                        
                                         <button type="submit" name="comment_prayer" 
@@ -631,23 +931,37 @@ if ($_POST && isset($_POST['comment_testimonial'])) {
                 </div>
                 
                 <div class="card-footer">
-                    <div class="interaction-bar">
-                        <form method="POST" style="margin: 0;">
-                            <input type="hidden" name="testimonial_id" value="<?php echo $testimonial['id']; ?>">
-                            <button type="submit" name="like_testimonial" class="like-btn <?php echo $testimonial['user_liked'] ? 'active' : ''; ?>">
-                                <i class="fas fa-heart"></i> 
-                                <span><?php echo $testimonial['like_count']; ?> Encouragements</span>
-                            </button>
-                        </form>
-                        
-                        <div class="comment-btn">
+                    <!-- Updated Stats Display -->
+                    <div class="stats-display">
+                        <div class="stat-item">
+                            <i class="fas fa-heart"></i>
+                            <span class="stat-count"><?php echo $testimonial['like_count']; ?></span>
+                            <span>Encouragements</span>
+                        </div>
+                        <div class="stat-item">
                             <i class="fas fa-comment"></i>
-                            <span><?php echo $testimonial['comment_count']; ?> Comments</span>
+                            <span class="stat-count"><?php echo $testimonial['comment_count']; ?></span>
+                            <span>Comments</span>
                         </div>
                     </div>
                     
+                    <div class="interaction-bar">
+                        <form method="POST" style="margin: 0; width: 100%;">
+                            <input type="hidden" name="testimonial_id" value="<?php echo $testimonial['id']; ?>">
+                            <button type="submit" name="like_testimonial" class="like-btn <?php echo $testimonial['user_liked'] ? 'active' : ''; ?>">
+                                <i class="fas fa-heart"></i> 
+                                <span>Encourage</span>
+                            </button>
+                        </form>
+                        
+                        <button type="button" class="comment-btn" onclick="toggleComments(this)">
+                            <i class="fas fa-comment"></i>
+                            <span>Add Comment</span>
+                        </button>
+                    </div>
+                    
                     <!-- Enhanced Comments Section -->
-                    <div class="comments-section">
+                    <div class="comments-section" style="display: none;">
                         <h4 style="color: var(--text); margin-bottom: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
                             <i class="fas fa-comments" style="color: var(--accent);"></i> 
                             Comments <span class="comment-count" style="background: var(--accent); color: white; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.8rem; margin-left: 0.5rem;"><?php
@@ -706,7 +1020,7 @@ if ($_POST && isset($_POST['comment_testimonial'])) {
                             <div class="form-group" style="margin-bottom: 1rem;">
                                 <div class="comment-input-container">
                                     <textarea name="comment_text" placeholder="Share your encouragement, thoughts, or celebration..." 
-                                             rows="4" required></textarea>
+                                             rows="3" required></textarea>
                                     
                                     <div class="comment-input-actions">                                        
                                         <button type="submit" name="comment_testimonial" 
@@ -780,7 +1094,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Add hover effects to comment cards
         commentCards.forEach(card => {
             card.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateX(8px)';
+                this.style.transform = 'translateX(5px)';
             });
             
             card.addEventListener('mouseleave', function() {
@@ -800,7 +1114,54 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 300);
         });
     });
+    
+    // Mobile-specific optimizations
+    function isMobile() {
+        return window.innerWidth <= 480;
+    }
+    
+    // Adjust textarea behavior for mobile
+    if (isMobile()) {
+        textareas.forEach(textarea => {
+            textarea.addEventListener('focus', function() {
+                // Add a small delay to ensure keyboard is fully up
+                setTimeout(() => {
+                    this.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 300);
+            });
+        });
+    }
+    
+    // Handle viewport changes
+    window.addEventListener('resize', function() {
+        // Adjust button widths on mobile
+        if (isMobile()) {
+            document.querySelectorAll('.interaction-bar').forEach(bar => {
+                const buttons = bar.querySelectorAll('.like-btn, .comment-btn');
+                buttons.forEach(btn => {
+                    btn.style.width = '100%';
+                });
+            });
+        }
+    });
 });
+
+// Toggle comments section
+function toggleComments(button) {
+    const card = button.closest('.prayer-testimonial-card');
+    const commentsSection = card.querySelector('.comments-section');
+    const isHidden = commentsSection.style.display === 'none';
+    
+    commentsSection.style.display = isHidden ? 'block' : 'none';
+    button.querySelector('span').textContent = isHidden ? 'Hide Comments' : 'Add Comment';
+    
+    // Smooth scroll to comments when opening
+    if (isHidden) {
+        setTimeout(() => {
+            commentsSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 100);
+    }
+}
 </script>
 
 <?php require_once 'footer.php'; ?>
