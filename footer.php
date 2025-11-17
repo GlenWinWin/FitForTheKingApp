@@ -41,6 +41,10 @@
             <i class="fas fa-hands-praying more-icon"></i>
             <span>Community</span>
         </a>
+        <a href="profile.php" class="more-item">
+            <i class="fas fa-user more-icon"></i>
+            <span>Profile</span>
+        </a>
         <?php if (isAdmin()): ?>
             <a href="admin/index.php" class="more-item">
                 <i class="fas fa-crown more-icon"></i>
@@ -74,24 +78,6 @@
             document.addEventListener('click', function(event) {
                 if (!moreBtn.contains(event.target) && !moreMenu.contains(event.target)) {
                     moreMenu.classList.remove('active');
-                }
-            });
-        }
-
-        // Profile dropdown toggle
-        const profileTrigger = document.getElementById('profileTrigger');
-        const profileMenu = document.getElementById('profileMenu');
-        
-        if (profileTrigger && profileMenu) {
-            profileTrigger.addEventListener('click', function(e) {
-                e.stopPropagation();
-                profileMenu.classList.toggle('active');
-            });
-            
-            // Close profile menu when clicking outside
-            document.addEventListener('click', function(event) {
-                if (!profileTrigger.contains(event.target) && !profileMenu.contains(event.target)) {
-                    profileMenu.classList.remove('active');
                 }
             });
         }
