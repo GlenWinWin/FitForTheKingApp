@@ -173,6 +173,105 @@ require_once 'config.php';
             box-shadow: 0 8px 20px rgba(26, 35, 126, 0.15);
         }
 
+        /* Profile Dropdown */
+        .profile-dropdown {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .profile-trigger {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius);
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px);
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            color: var(--text);
+        }
+
+        .profile-trigger:hover {
+            background: var(--glass-bg);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(26, 35, 126, 0.15);
+        }
+
+        .profile-picture {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--accent);
+        }
+
+        .profile-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .profile-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 0.5rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            padding: 0.75rem;
+            box-shadow: var(--shadow-lg);
+            z-index: 101;
+            display: none;
+            flex-direction: column;
+            gap: 0.25rem;
+            min-width: 200px;
+        }
+
+        .profile-menu.active {
+            display: flex;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .profile-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            text-decoration: none;
+            color: var(--text);
+            border-radius: 10px;
+            transition: var(--transition);
+            font-weight: 500;
+        }
+
+        .profile-menu-item:hover {
+            background: rgba(26, 35, 126, 0.1);
+            transform: translateX(5px);
+        }
+
+        .profile-menu-icon {
+            width: 20px;
+            text-align: center;
+            color: var(--accent);
+        }
+
         /* Bottom Navigation Bar */
         .bottom-nav {
             position: fixed;
@@ -409,6 +508,10 @@ require_once 'config.php';
                 display: none;
             }
 
+            .profile-dropdown {
+                display: none;
+            }
+
             .bottom-nav {
                 display: block;
             }
@@ -445,19 +548,67 @@ require_once 'config.php';
                     <a href="devotion_today.php" class="nav-link"><i class="fas fa-bible"></i> Devotion</a>
                     <a href="workout_day.php" class="nav-link"><i class="fas fa-dumbbell"></i> Workouts</a>
                     <a href="steps_calendar.php" class="nav-link"><i class="fas fa-walking"></i> Steps</a>
-                    <a href="profile.php" class="nav-link"><i class="fas fa-user"></i> Profile</a>
                     
                     <?php if (isAdmin()): ?>
                         <a href="admin/index.php" class="nav-link"><i class="fas fa-crown"></i> Admin</a>
                     <?php endif; ?>
-                    
-                    <a href="logout.php" class="nav-link" onclick="return confirm('Are you sure you want to log out?')">
-                        <i class="fas fa-sign-out-alt"></i> Logout
-                    </a>
                 <?php else: ?>
                     <a href="index.php" class="nav-link"><i class="fas fa-sign-in-alt"></i> Login</a>
                 <?php endif; ?>
             </nav>
+
+            <?php if (isLoggedIn()): ?>
+            <!-- Profile Dropdown -->
+            <div class="profile-dropdown">
+                <?php
+                // Get user data for profile
+                $user_id = $_SESSION['user_id'];
+                $user_query = "SELECT name, profile_picture FROM users WHERE id = ?";
+                $stmt = $db->prepare($user_query);
+                $stmt->execute([$user_id]);
+                $user_data = $stmt->fetch(PDO::FETCH_ASSOC);
+                
+                $profile_picture = $user_data['profile_picture'] ?? 'imgs/profile.png';
+                $user_name = $user_data['name'] ?? 'User';
+                ?>
+                <div class="profile-trigger" id="profileTrigger">
+                    <img src="<?php echo $profile_picture; ?>" alt="Profile" class="profile-picture">
+                    <span class="profile-name"><?php echo htmlspecialchars($user_name); ?></span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                
+                <div class="profile-menu" id="profileMenu">
+                    <a href="profile.php" class="profile-menu-item">
+                        <i class="fas fa-user profile-menu-icon"></i>
+                        <span>My Profile</span>
+                    </a>
+                    <a href="progress_photos_history.php" class="profile-menu-item">
+                        <i class="fas fa-camera profile-menu-icon"></i>
+                        <span>Progress Photos</span>
+                    </a>
+                    <a href="weights_history.php" class="profile-menu-item">
+                        <i class="fas fa-weight-scale profile-menu-icon"></i>
+                        <span>Weight History</span>
+                    </a>
+                    <a href="prayers_testimonials.php" class="profile-menu-item">
+                        <i class="fas fa-hands-praying profile-menu-icon"></i>
+                        <span>Community</span>
+                    </a>
+                    <?php if (isAdmin()): ?>
+                        <a href="admin/index.php" class="profile-menu-item">
+                            <i class="fas fa-crown profile-menu-icon"></i>
+                            <span>Admin Panel</span>
+                        </a>
+                    <?php endif; ?>
+                    <div class="profile-menu-item" style="border-top: 1px solid var(--border); margin-top: 0.5rem; padding-top: 1rem;">
+                        <a href="logout.php" class="profile-menu-item" onclick="return confirm('Are you sure you want to log out?')" style="color: #f44336; width: 100%;">
+                            <i class="fas fa-sign-out-alt profile-menu-icon"></i>
+                            <span>Logout</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
         </div>
     </header>
 

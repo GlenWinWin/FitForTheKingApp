@@ -5,66 +5,10 @@ requireLogin();
 
 $user_id = $_SESSION['user_id'];
 $active_tab = $_GET['tab'] ?? 'prayers';
-
-// Handle likes
-if ($_POST && isset($_POST['like_prayer'])) {
-    $prayer_id = sanitize($_POST['prayer_id']);
-    
-    // Check if already liked
-    $check_query = "SELECT id FROM prayer_likes WHERE prayer_id = ? AND user_id = ?";
-    $stmt = $db->prepare($check_query);
-    $stmt->execute([$prayer_id, $user_id]);
-    
-    if (!$stmt->fetch()) {
-        $insert_query = "INSERT INTO prayer_likes (prayer_id, user_id) VALUES (?, ?)";
-        $stmt = $db->prepare($insert_query);
-        $stmt->execute([$prayer_id, $user_id]);
-    }
-    echo "<script>window.location.href = 'prayers_testimonials.php?tab=prayers';</script>";
-    exit();
-}
-
-if ($_POST && isset($_POST['like_testimonial'])) {
-    $testimonial_id = sanitize($_POST['testimonial_id']);
-    
-    $check_query = "SELECT id FROM testimonial_likes WHERE testimonial_id = ? AND user_id = ?";
-    $stmt = $db->prepare($check_query);
-    $stmt->execute([$testimonial_id, $user_id]);
-    
-    if (!$stmt->fetch()) {
-        $insert_query = "INSERT INTO testimonial_likes (testimonial_id, user_id) VALUES (?, ?)";
-        $stmt = $db->prepare($insert_query);
-        $stmt->execute([$testimonial_id, $user_id]);
-    }
-    echo "<script>window.location.href = 'prayers_testimonials.php?tab=testimonials';</script>";
-    exit();
-}
-
-// Handle comments
-if ($_POST && isset($_POST['comment_prayer'])) {
-    $prayer_id = sanitize($_POST['prayer_id']);
-    $comment_text = sanitize($_POST['comment_text']);
-    
-    $insert_query = "INSERT INTO prayer_comments (prayer_id, user_id, comment_text) VALUES (?, ?, ?)";
-    $stmt = $db->prepare($insert_query);
-    $stmt->execute([$prayer_id, $user_id, $comment_text]);
-    echo "<script>window.location.href = 'prayers_testimonials.php?tab=prayers';</script>";
-    exit();
-}
-
-if ($_POST && isset($_POST['comment_testimonial'])) {
-    $testimonial_id = sanitize($_POST['testimonial_id']);
-    $comment_text = sanitize($_POST['comment_text']);
-    
-    $insert_query = "INSERT INTO testimonial_comments (testimonial_id, user_id, comment_text) VALUES (?, ?, ?)";
-    $stmt = $db->prepare($insert_query);
-    $stmt->execute([$testimonial_id, $user_id, $comment_text]);
-    echo "<script>window.location.href = 'prayers_testimonials.php?tab=testimonials';</script>";
-    exit();
-}
 ?>
 
 <style>
+/* Your existing CSS styles remain exactly the same */
 .prayer-testimonial-card {
     background: var(--glass-bg);
     backdrop-filter: blur(10px);
@@ -766,13 +710,14 @@ if ($_POST && isset($_POST['comment_testimonial'])) {
                     </div>
                     
                     <div class="interaction-bar">
-                        <form method="POST" style="margin: 0; width: 100%;">
-                            <input type="hidden" name="prayer_id" value="<?php echo $prayer['id']; ?>">
-                            <button type="submit" name="like_prayer" class="like-btn <?php echo $prayer['user_liked'] ? 'active' : ''; ?>">
-                                <i class="fas fa-heart"></i> 
-                                <span>Pray for This</span>
-                            </button>
-                        </form>
+                        <!-- UPDATED: Prayer Like Button with AJAX -->
+                        <button type="button" 
+                                class="like-btn <?php echo $prayer['user_liked'] ? 'active' : ''; ?>" 
+                                data-prayer-id="<?php echo $prayer['id']; ?>"
+                                onclick="likePrayer(this)">
+                            <i class="fas fa-heart"></i> 
+                            <span><?php echo $prayer['user_liked'] ? 'Praying' : 'Pray for This'; ?></span>
+                        </button>
                         
                         <button type="button" class="comment-btn" onclick="toggleComments(this)">
                             <i class="fas fa-comment"></i>
@@ -833,8 +778,8 @@ if ($_POST && isset($_POST['comment_testimonial'])) {
                         </div>
                         <?php endif; ?>
                         
-                        <!-- Enhanced Comment Input -->
-                        <form method="POST" class="comment-form">
+                        <!-- UPDATED: Prayer Comment Form with AJAX -->
+                        <form method="POST" class="comment-form" onsubmit="submitPrayerComment(event, this)">
                             <input type="hidden" name="prayer_id" value="<?php echo $prayer['id']; ?>">
                             
                             <div class="form-group" style="margin-bottom: 1rem;">
@@ -843,18 +788,9 @@ if ($_POST && isset($_POST['comment_testimonial'])) {
                                              rows="3" required></textarea>
                                     
                                     <div class="comment-input-actions">                                        
-                                        <button type="submit" name="comment_prayer" 
+                                        <button type="submit" 
                                                 class="btn btn-primary" 
-                                                style="
-                                                padding: 0.75rem 1.5rem;
-                                                border-radius: 25px;
-                                                font-weight: 700;
-                                                display: flex;
-                                                align-items: center;
-                                                gap: 0.5rem;
-                                                transition: all 0.3s ease;
-                                                box-shadow: 0 4px 15px rgba(var(--accent-rgb), 0.3);
-                                                ">
+                                                style="padding: 0.75rem 1.5rem; border-radius: 25px; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(var(--accent-rgb), 0.3);">
                                             <i class="fas fa-paper-plane"></i>
                                             Post Comment
                                         </button>
@@ -946,13 +882,14 @@ if ($_POST && isset($_POST['comment_testimonial'])) {
                     </div>
                     
                     <div class="interaction-bar">
-                        <form method="POST" style="margin: 0; width: 100%;">
-                            <input type="hidden" name="testimonial_id" value="<?php echo $testimonial['id']; ?>">
-                            <button type="submit" name="like_testimonial" class="like-btn <?php echo $testimonial['user_liked'] ? 'active' : ''; ?>">
-                                <i class="fas fa-heart"></i> 
-                                <span>Encourage</span>
-                            </button>
-                        </form>
+                        <!-- UPDATED: Testimonial Like Button with AJAX -->
+                        <button type="button" 
+                                class="like-btn <?php echo $testimonial['user_liked'] ? 'active' : ''; ?>" 
+                                data-testimonial-id="<?php echo $testimonial['id']; ?>"
+                                onclick="likeTestimonial(this)">
+                            <i class="fas fa-heart"></i> 
+                            <span><?php echo $testimonial['user_liked'] ? 'Encouraged' : 'Encourage'; ?></span>
+                        </button>
                         
                         <button type="button" class="comment-btn" onclick="toggleComments(this)">
                             <i class="fas fa-comment"></i>
@@ -1013,8 +950,8 @@ if ($_POST && isset($_POST['comment_testimonial'])) {
                         </div>
                         <?php endif; ?>
                         
-                        <!-- Enhanced Comment Input -->
-                        <form method="POST" class="comment-form">
+                        <!-- UPDATED: Testimonial Comment Form with AJAX -->
+                        <form method="POST" class="comment-form" onsubmit="submitTestimonialComment(event, this)">
                             <input type="hidden" name="testimonial_id" value="<?php echo $testimonial['id']; ?>">
                             
                             <div class="form-group" style="margin-bottom: 1rem;">
@@ -1023,18 +960,9 @@ if ($_POST && isset($_POST['comment_testimonial'])) {
                                              rows="3" required></textarea>
                                     
                                     <div class="comment-input-actions">                                        
-                                        <button type="submit" name="comment_testimonial" 
+                                        <button type="submit" 
                                                 class="btn btn-primary" 
-                                                style="
-                                                padding: 0.75rem 1.5rem;
-                                                border-radius: 25px;
-                                                font-weight: 700;
-                                                display: flex;
-                                                align-items: center;
-                                                gap: 0.5rem;
-                                                transition: all 0.3s ease;
-                                                box-shadow: 0 4px 15px rgba(var(--accent-rgb), 0.3);
-                                                ">
+                                                style="padding: 0.75rem 1.5rem; border-radius: 25px; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(var(--accent-rgb), 0.3);">
                                             <i class="fas fa-paper-plane"></i>
                                             Post Comment
                                         </button>
@@ -1074,8 +1002,367 @@ if ($_POST && isset($_POST['comment_testimonial'])) {
 </div>
 
 <script>
+// AJAX Like and Comment Functions
+async function likePrayer(button) {
+    const prayerId = button.getAttribute('data-prayer-id');
+    const icon = button.querySelector('i');
+    const likeCountElement = button.closest('.card-footer').querySelector('.stat-item:first-child .stat-count');
+    
+    // Add loading animation
+    button.disabled = true;
+    icon.style.transform = 'scale(1.2)';
+    
+    try {
+        const response = await fetch('ajax_like_prayer.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `prayer_id=${prayerId}`
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Update like count
+            likeCountElement.textContent = result.like_count;
+            
+            // Update button state
+            if (result.user_liked) {
+                button.classList.add('active');
+                button.querySelector('span').textContent = 'Praying';
+            } else {
+                button.classList.remove('active');
+                button.querySelector('span').textContent = 'Pray for This';
+            }
+            
+            // Add success animation
+            button.style.transform = 'scale(1.05)';
+            setTimeout(() => {
+                button.style.transform = 'scale(1)';
+            }, 200);
+        } else {
+            showNotification(result.message || 'Error liking prayer', 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showNotification('Network error occurred', 'error');
+    } finally {
+        button.disabled = false;
+        icon.style.transform = 'scale(1)';
+    }
+}
+
+async function likeTestimonial(button) {
+    const testimonialId = button.getAttribute('data-testimonial-id');
+    const icon = button.querySelector('i');
+    const likeCountElement = button.closest('.card-footer').querySelector('.stat-item:first-child .stat-count');
+    
+    // Add loading animation
+    button.disabled = true;
+    icon.style.transform = 'scale(1.2)';
+    
+    try {
+        const response = await fetch('ajax_like_testimonial.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `testimonial_id=${testimonialId}`
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Update like count
+            likeCountElement.textContent = result.like_count;
+            
+            // Update button state
+            if (result.user_liked) {
+                button.classList.add('active');
+                button.querySelector('span').textContent = 'Encouraged';
+            } else {
+                button.classList.remove('active');
+                button.querySelector('span').textContent = 'Encourage';
+            }
+            
+            // Add success animation
+            button.style.transform = 'scale(1.05)';
+            setTimeout(() => {
+                button.style.transform = 'scale(1)';
+            }, 200);
+        } else {
+            showNotification(result.message || 'Error liking testimony', 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showNotification('Network error occurred', 'error');
+    } finally {
+        button.disabled = false;
+        icon.style.transform = 'scale(1)';
+    }
+}
+
+async function submitPrayerComment(event, form) {
+    event.preventDefault();
+    
+    const prayerId = form.querySelector('input[name="prayer_id"]').value;
+    const commentText = form.querySelector('textarea[name="comment_text"]').value.trim();
+    const submitButton = form.querySelector('button[type="submit"]');
+    const commentsList = form.closest('.comments-section').querySelector('.comments-list');
+    const noCommentsElement = form.closest('.comments-section').querySelector('.no-comments');
+    const commentCountElement = form.closest('.comments-section').querySelector('.comment-count');
+    
+    if (!commentText) {
+        showNotification('Please enter a comment', 'error');
+        return;
+    }
+    
+    // Add loading state
+    submitButton.disabled = true;
+    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Posting...';
+    
+    try {
+        const response = await fetch('ajax_comment_prayer.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `prayer_id=${prayerId}&comment_text=${encodeURIComponent(commentText)}`
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Clear textarea
+            form.querySelector('textarea[name="comment_text"]').value = '';
+            
+            // Update comment count
+            commentCountElement.textContent = result.comment_count;
+            
+            // Remove "no comments" message if it exists
+            if (noCommentsElement) {
+                noCommentsElement.remove();
+            }
+            
+            // Create comments list if it doesn't exist
+            if (!commentsList) {
+                const commentsSection = form.closest('.comments-section');
+                const commentsHeading = commentsSection.querySelector('h4');
+                const newCommentsList = document.createElement('div');
+                newCommentsList.className = 'comments-list';
+                newCommentsList.style.marginBottom = '2rem';
+                commentsHeading.parentNode.insertBefore(newCommentsList, form);
+            }
+            
+            // Add new comment to list
+            const commentHTML = createCommentHTML(result.comment);
+            const commentsListContainer = form.previousElementSibling;
+            if (commentsListContainer && commentsListContainer.classList.contains('comments-list')) {
+                commentsListContainer.insertAdjacentHTML('beforeend', commentHTML);
+            }
+            
+            // Scroll to new comment
+            const newComment = commentsListContainer.lastElementChild;
+            newComment.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            
+            // Add highlight animation
+            newComment.style.animation = 'highlightPulse 2s ease';
+            
+            showNotification('Comment posted successfully!', 'success');
+        } else {
+            showNotification(result.message || 'Error posting comment', 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showNotification('Network error occurred', 'error');
+    } finally {
+        // Reset button
+        submitButton.disabled = false;
+        submitButton.innerHTML = '<i class="fas fa-paper-plane"></i> Post Comment';
+    }
+}
+
+async function submitTestimonialComment(event, form) {
+    event.preventDefault();
+    
+    const testimonialId = form.querySelector('input[name="testimonial_id"]').value;
+    const commentText = form.querySelector('textarea[name="comment_text"]').value.trim();
+    const submitButton = form.querySelector('button[type="submit"]');
+    const commentsList = form.closest('.comments-section').querySelector('.comments-list');
+    const noCommentsElement = form.closest('.comments-section').querySelector('.no-comments');
+    const commentCountElement = form.closest('.comments-section').querySelector('.comment-count');
+    
+    if (!commentText) {
+        showNotification('Please enter a comment', 'error');
+        return;
+    }
+    
+    // Add loading state
+    submitButton.disabled = true;
+    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Posting...';
+    
+    try {
+        const response = await fetch('ajax_comment_testimonial.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `testimonial_id=${testimonialId}&comment_text=${encodeURIComponent(commentText)}`
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Clear textarea
+            form.querySelector('textarea[name="comment_text"]').value = '';
+            
+            // Update comment count
+            commentCountElement.textContent = result.comment_count;
+            
+            // Remove "no comments" message if it exists
+            if (noCommentsElement) {
+                noCommentsElement.remove();
+            }
+            
+            // Create comments list if it doesn't exist
+            if (!commentsList) {
+                const commentsSection = form.closest('.comments-section');
+                const commentsHeading = commentsSection.querySelector('h4');
+                const newCommentsList = document.createElement('div');
+                newCommentsList.className = 'comments-list';
+                newCommentsList.style.marginBottom = '2rem';
+                commentsHeading.parentNode.insertBefore(newCommentsList, form);
+            }
+            
+            // Add new comment to list
+            const commentHTML = createCommentHTML(result.comment);
+            const commentsListContainer = form.previousElementSibling;
+            if (commentsListContainer && commentsListContainer.classList.contains('comments-list')) {
+                commentsListContainer.insertAdjacentHTML('beforeend', commentHTML);
+            }
+            
+            // Scroll to new comment
+            const newComment = commentsListContainer.lastElementChild;
+            newComment.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            
+            // Add highlight animation
+            newComment.style.animation = 'highlightPulse 2s ease';
+            
+            showNotification('Comment posted successfully!', 'success');
+        } else {
+            showNotification(result.message || 'Error posting comment', 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showNotification('Network error occurred', 'error');
+    } finally {
+        // Reset button
+        submitButton.disabled = false;
+        submitButton.innerHTML = '<i class="fas fa-paper-plane"></i> Post Comment';
+    }
+}
+
+// Helper function to create comment HTML
+function createCommentHTML(comment) {
+    const initial = comment.user_name.charAt(0).toUpperCase();
+    const date = new Date(comment.created_at).toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric', 
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true 
+    });
+    
+    return `
+        <div class="comment-card">
+            <div class="comment-header">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <div class="comment-avatar">${initial}</div>
+                    <div>
+                        <span class="comment-author">${comment.user_name}</span>
+                        <div class="comment-time">${date}</div>
+                    </div>
+                </div>
+                <div class="comment-actions">
+                    <i class="fas fa-heart" style="color: var(--light-text); cursor: pointer; transition: color 0.3s ease;"></i>
+                </div>
+            </div>
+            <p class="comment-text">${comment.comment_text.replace(/\n/g, '<br>')}</p>
+        </div>
+    `;
+}
+
+// Notification system
+function showNotification(message, type = 'info') {
+    // Remove existing notification
+    const existingNotification = document.querySelector('.ajax-notification');
+    if (existingNotification) {
+        existingNotification.remove();
+    }
+    
+    const notification = document.createElement('div');
+    notification.className = `ajax-notification ${type}`;
+    notification.innerHTML = `
+        <div style="position: fixed; top: 20px; right: 20px; background: ${type === 'error' ? '#e74c3c' : type === 'success' ? '#27ae60' : '#3498db'}; 
+                    color: white; padding: 1rem 1.5rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
+                    z-index: 10000; animation: slideInRight 0.3s ease; max-width: 300px;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fas ${type === 'error' ? 'fa-exclamation-circle' : type === 'success' ? 'fa-check-circle' : 'fa-info-circle'}"></i>
+                <span>${message}</span>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.style.animation = 'slideOutRight 0.3s ease';
+            setTimeout(() => notification.remove(), 300);
+        }
+    }, 3000);
+}
+
+// Add CSS for animations
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes highlightPulse {
+        0% { background: rgba(var(--accent-rgb), 0.1); }
+        50% { background: rgba(var(--accent-rgb), 0.2); }
+        100% { background: rgba(255,255,255,0.05); }
+    }
+    
+    @keyframes slideInRight {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    
+    @keyframes slideOutRight {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+    
+    .like-btn:disabled, .comment-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    
+    .fa-spinner {
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+`;
+document.head.appendChild(style);
+
 document.addEventListener('DOMContentLoaded', function() {
-    // Character counter for comment textarea
+    // Existing DOMContentLoaded code...
     const textareas = document.querySelectorAll('textarea[name="comment_text"]');
     
     // Smooth focus on comment form
@@ -1103,18 +1390,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Add loading animation to like buttons
-    const likeButtons = document.querySelectorAll('.like-btn');
-    likeButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const icon = this.querySelector('i');
-            icon.style.transform = 'scale(1.2)';
-            setTimeout(() => {
-                icon.style.transform = 'scale(1)';
-            }, 300);
-        });
-    });
-    
     // Mobile-specific optimizations
     function isMobile() {
         return window.innerWidth <= 480;
@@ -1124,26 +1399,12 @@ document.addEventListener('DOMContentLoaded', function() {
     if (isMobile()) {
         textareas.forEach(textarea => {
             textarea.addEventListener('focus', function() {
-                // Add a small delay to ensure keyboard is fully up
                 setTimeout(() => {
                     this.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }, 300);
             });
         });
     }
-    
-    // Handle viewport changes
-    window.addEventListener('resize', function() {
-        // Adjust button widths on mobile
-        if (isMobile()) {
-            document.querySelectorAll('.interaction-bar').forEach(bar => {
-                const buttons = bar.querySelectorAll('.like-btn, .comment-btn');
-                buttons.forEach(btn => {
-                    btn.style.width = '100%';
-                });
-            });
-        }
-    });
 });
 
 // Toggle comments section
