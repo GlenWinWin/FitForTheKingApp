@@ -424,6 +424,32 @@ require_once 'config.php';
                 display: none;
             }
         }
+
+        /* Add these styles to your CSS file */
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #fff; /* Adjust as needed */
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        /* Add padding to main content to prevent overlap */
+        main {
+            padding-bottom: 70px; /* Adjust based on footer height */
+        }
+
+        /* More menu positioning */
+        .more-menu {
+            position: fixed;
+            bottom: 70px; /* Height of bottom nav */
+            right: 10px;
+            z-index: 1001;
+            /* Rest of your existing styles */
+        }
     </style>
 </head>
 <body>
