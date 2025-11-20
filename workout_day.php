@@ -1153,7 +1153,6 @@ foreach ($all_exercises as $exercises) {
                                 <!-- Table Header -->
                                 <div class="table-header">
                                     <div>SET</div>
-                                    <div>LAST</div>
                                     <div>WEIGHT (kg)</div>
                                     <div>REPS</div>
                                     <div>TIMER</div>
@@ -1171,24 +1170,6 @@ foreach ($all_exercises as $exercises) {
                                 ?>
                                 <div class="table-row">
                                     <div class="set-number"><?php echo $i; ?></div>
-
-                                    <!-- Last Workout Data - IMPROVED VISIBILITY -->
-                                    <div class="mobile-hide">
-                                        <?php if ($last_set): ?>
-                                        <div class="last-workout-info">
-                                            <div class="last-workout-label">Last Time</div>
-                                            <div class="last-workout-data">
-                                                <span class="weight"><?php echo $last_weight; ?> kg</span> ×
-                                                <span class="reps"><?php echo $last_reps; ?> reps</span>
-                                            </div>
-                                        </div>
-                                        <?php else: ?>
-                                        <div class="no-previous-data">
-                                            First time
-                                        </div>
-                                        <?php endif; ?>
-                                    </div>
-
                                     <!-- Current Workout Inputs -->
                                     <div>
                                         <input type="number"
