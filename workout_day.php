@@ -1197,7 +1197,6 @@ if (!empty($exercise_ids)) {
             <?php foreach ($all_days as $day): ?>
             <div class="day-tab <?php echo $day['day_order'] == $current_day_index ? 'active current' : ''; ?>" data-day="<?php echo $day['day_order']; ?>">
                 Day <?php echo $day['day_order']; ?><br>
-                <small><?php echo htmlspecialchars($day['title']); ?></small>
             </div>
             <?php endforeach; ?>
         </div>
