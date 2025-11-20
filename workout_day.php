@@ -45,26 +45,42 @@ foreach ($all_days as $day) {
     $all_exercises[$day['day_order']] = $exercises;
 }
 
-// Get last workout data for progressive overload - IMPROVED QUERY
+// Get last workout data for progressive overload - OPTIMIZED QUERY
 $last_workout_data = [];
+
+// Get all exercise IDs for this plan
+$exercise_ids = [];
 foreach ($all_exercises as $exercises) {
     foreach ($exercises as $exercise) {
-        $last_workout_query = "SELECT wls.*, wl.completed_at 
-                              FROM workout_log_sets wls
-                              JOIN workout_logs wl ON wls.workout_log_id = wl.id
-                              WHERE wl.user_id = ? AND wl.exercise_id = ?
-                              ORDER BY wl.completed_at DESC, wls.set_number ASC
-                              LIMIT 10";
-        $stmt = $db->prepare($last_workout_query);
-        $stmt->execute([$user_id, $exercise['id']]);
-        $last_sets = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $exercise_ids[] = $exercise['id'];
+    }
+}
 
-        // Organize by set number
-        $organized_sets = [];
-        foreach ($last_sets as $set) {
-            $organized_sets[$set['set_number']] = $set;
-        }
-        $last_workout_data[$exercise['id']] = $organized_sets;
+if (!empty($exercise_ids)) {
+    $placeholders = str_repeat('?,', count($exercise_ids) - 1) . '?';
+    
+    $last_workout_query = "
+        SELECT wl.exercise_id, wls.set_number, wls.weight, wls.reps, wl.completed_at
+        FROM workout_logs wl
+        JOIN workout_log_sets wls ON wl.id = wls.workout_log_id
+        WHERE wl.user_id = ? 
+        AND wl.exercise_id IN ($placeholders)
+        AND wl.completed_at = (
+            SELECT MAX(completed_at) 
+            FROM workout_logs 
+            WHERE user_id = wl.user_id 
+            AND exercise_id = wl.exercise_id
+        )
+        ORDER BY wl.exercise_id, wls.set_number
+    ";
+    
+    $stmt = $db->prepare($last_workout_query);
+    $stmt->execute(array_merge([$user_id], $exercise_ids));
+    $last_workout_sets = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Organize by exercise ID and set number
+    foreach ($last_workout_sets as $set) {
+        $last_workout_data[$set['exercise_id']][$set['set_number']] = $set;
     }
 }
 ?>
@@ -366,7 +382,7 @@ foreach ($all_exercises as $exercises) {
         font-size: 0.9rem;
     }
 
-    /* Sets Table - Improved with Last Workout Data */
+    /* Sets Table - UPDATED: Removed Last column */
     .sets-section {
         padding: 1.5rem;
     }
@@ -383,8 +399,8 @@ foreach ($all_exercises as $exercises) {
         background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
         padding: 1rem;
         display: grid;
-        grid-template-columns: 60px 1fr 1fr 1fr 80px;
-        gap: 1rem;
+        grid-template-columns: 60px 1fr 1fr 70px; /* Removed Last column */
+        gap: 0.75rem;
         align-items: center;
         font-weight: 600;
         color: white;
@@ -394,8 +410,8 @@ foreach ($all_exercises as $exercises) {
     .table-row {
         padding: 1rem;
         display: grid;
-        grid-template-columns: 60px 1fr 1fr 1fr 80px;
-        gap: 1rem;
+        grid-template-columns: 60px 1fr 1fr 70px; /* Removed Last column */
+        gap: 0.75rem;
         align-items: center;
         border-bottom: 1px solid #f0f0f0;
         transition: var(--transition);
@@ -414,46 +430,6 @@ foreach ($all_exercises as $exercises) {
         color: var(--accent);
         font-size: 1rem;
         text-align: center;
-    }
-
-    /* Last Workout Section - IMPROVED VISIBILITY */
-    .last-workout-info {
-        background: rgba(76, 175, 80, 0.08);
-        border: 1px solid rgba(76, 175, 80, 0.3);
-        border-radius: 6px;
-        padding: 0.75rem;
-        text-align: center;
-    }
-
-    .last-workout-label {
-        font-size: 0.75rem;
-        color: #2e7d32;
-        margin-bottom: 0.25rem;
-        font-weight: 600;
-    }
-
-    .last-workout-data {
-        font-size: 0.9rem;
-        color: #1b5e20;
-        font-weight: 700;
-    }
-
-    .last-workout-data .weight {
-        color: #d32f2f;
-    }
-
-    .last-workout-data .reps {
-        color: #1976d2;
-    }
-
-    .no-previous-data {
-        background: rgba(158, 158, 158, 0.1);
-        border: 1px solid rgba(158, 158, 158, 0.3);
-        border-radius: 6px;
-        padding: 0.75rem;
-        text-align: center;
-        color: #757575;
-        font-size: 0.8rem;
     }
 
     .input-field {
@@ -491,24 +467,214 @@ foreach ($all_exercises as $exercises) {
     }
 
     .timer-button {
-        width: 40px;
-        height: 40px;
+        width: 36px;
+        height: 36px;
         background: var(--gradient-accent);
         border: none;
         border-radius: 50%;
         color: white;
-        font-size: 1rem;
+        font-size: 0.9rem;
         cursor: pointer;
         transition: var(--transition);
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: 0 2px 8px rgba(26, 35, 126, 0.3);
+        box-shadow: 0 2px 6px rgba(26, 35, 126, 0.3);
     }
 
     .timer-button:hover {
         transform: scale(1.1);
         box-shadow: 0 4px 12px rgba(26, 35, 126, 0.4);
+    }
+
+    /* History button styles */
+    .history-button {
+        width: 100%;
+        padding: 0.75rem;
+        background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+        border: none;
+        border-radius: 8px;
+        color: white;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        margin-top: 1rem;
+        font-size: 0.9rem;
+    }
+
+    .history-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .history-button i {
+        margin-right: 0.5rem;
+    }
+    /* History Modal - Simplified */
+    .history-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+        padding: 1rem;
+    }
+
+    .history-modal-content {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        max-width: 500px;
+        width: 100%;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .history-modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid var(--glass-border);
+    }
+
+    .history-modal-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text);
+        margin: 0;
+    }
+
+    .history-exercise-name {
+        color: var(--accent);
+        font-weight: 600;
+    }
+
+    .close-history {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        color: var(--light-text);
+        cursor: pointer;
+        padding: 0.5rem;
+        transition: var(--transition);
+    }
+
+    .close-history:hover {
+        color: var(--text);
+        transform: scale(1.1);
+    }
+
+    .history-sessions {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .history-session {
+        padding: 1rem 0;
+    }
+
+    .history-session:not(:last-child) {
+        border-bottom: 2px solid #e0e0e0;
+    }
+
+    .history-session-date {
+        font-weight: 600;
+        color: var(--text);
+        font-size: 1rem;
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .history-sets {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .history-set {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 0;
+    }
+
+    .history-set-label {
+        font-weight: 600;
+        color: var(--text);
+        font-size: 0.9rem;
+    }
+
+    .history-set-data {
+        color: var(--light-text);
+        font-size: 0.9rem;
+    }
+
+    .history-set-weight {
+        color: #d32f2f;
+        font-weight: 600;
+    }
+
+    .history-set-reps {
+        color: #1976d2;
+        font-weight: 600;
+    }
+
+    .no-history {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: var(--light-text);
+    }
+
+    .no-history i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    .no-history h3 {
+        margin: 0 0 0.5rem 0;
+        color: var(--text);
+    }
+
+    /* Mobile Optimizations for History Modal */
+    @media (max-width: 768px) {
+        .history-modal-content {
+            padding: 1.5rem;
+            margin: 1rem;
+        }
+
+        .history-modal-title {
+            font-size: 1.3rem;
+        }
+
+        .history-session-date {
+            font-size: 0.95rem;
+        }
+
+        .history-set-label,
+        .history-set-data {
+            font-size: 0.85rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .history-modal-content {
+            padding: 1rem;
+        }
+
+        .history-session {
+            padding: 0.75rem 0;
+        }
     }
 
     /* Completion Section - Clean */
@@ -695,7 +861,6 @@ foreach ($all_exercises as $exercises) {
     }
 
     /* Mobile Optimizations */
-    /* Mobile Optimizations - UPDATED to show last workout data */
     @media (max-width: 768px) {
         .workout-container {
             padding: 0 var(--mobile-padding);
@@ -819,10 +984,10 @@ foreach ($all_exercises as $exercises) {
             padding: 1rem;
         }
 
-        /* UPDATED: Show all columns including last workout */
+        /* UPDATED: Removed Last column */
         .table-header,
         .table-row {
-            grid-template-columns: 45px 90px 1fr 1fr 55px;
+            grid-template-columns: 40px 1fr 1fr 50px;
             gap: 0.5rem;
             padding: 0.8rem;
             font-size: var(--mobile-font-sm);
@@ -832,35 +997,28 @@ foreach ($all_exercises as $exercises) {
             font-size: var(--mobile-font-sm);
         }
 
-        /* UPDATED: Better mobile styling for last workout */
-        .last-workout-info,
-        .no-previous-data {
-            padding: 0.5rem;
-            font-size: 0.7rem;
-            min-height: 40px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        .last-workout-label {
-            font-size: 0.65rem;
-            margin-bottom: 0.1rem;
-        }
-
-        .last-workout-data {
-            font-size: 0.75rem;
-        }
-
         .input-field {
             padding: 0.5rem 0.3rem;
             font-size: var(--mobile-font-sm);
         }
 
         .timer-button {
-            width: 35px;
-            height: 35px;
+            width: 32px;
+            height: 32px;
             font-size: 0.9rem;
+        }
+
+        .history-modal-content {
+            padding: 1.5rem;
+            margin: 1rem;
+        }
+
+        .history-modal-title {
+            font-size: 1.3rem;
+        }
+
+        .history-sets {
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
         }
 
         .completion-section {
@@ -914,27 +1072,25 @@ foreach ($all_exercises as $exercises) {
             font-size: var(--mobile-font-xs);
         }
 
-        /* UPDATED: Keep all columns visible on small screens */
+        /* UPDATED: Removed Last column */
         .table-header,
         .table-row {
-            grid-template-columns: 40px 85px 1fr 1fr 50px;
+            grid-template-columns: 35px 1fr 1fr 45px;
             gap: 0.4rem;
             padding: 0.7rem;
             font-size: var(--mobile-font-xs);
         }
 
-        .last-workout-info,
-        .no-previous-data {
-            font-size: 0.65rem;
-            padding: 0.4rem;
+        .history-modal-content {
+            padding: 1rem;
         }
 
-        .last-workout-label {
-            font-size: 0.6rem;
+        .history-session {
+            padding: 1rem;
         }
 
-        .last-workout-data {
-            font-size: 0.7rem;
+        .history-sets {
+            grid-template-columns: 1fr 1fr;
         }
 
         .exercise-header {
@@ -975,10 +1131,10 @@ foreach ($all_exercises as $exercises) {
             gap: 0.5rem;
         }
 
-        /* UPDATED: Ultra-compact for smallest phones */
+        /* UPDATED: Ultra-compact without Last column */
         .table-header,
         .table-row {
-            grid-template-columns: 35px 80px 1fr 1fr 45px;
+            grid-template-columns: 30px 1fr 1fr 40px;
             gap: 0.3rem;
             padding: 0.6rem;
             font-size: var(--mobile-font-xs);
@@ -988,24 +1144,14 @@ foreach ($all_exercises as $exercises) {
             font-size: var(--mobile-font-xs);
         }
 
-        .last-workout-info,
-        .no-previous-data {
-            font-size: 0.6rem;
-            padding: 0.3rem;
-        }
-
-        .last-workout-data {
-            font-size: 0.65rem;
-        }
-
         .input-field {
             padding: 0.4rem 0.2rem;
             font-size: var(--mobile-font-xs);
         }
 
         .timer-button {
-            width: 32px;
-            height: 32px;
+            width: 28px;
+            height: 28px;
             font-size: 0.8rem;
         }
 
@@ -1051,6 +1197,7 @@ foreach ($all_exercises as $exercises) {
             <?php foreach ($all_days as $day): ?>
             <div class="day-tab <?php echo $day['day_order'] == $current_day_index ? 'active current' : ''; ?>" data-day="<?php echo $day['day_order']; ?>">
                 Day <?php echo $day['day_order']; ?><br>
+                <small><?php echo htmlspecialchars($day['title']); ?></small>
             </div>
             <?php endforeach; ?>
         </div>
@@ -1146,10 +1293,10 @@ foreach ($all_exercises as $exercises) {
                         </div>
                         <?php endif; ?>
 
-                        <!-- Sets Table -->
+                        <!-- Sets Table - UPDATED: Removed Last column & Added History button -->
                         <div class="sets-section">
                             <div class="sets-table">
-                                <!-- Table Header -->
+                                <!-- Table Header - UPDATED: Removed Last column -->
                                 <div class="table-header">
                                     <div>SET</div>
                                     <div>WEIGHT (kg)</div>
@@ -1169,6 +1316,7 @@ foreach ($all_exercises as $exercises) {
                                 ?>
                                 <div class="table-row">
                                     <div class="set-number"><?php echo $i; ?></div>
+
                                     <!-- Current Workout Inputs -->
                                     <div>
                                         <input type="number"
@@ -1193,6 +1341,17 @@ foreach ($all_exercises as $exercises) {
                                     </div>
                                 </div>
                                 <?php endfor; ?>
+                                
+                                <!-- Add History Button after 3rd set -->
+                                <?php if ($exercise['default_sets'] >= 3): ?>
+                                <div style="grid-column: 1 / -1; padding: 1rem;">
+                                    <button type="button" class="history-button" 
+                                            data-exercise-id="<?php echo $exercise['id']; ?>"
+                                            data-exercise-name="<?php echo htmlspecialchars($exercise['exercise_name']); ?>">
+                                        <i class="fas fa-history"></i> View Workout History
+                                    </button>
+                                </div>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
@@ -1252,6 +1411,24 @@ foreach ($all_exercises as $exercises) {
             <button id="closeTimerModal" class="btn btn-outline">
                 <i class="fas fa-times"></i> Close
             </button>
+        </div>
+    </div>
+</div>
+
+<!-- History Modal -->
+<div class="history-modal" id="historyModal">
+    <div class="history-modal-content">
+        <div class="history-modal-header">
+            <h3 class="history-modal-title">
+                Workout History: <span class="history-exercise-name" id="historyExerciseName"></span>
+            </h3>
+            <button type="button" class="close-history" id="closeHistoryModal">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="history-sessions" id="historySessions">
+            <!-- History content will be loaded here -->
         </div>
     </div>
 </div>
@@ -1528,6 +1705,134 @@ foreach ($all_exercises as $exercises) {
         }, 3000);
     }
 
+    // History modal functionality
+    function setupHistoryButtons() {
+        document.querySelectorAll('.history-button').forEach(button => {
+            button.addEventListener('click', function() {
+                const exerciseId = this.getAttribute('data-exercise-id');
+                const exerciseName = this.getAttribute('data-exercise-name');
+                showHistoryModal(exerciseId, exerciseName);
+            });
+        });
+    }
+
+    function showHistoryModal(exerciseId, exerciseName) {
+        const modal = document.getElementById('historyModal');
+        const exerciseNameElement = document.getElementById('historyExerciseName');
+        const sessionsContainer = document.getElementById('historySessions');
+        
+        // Set exercise name
+        exerciseNameElement.textContent = exerciseName;
+        
+        // Show loading
+        sessionsContainer.innerHTML = `
+            <div style="text-align: center; padding: 2rem;">
+                <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: var(--accent);"></i>
+                <p style="margin-top: 1rem; color: var(--light-text);">Loading history...</p>
+            </div>
+        `;
+        
+        // Show modal
+        modal.style.display = 'flex';
+        
+        // Load history via AJAX
+        loadExerciseHistory(exerciseId, sessionsContainer);
+    }
+
+    function loadExerciseHistory(exerciseId, container) {
+        const formData = new FormData();
+        formData.append('ajax_get_exercise_history', 'true');
+        formData.append('exercise_id', exerciseId);
+        
+        fetch('ajax_get_exercise_history.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.history.length > 0) {
+                displayHistorySessions(data.history, container);
+            } else {
+                container.innerHTML = `
+                    <div class="no-history">
+                        <i class="fas fa-chart-line"></i>
+                        <h3>No Workout History</h3>
+                        <p>Complete this exercise to start tracking your progress!</p>
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading history:', error);
+            container.innerHTML = `
+                <div class="no-history">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h3>Error Loading History</h3>
+                    <p>Please try again later.</p>
+                </div>
+            `;
+        });
+    }
+
+    function displayHistorySessions(sessions, container) {
+        let html = '';
+        
+        sessions.forEach((session, index) => {
+            const date = new Date(session.completed_at);
+            const formattedDate = date.toLocaleDateString('en-US', { 
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+            
+            html += `
+                <div class="history-session">
+                    <div class="history-session-date">
+                        ${formattedDate}
+                    </div>
+                    <div class="history-sets">
+                        ${session.sets.map(set => {
+                            if (set.weight === null || set.weight === 0) {
+                                return `
+                                    <div class="history-set">
+                                        <span class="history-set-label">Set ${set.set_number}</span>
+                                        <span class="history-set-data">
+                                            <span class="history-set-reps">${set.reps} reps</span>
+                                        </span>
+                                    </div>
+                                `;
+                            } else {
+                                return `
+                                    <div class="history-set">
+                                        <span class="history-set-label">Set ${set.set_number}</span>
+                                        <span class="history-set-data">
+                                            <span class="history-set-reps">${set.reps}</span> × 
+                                            <span class="history-set-weight">${set.weight}kg</span>
+                                        </span>
+                                    </div>
+                                `;
+                            }
+                        }).join('')}
+                    </div>
+                </div>
+            `;
+        });
+        
+        container.innerHTML = html;
+    }
+
+    // Close history modal
+    document.getElementById('closeHistoryModal').addEventListener('click', function() {
+        document.getElementById('historyModal').style.display = 'none';
+    });
+
+    // Close modal when clicking outside
+    document.getElementById('historyModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            this.style.display = 'none';
+        }
+    });
+
     // AJAX WORKOUT SUBMISSION
     document.querySelectorAll('.workout-form').forEach(form => {
         form.addEventListener('submit', function(e) {
@@ -1678,6 +1983,7 @@ foreach ($all_exercises as $exercises) {
     document.addEventListener('DOMContentLoaded', function() {
         setupMobileNavigation();
         openFirstExercise();
+        setupHistoryButtons(); // Initialize history buttons
 
         // Re-check navigation on orientation change
         window.addEventListener('orientationchange', function() {

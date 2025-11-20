@@ -83,7 +83,7 @@ $recent_weights = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <div class="input-with-icon">
                         <i class="fas fa-weight-scale"></i>
                         <input type="number" id="weight_kg" name="weight_kg" class="form-input" 
-                               step="0.1" min="30" max="300" required placeholder="Enter weight in kg">
+                           step="0.01" min="30" max="300" required placeholder="Enter weight in kg">
                     </div>
                 </div>
                 
