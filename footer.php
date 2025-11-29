@@ -134,6 +134,86 @@
                 }
             });
         });
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(function(registration) {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    })
+                    .catch(function(error) {
+                        console.log('ServiceWorker registration failed: ', error);
+                    });
+            });
+        }
+
+        // Detect if app is running as PWA
+        function isRunningAsPWA() {
+            return window.matchMedia('(display-mode: standalone)').matches || 
+                   window.navigator.standalone === true;
+        }
+
+        // Add to home screen prompt
+        let deferredPrompt;
+        const installButton = document.createElement('button');
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevent the mini-infobar from appearing on mobile
+            e.preventDefault();
+            // Stash the event so it can be triggered later
+            deferredPrompt = e;
+            
+            // Show install button if not running as PWA
+            if (!isRunningAsPWA()) {
+                showInstallPromotion();
+            }
+        });
+
+        function showInstallPromotion() {
+            // Create and style install button
+            installButton.innerHTML = '<i class="fas fa-download"></i> Install App';
+            installButton.style.cssText = `
+                position: fixed;
+                bottom: 100px;
+                right: 20px;
+                z-index: 1000;
+                background: var(--gradient-accent);
+                color: white;
+                border: none;
+                padding: 12px 20px;
+                border-radius: var(--radius);
+                font-weight: 600;
+                cursor: pointer;
+                box-shadow: var(--shadow-lg);
+                transition: var(--transition);
+            `;
+            
+            installButton.addEventListener('click', installApp);
+            document.body.appendChild(installButton);
+        }
+
+        async function installApp() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                
+                if (outcome === 'accepted') {
+                    console.log('User accepted the install prompt');
+                    installButton.remove();
+                }
+                
+                deferredPrompt = null;
+            }
+        }
+
+        // Hide install button when app is installed
+        window.addEventListener('appinstalled', () => {
+            console.log('PWA was installed');
+            if (installButton.parentNode) {
+                installButton.remove();
+            }
+            deferredPrompt = null;
+        });
     </script>
 </body>
 </html>

@@ -7,7 +7,26 @@ require_once 'config.php';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fit for the King - <?php echo $pageTitle ?? 'Dashboard'; ?></title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#1a237e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Fit for the King">
+    <meta name="description" content="Strengthening faith while building resilience - Fitness and Devotion App">
+    <meta name="keywords" content="fitness, devotion, christian, workout, health">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Apple Touch Icon -->
+    <link rel="apple-touch-icon" href="logo/logo-192x192.png">
+    
+    <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="logo/logo.ico">
+    <link rel="icon" type="image/png" href="logo/logo-192x192.png">
+    
+    <!-- Styles and Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
