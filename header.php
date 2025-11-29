@@ -20,11 +20,11 @@ require_once 'config.php';
     <link rel="manifest" href="manifest.json">
     
     <!-- Apple Touch Icon -->
-    <link rel="apple-touch-icon" href="logo/192.png">
+    <link rel="apple-touch-icon" href="logo/logo-192x192.png">
     
     <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="logo/favicon.ico">
-    <link rel="icon" type="image/png" href="logo/192.png">
+    <link rel="icon" type="image/x-icon" href="logo/logo.ico">
+    <link rel="icon" type="image/png" href="logo/logo-192x192.png">
     
     <!-- Styles and Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
