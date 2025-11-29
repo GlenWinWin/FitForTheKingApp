@@ -153,24 +153,12 @@
                    window.navigator.standalone === true;
         }
 
-        // Add to home screen prompt
+        // PWA Install Prompt
         let deferredPrompt;
         const installButton = document.createElement('button');
-        
-        window.addEventListener('beforeinstallprompt', (e) => {
-            // Prevent the mini-infobar from appearing on mobile
-            e.preventDefault();
-            // Stash the event so it can be triggered later
-            deferredPrompt = e;
-            
-            // Show install button if not running as PWA
-            if (!isRunningAsPWA()) {
-                showInstallPromotion();
-            }
-        });
 
-        function showInstallPromotion() {
-            // Create and style install button
+        // Create install button
+        function createInstallButton() {
             installButton.innerHTML = '<i class="fas fa-download"></i> Install App';
             installButton.style.cssText = `
                 position: fixed;
@@ -186,12 +174,21 @@
                 cursor: pointer;
                 box-shadow: var(--shadow-lg);
                 transition: var(--transition);
+                font-size: 14px;
             `;
             
             installButton.addEventListener('click', installApp);
             document.body.appendChild(installButton);
         }
 
+        // Listen for install prompt
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            createInstallButton();
+        });
+
+        // Install function
         async function installApp() {
             if (deferredPrompt) {
                 deferredPrompt.prompt();
@@ -199,19 +196,16 @@
                 
                 if (outcome === 'accepted') {
                     console.log('User accepted the install prompt');
-                    installButton.remove();
+                    installButton.style.display = 'none';
                 }
-                
                 deferredPrompt = null;
             }
         }
 
-        // Hide install button when app is installed
+        // Hide button when app is installed
         window.addEventListener('appinstalled', () => {
             console.log('PWA was installed');
-            if (installButton.parentNode) {
-                installButton.remove();
-            }
+            installButton.style.display = 'none';
             deferredPrompt = null;
         });
     </script>

@@ -24,9 +24,24 @@ require_once 'config.php';
     
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="logo/logo.ico">
-    <link rel="shortcut icon" href="logo/logo-192x192.png">
-    
-    <!-- Prevent favicon.ico request -->
+    <link rel="icon" type="image/png" href="logo/logo-192x192.png">
+    <link rel="shortcut icon" type="image/png" href="logo/logo-192x192.png">
+
+    <!-- iOS Specific Meta Tags for Splash Screen -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Fit for the King">
+
+    <!-- Splash Screen Images for iOS -->
+    <link href="logo/logo-192x192.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)" rel="apple-touch-startup-image">
+    <link href="logo/logo-512x512.png" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)" rel="apple-touch-startup-image">
+    <link href="logo/logo-512x512.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)" rel="apple-touch-startup-image">
+
+    <!-- Android Chrome Splash Screen -->
+    <meta name="theme-color" content="#1a237e">
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <!-- Prevent default favicon.ico request -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👑</text></svg>">
     
     <!-- Styles and Fonts -->
