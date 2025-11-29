@@ -10,35 +10,48 @@ require_once 'config.php';
     
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#1a237e">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="Fit for the King">
     <meta name="description" content="Strengthening faith while building resilience - Fitness and Devotion App">
     <meta name="keywords" content="fitness, devotion, christian, workout, health">
     
     <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.json">
     
-    <!-- Apple Touch Icon -->
+    <!-- Apple Touch Icons -->
     <link rel="apple-touch-icon" href="logo/logo-192x192.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="logo/logo-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="logo/logo-180x180.png">
+    <link rel="apple-touch-icon" sizes="167x167" href="logo/logo-167x167.png">
     
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="logo/logo.ico">
     <link rel="icon" type="image/png" href="logo/logo-192x192.png">
     <link rel="shortcut icon" type="image/png" href="logo/logo-192x192.png">
 
-    <!-- iOS Specific Meta Tags for Splash Screen -->
+    <!-- iOS Specific Meta Tags -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Fit for the King">
 
     <!-- Splash Screen Images for iOS -->
-    <link href="logo/logo-192x192.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)" rel="apple-touch-startup-image">
-    <link href="logo/logo-512x512.png" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)" rel="apple-touch-startup-image">
-    <link href="logo/logo-512x512.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)" rel="apple-touch-startup-image">
+    <!-- iPhone 5/5S/5C/SE (320px) -->
+    <link rel="apple-touch-startup-image" href="logo/splash-640x1136.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)">
+    
+    <!-- iPhone 6/7/8 (375px) -->
+    <link rel="apple-touch-startup-image" href="logo/splash-750x1334.png" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)">
+    
+    <!-- iPhone 6/7/8 Plus (414px) -->
+    <link rel="apple-touch-startup-image" href="logo/splash-1242x2208.png" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3)">
+    
+    <!-- iPhone X/XS/11 Pro (375px) -->
+    <link rel="apple-touch-startup-image" href="logo/splash-1125x2436.png" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)">
+    
+    <!-- iPhone XR/11 (414px) -->
+    <link rel="apple-touch-startup-image" href="logo/splash-828x1792.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)">
+    
+    <!-- iPhone XS Max/11 Pro Max (414px) -->
+    <link rel="apple-touch-startup-image" href="logo/splash-1242x2688.png" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3)">
 
-    <!-- Android Chrome Splash Screen -->
-    <meta name="theme-color" content="#1a237e">
+    <!-- Android Chrome -->
     <meta name="mobile-web-app-capable" content="yes">
 
     <!-- Prevent default favicon.ico request -->
@@ -64,6 +77,7 @@ require_once 'config.php';
             --gradient-blue: linear-gradient(135deg, #1a237e 0%, #5c6bc0 50%, #1a237e 100%);
             --glass-bg: rgba(255, 255, 255, 0.7);
             --glass-border: rgba(26, 35, 126, 0.1);
+
             --radius: 20px;
             --shadow: 0 15px 35px rgba(26, 35, 126, 0.1);
             --shadow-lg: 0 25px 60px rgba(26, 35, 126, 0.15);
