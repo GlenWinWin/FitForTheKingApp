@@ -953,9 +953,6 @@ if ($error && isset($_POST['signup'])) {
                         Join the Kingdom
                     </button>
                 </form>
-
-                <p class="footer">By continuing, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy
-                        Policy</a>.</p>
             </div>
         </section>
     </div>
