@@ -12,7 +12,7 @@
                 <i class="fas fa-bible nav-icon"></i>
                 <span class="nav-label">Devotion</span>
             </a>
-            <a href="workout_day.php" class="nav-item <?php echo (basename($_SERVER['PHP_SELF']) == 'workouts.php') ? 'active' : ''; ?>">
+            <a href="workout_day.php" class="nav-item <?php echo (basename($_SERVER['PHP_SELF']) == 'workout_day.php') ? 'active' : ''; ?>">
                 <i class="fas fa-dumbbell nav-icon"></i>
                 <span class="nav-label">Workouts</span>
             </a>
