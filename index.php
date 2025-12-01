@@ -2,6 +2,16 @@
 $pageTitle = "Login & Register";
 require_once 'config.php';
 
+$showSplash = !isset($_SESSION['splash_shown']) && !isset($_GET['nosplash']);
+if ($showSplash && !isset($_SESSION['user_id'])) {
+    $_SESSION['splash_shown'] = true;
+    echo "<script>
+        if (window.location.pathname !== '/splash.php') {
+            window.location.href = 'splash.php';
+        }
+    </script>";
+}
+
 // Redirect if already logged in
 if (isLoggedIn()) {
     echo "<script>window.location.href = 'dashboard.php';</script>";
