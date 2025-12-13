@@ -373,6 +373,10 @@ $stats = $stmt->fetch(PDO::FETCH_ASSOC);
     margin-top: 1.5rem;
 }
 
+.account-section {
+    margin-top: 1.5rem;
+}
+
 .password-card {
     background: var(--glass-bg);
     backdrop-filter: blur(10px);
@@ -890,7 +894,7 @@ $stats = $stmt->fetch(PDO::FETCH_ASSOC);
     </div>
 
     <!-- Logout Section -->
-    <div class="profile-card account-actions">
+    <div class="profile-card account-actions account-section">
         <h2 class="card-title">Account Actions</h2>
         <p style="color: var(--light-text); margin-bottom: 1.5rem; font-size: 0.9rem; line-height: 1.4;">
             Ready to take a break? You can log out and come back anytime.

@@ -51,306 +51,444 @@ $next_month = date('Y-m', strtotime($current_month . ' +1 month'));
 <div class="premium-bg"></div>
 <div class="particles-container" id="particles-container"></div>
 
-<?php if ($success_message): ?>
-<div class="card">
-    <div class="message success">
-        <?php echo htmlspecialchars($success_message); ?>
+<div class="native-app-wrapper">
+    <?php if ($success_message): ?>
+    <div class="native-message-toast">
+        <div class="toast-content">
+            <i class="fas fa-check-circle toast-icon"></i>
+            <span><?php echo htmlspecialchars($success_message); ?></span>
+        </div>
     </div>
-</div>
-<?php endif; ?>
+    <?php endif; ?>
 
-<div class="card">
-    <!-- Calendar Header -->
-    <div class="calendar-header-compact">
-        <div class="calendar-nav-section">
-            <a href="steps_calendar.php?month=<?php echo $prev_month; ?>" class="nav-arrow next-btn">
+    <!-- Sticky App Header -->
+    <header class="native-app-header">
+        <div class="header-container">
+            <div class="header-title-section">
+                <h1 class="app-title">Steps Calendar</h1>
+                <div class="header-subtitle">Track your daily progress</div>
+            </div>
+            <div class="header-month-display">
+                <?php echo date('F Y', strtotime($current_month)); ?>
+            </div>
+        </div>
+    </header>
+
+    <main class="native-app-content">
+        <!-- Month Navigation -->
+        <div class="native-month-navigation">
+            <a href="steps_calendar.php?month=<?php echo $prev_month; ?>" class="nav-btn prev-month" aria-label="Previous month">
                 <i class="fas fa-chevron-left"></i>
             </a>
             
-            <div class="calendar-title">
-                <div class="month-display">
-                    <?php echo date('M Y', strtotime($current_month)); ?>
-                </div>
+            <div class="current-month-title">
+                <div class="month-name"><?php echo date('M Y', strtotime($current_month)); ?></div>
+                <div class="month-stats"><?php echo number_format($summary['total_steps'] ?? 0); ?> steps</div>
             </div>
             
-            <a href="steps_calendar.php?month=<?php echo $next_month; ?>" class="nav-arrow prev-btn">
+            <a href="steps_calendar.php?month=<?php echo $next_month; ?>" class="nav-btn next-month" aria-label="Next month">
                 <i class="fas fa-chevron-right"></i>
             </a>
         </div>
-        
-        <div class="calendar-stats-section">
-            <div class="month-steps-total">
-                <?php echo number_format($summary['total_steps'] ?? 0); ?> steps
-            </div>
-        </div>
-    </div>
 
-    <!-- Calendar Grid -->
-    <div class="calendar-container">
-        <!-- Day headers - Sunday first -->
-        <div class="calendar-days-header">
-            <div class="day-header">S</div>
-            <div class="day-header">M</div>
-            <div class="day-header">T</div>
-            <div class="day-header">W</div>
-            <div class="day-header">T</div>
-            <div class="day-header">F</div>
-            <div class="day-header">S</div>
-        </div>
-        
-        <!-- Calendar grid -->
-        <div class="calendar-grid">
-            <!-- Empty cells for days before the first day of month -->
-            <?php for ($i = 0; $i < $first_day; $i++): ?>
-                <div class="calendar-day empty"></div>
-            <?php endfor; ?>
+        <!-- Calendar Card -->
+        <div class="native-calendar-card">
+            <!-- Day headers -->
+            <div class="calendar-weekdays">
+                <div class="weekday">S</div>
+                <div class="weekday">M</div>
+                <div class="weekday">T</div>
+                <div class="weekday">W</div>
+                <div class="weekday">T</div>
+                <div class="weekday">F</div>
+                <div class="weekday">S</div>
+            </div>
             
-            <!-- Days of the month -->
-            <?php for ($day = 1; $day <= $days_in_month; $day++): 
-                $current_date = date('Y-m-d', strtotime($current_month . '-' . str_pad($day, 2, '0', STR_PAD_LEFT)));
-                $steps = $steps_by_date[$current_date] ?? 0;
-                $is_today = $current_date == date('Y-m-d');
-                $is_weekend = in_array(date('w', strtotime($current_date)), [0, 6]); // 0=Sun, 6=Sat
-                $steps_class = '';
+            <!-- Calendar grid -->
+            <div class="calendar-grid-native">
+                <!-- Empty cells for days before the first day of month -->
+                <?php for ($i = 0; $i < $first_day; $i++): ?>
+                    <div class="calendar-cell empty"></div>
+                <?php endfor; ?>
                 
-                if ($steps > 0) {
-                    if ($steps < 5000) $steps_class = 'steps-low';
-                    elseif ($steps < 10000) $steps_class = 'steps-medium';
-                    else $steps_class = 'steps-high';
-                }
-            ?>
-                <div class="calendar-day <?php echo $is_today ? 'today' : ''; ?> <?php echo $is_weekend ? 'weekend' : ''; ?> <?php echo $steps_class; ?>">
-                    <div class="day-number"><?php echo $day; ?></div>
-                    <?php if ($steps > 0): ?>
-                        <div class="steps-indicator"><?php echo number_format($steps); ?></div>
-                    <?php else: ?>
-                        <div class="no-steps">-</div>
-                    <?php endif; ?>
+                <!-- Days of the month -->
+                <?php for ($day = 1; $day <= $days_in_month; $day++): 
+                    $current_date = date('Y-m-d', strtotime($current_month . '-' . str_pad($day, 2, '0', STR_PAD_LEFT)));
+                    $steps = $steps_by_date[$current_date] ?? 0;
+                    $is_today = $current_date == date('Y-m-d');
+                    $is_weekend = in_array(date('w', strtotime($current_date)), [0, 6]);
+                    $steps_class = '';
+                    
+                    if ($steps > 0) {
+                        if ($steps < 5000) $steps_class = 'steps-low';
+                        elseif ($steps < 10000) $steps_class = 'steps-medium';
+                        else $steps_class = 'steps-high';
+                    }
+                ?>
+                    <div class="calendar-cell 
+                        <?php echo $is_today ? 'today' : ''; ?>
+                        <?php echo $is_weekend ? 'weekend' : ''; ?>
+                        <?php echo $steps_class; ?>"
+                        data-date="<?php echo $current_date; ?>"
+                        data-steps="<?php echo $steps; ?>"
+                        role="button"
+                        tabindex="0">
+                        <div class="day-number"><?php echo $day; ?></div>
+                        <?php if ($steps > 0): ?>
+                            <div class="steps-count"><?php echo number_format($steps); ?></div>
+                        <?php else: ?>
+                            <div class="no-steps">-</div>
+                        <?php endif; ?>
+                        <?php if ($is_today): ?>
+                            <div class="today-ring"></div>
+                        <?php endif; ?>
+                    </div>
+                <?php endfor; ?>
+            </div>
+        </div>
+
+        <!-- Quick Add Form -->
+        <div class="native-quick-add-card">
+            <div class="card-header-native">
+                <h2 class="card-title-native">Add Steps Entry</h2>
+            </div>
+            
+            <form action="steps_add.php" method="POST" class="native-steps-form">
+                <div class="form-row-native">
+                    <div class="form-field-native">
+                        <label for="native_entry_date" class="form-label-native">Date</label>
+                        <div class="input-container">
+                            <input type="date" 
+                                   id="native_entry_date" 
+                                   name="entry_date" 
+                                   value="<?php echo date('Y-m-d'); ?>" 
+                                   required 
+                                   class="form-input-native"
+                                   max="<?php echo date('Y-m-d'); ?>">
+                        </div>
+                    </div>
+                    
+                    <div class="form-field-native">
+                        <label for="native_steps_count" class="form-label-native">Steps Count</label>
+                        <div class="input-container">
+                            <input type="number" 
+                                   id="native_steps_count" 
+                                   name="steps_count" 
+                                   min="1" 
+                                   max="100000" 
+                                   placeholder="Enter steps" 
+                                   required 
+                                   class="form-input-native">
+                        </div>
+                    </div>
                 </div>
-            <?php endfor; ?>
+                
+                <button type="submit" class="native-primary-action-btn">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>Add Steps</span>
+                </button>
+            </form>
         </div>
-    </div>
-</div>
 
-<!-- Add Steps Card -->
-<div class="card">
-    <div class="card-header">
-        <h2 class="card-title">Add Steps Entry</h2>
-    </div>
-    <div class="add-steps-form">
-        <form action="steps_add.php" method="POST" class="steps-form">
-            <div class="form-group">
-                <label for="entry_date">Date</label>
-                <input type="date" id="entry_date" name="entry_date" value="<?php echo date('Y-m-d'); ?>" required class="form-input">
+        <!-- Monthly Summary -->
+        <div class="native-summary-card">
+            <div class="card-header-native">
+                <h2 class="card-title-native">Monthly Summary</h2>
+                <div class="card-subtitle"><?php echo date('M Y', strtotime($current_month)); ?></div>
             </div>
-            <div class="form-group">
-                <label for="steps_count">Steps Count</label>
-                <input type="number" id="steps_count" name="steps_count" min="1" max="100000" placeholder="Enter steps count" required class="form-input">
+            
+            <div class="stats-grid-native">
+                <div class="stat-card-native">
+                    <div class="stat-icon-native">
+                        <i class="fas fa-shoe-prints"></i>
+                    </div>
+                    <div class="stat-content-native">
+                        <div class="stat-number-native"><?php echo number_format($summary['total_steps'] ?? 0); ?></div>
+                        <div class="stat-label-native">Total Steps</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card-native">
+                    <div class="stat-icon-native">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="stat-content-native">
+                        <div class="stat-number-native"><?php echo number_format(round($summary['avg_steps'] ?? 0)); ?></div>
+                        <div class="stat-label-native">Daily Average</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card-native">
+                    <div class="stat-icon-native">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <div class="stat-content-native">
+                        <div class="stat-number-native"><?php echo number_format($summary['max_steps'] ?? 0); ?></div>
+                        <div class="stat-label-native">Most Steps</div>
+                    </div>
+                </div>
             </div>
-            <button type="submit" class="btn btn-primary btn-full">
-                <i class="fas fa-plus"></i> Add Steps
-            </button>
-        </form>
-    </div>
-</div>
-
-<!-- Monthly Summary -->
-<div class="card">
-    <div class="card-header">
-        <h2 class="card-title">Monthly Summary - <?php echo date('M Y', strtotime($current_month)); ?></h2>
-    </div>
-    
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-icon">
-                <i class="fas fa-shoe-prints"></i>
-            </div>
-            <div class="stat-number"><?php echo number_format($summary['total_steps'] ?? 0); ?></div>
-            <div class="stat-label">Total Steps</div>
         </div>
-        <div class="stat-card">
-            <div class="stat-icon">
-                <i class="fas fa-chart-line"></i>
-            </div>
-            <div class="stat-number"><?php echo number_format(round($summary['avg_steps'] ?? 0)); ?></div>
-            <div class="stat-label">Daily Average</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon">
-                <i class="fas fa-trophy"></i>
-            </div>
-            <div class="stat-number"><?php echo number_format($summary['max_steps'] ?? 0); ?></div>
-            <div class="stat-label">Most Steps</div>
-        </div>
-    </div>
+        
+        <!-- Bottom spacing for mobile -->
+        <div class="native-bottom-spacing"></div>
+    </main>
 </div>
 
 <style>
-/* Calendar Header */
-.calendar-header-compact {
+/* Native App Base Styles - Using EXISTING theme variables only */
+.native-app-wrapper {
+    min-height: 100vh;
+    position: relative;
+    padding-bottom: env(safe-area-inset-bottom);
+}
+
+.native-app-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--glass-border);
+    padding: 0.75rem 1rem;
+    padding-top: calc(0.75rem + env(safe-area-inset-top));
+}
+
+.header-container {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid var(--glass-border);
+    align-items: flex-start;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
 }
 
-.calendar-nav-section {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
+.header-title-section {
     flex: 1;
 }
 
-.calendar-stats-section {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    flex: 1;
+.app-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0 0 0.25rem 0;
+    letter-spacing: -0.3px;
 }
 
-.nav-arrow {
+.header-subtitle {
+    font-size: 0.875rem;
+    color: var(--text-light);
+    font-weight: 500;
+}
+
+.header-month-display {
+    font-size: 0.875rem;
+    color: var(--accent);
+    font-weight: 600;
+    background: var(--glass-bg);
+    padding: 0.5rem 0.875rem;
+    border-radius: var(--radius);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(10px);
+}
+
+/* Native App Content */
+.native-app-content {
+    padding: 1rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+    padding-bottom: 2rem;
+}
+
+/* Toast Message - Using existing success colors */
+.native-message-toast {
+    position: fixed;
+    top: calc(4rem + env(safe-area-inset-top));
+    left: 50%;
+    transform: translateX(-50%) translateY(-20px);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    padding: 0.875rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    z-index: 1000;
+    backdrop-filter: blur(20px);
+    animation: toastSlideIn 0.3s ease-out forwards;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    max-width: calc(100% - 2rem);
+    width: auto;
+}
+
+.toast-content {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.toast-icon {
+    color: var(--accent);
+    font-size: 1.125rem;
+}
+
+@keyframes toastSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+/* Month Navigation - Using existing nav styles */
+.native-month-navigation {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--glass-bg);
+    border-radius: var(--radius-lg);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(10px);
+}
+
+.nav-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 2.5rem;
-    height: 2.5rem;
+    width: 44px;
+    height: 44px;
     background: var(--glass-bg);
     border-radius: var(--radius);
     text-decoration: none;
-    color: var(--text);
-    transition: all 0.3s ease;
+    color: var(--accent);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     border: 1px solid var(--glass-border);
     flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.nav-arrow:hover {
-    background: var(--accent);
-    color: white;
-    transform: translateY(-2px);
+.nav-btn:active {
+    transform: scale(0.95);
+    background: rgba(var(--accent-rgb), 0.1);
 }
 
-.next-btn {
-    color: var(--accent);
-    order: 1;
-}
-
-.prev-btn {
-    color: var(--accent);
-    order: 3;
-}
-
-.calendar-title {
-    order: 2;
-    flex: 1;
+.current-month-title {
     text-align: center;
+    flex: 1;
+    padding: 0 1rem;
 }
 
-.month-display {
-    font-size: 1.5rem;
+.month-name {
+    font-size: 1.25rem;
     font-weight: 700;
     color: var(--accent);
+    margin-bottom: 0.25rem;
 }
 
-.month-steps-total {
-    font-size: 1rem;
-    color: var(--accent);
-    font-weight: 600;
-    background: var(--glass-bg);
-    padding: 0.75rem 1.5rem;
-    border-radius: var(--radius);
-    border: 1px solid var(--glass-border);
-    backdrop-filter: blur(10px);
+.month-stats {
+    font-size: 0.875rem;
+    color: var(--text-light);
+    font-weight: 500;
 }
 
-/* Calendar Container - Mobile Responsive */
-.calendar-container {
+/* Native Calendar Card - Using EXACT existing calendar styles */
+.native-calendar-card {
     background: var(--glass-bg);
     border-radius: var(--radius-lg);
-    padding: 1.5rem;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
     border: 1px solid var(--glass-border);
     backdrop-filter: blur(10px);
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
 }
 
-.calendar-days-header {
+.calendar-weekdays {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 0.5rem;
-    margin-bottom: 1rem;
-    min-width: 300px;
+    margin-bottom: 0.75rem;
 }
 
-.day-header {
+.weekday {
     text-align: center;
     font-weight: 600;
-    padding: 0.75rem 0;
+    padding: 0.5rem 0;
     color: var(--accent);
-    font-size: 0.85rem;
+    font-size: 0.8125rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
-.calendar-grid {
+.calendar-grid-native {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 0.5rem;
-    min-width: 300px;
 }
 
-.calendar-day {
+.calendar-cell {
     aspect-ratio: 1;
-    padding: 0.75rem;
+    min-height: 50px;
     background: rgba(255, 255, 255, 0.8);
     border-radius: var(--radius);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    transition: all 0.3s ease;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     border: 1px solid rgba(255, 255, 255, 0.3);
     backdrop-filter: blur(10px);
-    min-height: 60px;
+    -webkit-tap-highlight-color: transparent;
+    cursor: pointer;
 }
 
-.calendar-day.empty {
+.calendar-cell.empty {
     background: transparent;
     border: 1px dashed var(--glass-border);
     backdrop-filter: none;
+    cursor: default;
 }
 
-.calendar-day.today {
+.calendar-cell.today {
     background: var(--gradient-accent);
     color: white;
     box-shadow: 0 4px 12px rgba(var(--accent-rgb), 0.3);
     transform: scale(1.05);
+    border: none;
 }
 
-.calendar-day.weekend {
+.calendar-cell.weekend {
     background: rgba(var(--accent-rgb), 0.05);
 }
 
-.calendar-day:hover:not(.empty) {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+.calendar-cell:active:not(.empty) {
+    transform: scale(0.95);
     background: rgba(255, 255, 255, 0.9);
 }
 
-.calendar-day.today:hover {
+.calendar-cell.today:active {
     background: var(--gradient-accent);
-    transform: translateY(-2px) scale(1.07);
+    transform: scale(0.98);
 }
 
 .day-number {
     font-weight: 600;
-    font-size: 0.85rem;
-    margin-bottom: 0.25rem;
+    font-size: 0.875rem;
+    margin-bottom: 0.125rem;
 }
 
-.steps-indicator {
+.calendar-cell.today .day-number {
+    color: white;
+    font-weight: 700;
+}
+
+.steps-count {
     color: var(--primary);
     font-size: 0.75rem;
     font-weight: 600;
@@ -364,674 +502,588 @@ $next_month = date('Y-m', strtotime($current_month . ' +1 month'));
     opacity: 0.5;
 }
 
-/* Steps color coding */
-.calendar-day.steps-low .steps-indicator {
+/* Steps color coding - Using EXACT existing colors */
+.calendar-cell.steps-low .steps-count {
     color: #ff6b6b;
 }
 
-.calendar-day.steps-medium .steps-indicator {
+.calendar-cell.steps-medium .steps-count {
     color: #ffa726;
 }
 
-.calendar-day.steps-high .steps-indicator {
+.calendar-cell.steps-high .steps-count {
     color: #4caf50;
 }
 
-.calendar-day.today .steps-indicator {
+.calendar-cell.today .steps-count {
     color: white;
 }
 
-/* Add Steps Form */
-.add-steps-form {
-    padding: 1rem 0;
+.today-ring {
+    position: absolute;
+    top: 4px;
+    width: 4px;
+    height: 4px;
+    background: white;
+    border-radius: 50%;
 }
 
-.steps-form {
+/* Native Quick Add Card */
+.native-quick-add-card {
+    background: var(--glass-bg);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(10px);
+}
+
+.card-header-native {
+    margin-bottom: 1.25rem;
+}
+
+.card-title-native {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0 0 0.25rem 0;
+}
+
+.card-subtitle {
+    font-size: 0.875rem;
+    color: var(--text-light);
+}
+
+/* Native Form - Using existing form styles */
+.native-steps-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.form-row-native {
     display: grid;
-    grid-template-columns: 1fr 1fr auto;
+    grid-template-columns: 1fr 1fr;
     gap: 1rem;
-    align-items: end;
 }
 
-.form-group {
+.form-field-native {
     display: flex;
     flex-direction: column;
 }
 
-.form-group label {
+.form-label-native {
     font-weight: 600;
     margin-bottom: 0.5rem;
     color: var(--text);
-    font-size: 0.9rem;
+    font-size: 0.875rem;
 }
 
-.form-input {
-    padding: 0.75rem 1rem;
+.input-container {
+    position: relative;
+}
+
+.form-input-native {
+    width: 100%;
+    padding: 0.875rem 1rem;
     border: 1px solid var(--glass-border);
     border-radius: var(--radius);
     background: var(--glass-bg);
     font-size: 1rem;
     transition: all 0.3s ease;
+    -webkit-appearance: none;
+    appearance: none;
+    font-family: inherit;
 }
 
-.form-input:focus {
+.form-input-native:focus {
     outline: none;
     border-color: var(--accent);
     box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.1);
 }
 
-.btn-full {
+/* Native Primary Action Button - Using existing button colors */
+.native-primary-action-btn {
     width: 100%;
-    padding: 0.75rem 1.5rem;
+    padding: 1rem;
+    background: var(--gradient-accent);
+    border: none;
+    border-radius: var(--radius);
+    color: white;
+    font-size: 1rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    margin-top: 0.5rem;
+    -webkit-tap-highlight-color: transparent;
 }
 
-/* Stats grid */
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 1rem;
+.native-primary-action-btn:active {
+    transform: scale(0.98);
+    opacity: 0.9;
 }
 
-.stat-card {
+.native-primary-action-btn i {
+    font-size: 1.125rem;
+}
+
+/* Native Summary Card */
+.native-summary-card {
     background: var(--glass-bg);
     border-radius: var(--radius-lg);
     padding: 1.5rem;
-    text-align: center;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
+    margin-bottom: 1rem;
     border: 1px solid var(--glass-border);
     backdrop-filter: blur(10px);
 }
 
-.stat-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+.stats-grid-native {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
 }
 
-.stat-icon {
+.stat-card-native {
+    background: var(--glass-bg);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(10px);
+}
+
+.stat-card-native:active {
+    transform: translateY(-2px);
+}
+
+.stat-icon-native {
     font-size: 1.5rem;
     color: var(--accent);
     margin-bottom: 0.75rem;
     opacity: 0.9;
 }
 
-.stat-number {
-    font-size: 1.8rem;
+.stat-number-native {
+    font-size: 1.5rem;
     font-weight: 700;
     color: var(--accent);
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.25rem;
 }
 
-.stat-label {
-    font-size: 0.9rem;
+.stat-label-native {
+    font-size: 0.875rem;
     color: var(--text-light);
     font-weight: 500;
 }
 
-/* Mobile responsiveness */
+.stat-content-native {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Bottom spacing */
+.native-bottom-spacing {
+    height: 2rem;
+}
+
+/* Mobile Responsiveness */
 @media (max-width: 768px) {
-    .calendar-header-compact {
-        flex-direction: column;
-        gap: 1rem;
-        margin-bottom: 1rem;
+    .native-app-header {
+        padding: 0.625rem 0.875rem;
+        padding-top: calc(0.625rem + env(safe-area-inset-top));
     }
     
-    .calendar-nav-section {
-        width: 100%;
-        justify-content: space-between;
+    .app-title {
+        font-size: 1.25rem;
     }
     
-    .calendar-stats-section {
-        width: 100%;
-        justify-content: center;
+    .header-subtitle {
+        font-size: 0.8125rem;
     }
     
-    .month-display {
-        font-size: 1.3rem;
+    .header-month-display {
+        font-size: 0.8125rem;
+        padding: 0.375rem 0.75rem;
     }
     
-    .month-steps-total {
-        font-size: 0.9rem;
-        padding: 0.5rem 1rem;
+    .native-app-content {
+        padding: 0.875rem;
     }
     
-    .nav-arrow {
-        width: 2.25rem;
-        height: 2.25rem;
+    .native-month-navigation {
+        padding: 0.875rem;
+        margin-bottom: 0.875rem;
     }
     
-    .calendar-container {
+    .nav-btn {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .month-name {
+        font-size: 1.125rem;
+    }
+    
+    .month-stats {
+        font-size: 0.8125rem;
+    }
+    
+    .native-calendar-card {
         padding: 1rem;
         border-radius: var(--radius);
-        margin: 0 -0.5rem;
     }
     
-    .calendar-days-header {
-        gap: 0.25rem;
-        margin-bottom: 0.75rem;
-        min-width: 280px;
+    .calendar-weekdays {
+        gap: 0.375rem;
+        margin-bottom: 0.625rem;
     }
     
-    .day-header {
-        padding: 0.5rem 0;
+    .weekday {
+        padding: 0.375rem 0;
         font-size: 0.75rem;
     }
     
-    .calendar-grid {
-        gap: 0.25rem;
-        min-width: 280px;
+    .calendar-grid-native {
+        gap: 0.375rem;
     }
     
-    .calendar-day {
-        padding: 0.5rem;
-        border-radius: var(--radius-sm);
-        min-height: 50px;
+    .calendar-cell {
+        min-height: 44px;
+        border-radius: 10px;
     }
     
     .day-number {
-        font-size: 0.8rem;
-        margin-bottom: 0.15rem;
+        font-size: 0.8125rem;
     }
     
-    .steps-indicator, .no-steps {
-        font-size: 0.7rem;
+    .steps-count, .no-steps {
+        font-size: 0.6875rem;
     }
     
-    .steps-form {
+    .native-quick-add-card {
+        padding: 1.25rem;
+    }
+    
+    .card-title-native {
+        font-size: 1.125rem;
+    }
+    
+    .form-row-native {
+        grid-template-columns: 1fr;
+        gap: 0.875rem;
+    }
+    
+    .form-input-native {
+        padding: 0.75rem 0.875rem;
+        font-size: 1rem;
+    }
+    
+    .native-primary-action-btn {
+        padding: 0.875rem;
+        font-size: 0.9375rem;
+    }
+    
+    .native-summary-card {
+        padding: 1.25rem;
+    }
+    
+    .stats-grid-native {
         grid-template-columns: 1fr;
         gap: 0.75rem;
     }
     
-    .stats-grid {
-        grid-template-columns: 1fr;
-        gap: 0.75rem;
+    .stat-card-native {
+        padding: 1rem;
     }
     
-    .stat-card {
-        padding: 1.25rem 1rem;
+    .stat-number-native {
+        font-size: 1.375rem;
     }
     
-    .stat-number {
-        font-size: 1.5rem;
-    }
-    
-    .stat-icon {
-        font-size: 1.25rem;
+    .stat-icon-native {
+        font-size: 1.375rem;
         margin-bottom: 0.5rem;
     }
 }
 
 @media (max-width: 480px) {
-    .calendar-container {
+    .native-app-header {
+        padding: 0.5rem 0.75rem;
+        padding-top: calc(0.5rem + env(safe-area-inset-top));
+    }
+    
+    .header-container {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .header-month-display {
+        align-self: flex-start;
+    }
+    
+    .native-app-content {
         padding: 0.75rem;
     }
     
-    .calendar-days-header {
-        gap: 0.15rem;
-        min-width: 260px;
+    .calendar-grid-native {
+        gap: 0.25rem;
     }
     
-    .day-header {
-        padding: 0.4rem 0;
-        font-size: 0.7rem;
-    }
-    
-    .calendar-grid {
-        gap: 0.15rem;
-        min-width: 260px;
-    }
-    
-    .calendar-day {
-        padding: 0.4rem;
-        min-height: 45px;
+    .calendar-cell {
+        min-height: 40px;
+        border-radius: 8px;
     }
     
     .day-number {
         font-size: 0.75rem;
     }
     
-    .steps-indicator, .no-steps {
-        font-size: 0.65rem;
+    .steps-count, .no-steps {
+        font-size: 0.625rem;
     }
     
-    .month-display {
-        font-size: 1.2rem;
+    .native-message-toast {
+        top: calc(3.5rem + env(safe-area-inset-top));
+        padding: 0.75rem 0.875rem;
+        font-size: 0.875rem;
     }
     
-    .month-steps-total {
-        font-size: 0.85rem;
-    }
-    
-    .nav-arrow {
-        width: 2rem;
-        height: 2rem;
+    .native-primary-action-btn {
+        padding: 0.75rem;
     }
 }
 
 @media (max-width: 360px) {
-    .calendar-container {
-        padding: 0.5rem;
-    }
-    
-    .calendar-days-header {
-        gap: 0.1rem;
-        min-width: 240px;
-    }
-    
-    .day-header {
-        padding: 0.3rem 0;
-        font-size: 0.65rem;
-    }
-    
-    .calendar-grid {
-        gap: 0.1rem;
-        min-width: 240px;
-    }
-    
-    .calendar-day {
-        padding: 0.3rem;
-        min-height: 40px;
+    .calendar-cell {
+        min-height: 36px;
     }
     
     .day-number {
-        font-size: 0.7rem;
+        font-size: 0.6875rem;
     }
     
-    .steps-indicator, .no-steps {
-        font-size: 0.6rem;
+    .steps-count, .no-steps {
+        font-size: 0.5625rem;
     }
     
-    .month-display {
-        font-size: 1.1rem;
-    }
-    
-    .month-steps-total {
-        font-size: 0.8rem;
-    }
-    
-    .nav-arrow {
-        width: 1.75rem;
-        height: 1.75rem;
+    .native-app-content {
+        padding: 0.625rem;
     }
 }
 
-/* Ensure horizontal scrolling works properly */
-.calendar-container::-webkit-scrollbar {
-    height: 6px;
+/* Native App Interactions */
+* {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
-.calendar-container::-webkit-scrollbar-track {
-    background: var(--glass-bg);
-    border-radius: 3px;
+input, textarea {
+    -webkit-user-select: text;
+    user-select: text;
 }
 
-.calendar-container::-webkit-scrollbar-thumb {
-    background: var(--accent);
-    border-radius: 3px;
+/* Prevent zoom */
+html, body {
+    touch-action: pan-y;
+    overscroll-behavior: none;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
 }
 
-.calendar-container::-webkit-scrollbar-thumb:hover {
-    background: var(--accent-dark);
-}
-
-/* Maintain theme consistency */
-.calendar-day {
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-}
-
-.calendar-day.today {
-    background: var(--gradient-accent);
-}
-
-.calendar-day:hover:not(.empty) {
-    background: var(--glass-bg-hover);
-}
-
-/* Enhanced Mobile Responsiveness */
-@media (max-width: 768px) {
-    .calendar-header-compact {
-        flex-direction: column;
-        gap: 1rem;
-        margin-bottom: 1rem;
-        padding: 1rem 0.5rem;
-    }
-    
-    .calendar-nav-section {
-        width: 100%;
-        justify-content: space-between;
-        order: 1;
-    }
-    
-    .calendar-stats-section {
-        width: 100%;
-        justify-content: center;
-        order: 2;
-    }
-    
-    .month-display {
-        font-size: 1.3rem;
-        text-align: center;
-    }
-    
-    .month-steps-total {
-        font-size: 0.9rem;
-        padding: 0.75rem 1.25rem;
-        text-align: center;
-        width: 100%;
-        max-width: 200px;
-    }
-    
-    .nav-arrow {
-        width: 2.5rem;
-        height: 2.5rem;
-        flex-shrink: 0;
-    }
-    
-    .calendar-container {
-        padding: 0.75rem;
-        border-radius: var(--radius);
-        margin: 0;
-        border: 1px solid var(--glass-border);
-    }
-    
-    .calendar-days-header {
-        gap: 0.2rem;
-        margin-bottom: 0.5rem;
-        min-width: 100%;
-    }
-    
-    .day-header {
-        padding: 0.5rem 0;
-        font-size: 0.75rem;
-        font-weight: 700;
-    }
-    
-    .calendar-grid {
-        gap: 0.2rem;
-        min-width: 100%;
-    }
-    
-    .calendar-day {
-        padding: 0.4rem 0.2rem;
-        border-radius: 6px;
-        min-height: 45px;
-        aspect-ratio: 1;
-    }
-    
-    .day-number {
-        font-size: 0.75rem;
-        margin-bottom: 0.1rem;
-        font-weight: 600;
-    }
-    
-    .steps-indicator, .no-steps {
-        font-size: 0.65rem;
-        line-height: 1;
-    }
-    
-    .steps-form {
-        grid-template-columns: 1fr;
-        gap: 1rem;
-    }
-    
-    .stats-grid {
-        grid-template-columns: 1fr;
-        gap: 0.75rem;
-    }
-    
-    .stat-card {
-        padding: 1.25rem 1rem;
-        border-radius: 10px;
-    }
-    
-    .stat-number {
-        font-size: 1.5rem;
-    }
-    
-    .stat-icon {
-        font-size: 1.25rem;
-        margin-bottom: 0.5rem;
-    }
-    
-    /* Improve card spacing on mobile */
-    .card {
-        margin-bottom: 1rem;
-        border-radius: 12px;
-    }
-    
-    .card-header {
-        padding: 1rem 1rem 0.5rem;
-    }
-    
-    .add-steps-form {
-        padding: 0.5rem 1rem 1rem;
+/* Disable double-tap zoom */
+@media (hover: none) and (pointer: coarse) {
+    button, a, .calendar-cell {
+        touch-action: manipulation;
     }
 }
 
-@media (max-width: 480px) {
-    .calendar-header-compact {
-        padding: 0.75rem 0.25rem;
-        gap: 0.75rem;
-    }
-    
-    .calendar-container {
-        padding: 0.5rem;
-        border-radius: 10px;
-    }
-    
-    .calendar-days-header {
-        gap: 0.15rem;
-    }
-    
-    .day-header {
-        padding: 0.4rem 0;
-        font-size: 0.7rem;
-    }
-    
-    .calendar-grid {
-        gap: 0.15rem;
-    }
-    
-    .calendar-day {
-        padding: 0.3rem 0.1rem;
-        min-height: 40px;
-        border-radius: 5px;
-    }
-    
-    .day-number {
-        font-size: 0.7rem;
-    }
-    
-    .steps-indicator, .no-steps {
-        font-size: 0.6rem;
-    }
-    
-    .month-display {
-        font-size: 1.1rem;
-    }
-    
-    .month-steps-total {
-        font-size: 0.8rem;
-        padding: 0.6rem 1rem;
-        max-width: 180px;
-    }
-    
-    .nav-arrow {
-        width: 2.25rem;
-        height: 2.25rem;
-    }
-    
-    .nav-arrow i {
-        font-size: 0.9rem;
+/* Date input specific */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    opacity: 0;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    left: 0;
+}
+
+/* Number input */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+/* Focus states for accessibility */
+.nav-btn:focus-visible,
+.calendar-cell:focus-visible,
+.native-primary-action-btn:focus-visible,
+.form-input-native:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
     }
 }
 
-@media (max-width: 390px) { /* iPhone 12 Pro and similar */
-    .calendar-header-compact {
-        padding: 0.5rem 0.25rem;
-        gap: 0.5rem;
+/* iOS safe area support */
+@supports (-webkit-touch-callout: none) {
+    .native-app-header {
+        padding-top: calc(1rem + env(safe-area-inset-top));
     }
     
-    .calendar-container {
-        padding: 0.4rem;
-        border-radius: 8px;
-    }
-    
-    .calendar-days-header {
-        gap: 0.1rem;
-        margin-bottom: 0.4rem;
-    }
-    
-    .day-header {
-        padding: 0.35rem 0;
-        font-size: 0.65rem;
-    }
-    
-    .calendar-grid {
-        gap: 0.1rem;
-    }
-    
-    .calendar-day {
-        padding: 0.25rem 0.1rem;
-        min-height: 38px;
-        border-radius: 4px;
-    }
-    
-    .day-number {
-        font-size: 0.65rem;
-        margin-bottom: 0.05rem;
-    }
-    
-    .steps-indicator, .no-steps {
-        font-size: 0.55rem;
-    }
-    
-    .month-display {
-        font-size: 1rem;
-    }
-    
-    .month-steps-total {
-        font-size: 0.75rem;
-        padding: 0.5rem 0.75rem;
-        max-width: 160px;
-    }
-    
-    .nav-arrow {
-        width: 2rem;
-        height: 2rem;
-    }
-    
-    .nav-arrow i {
-        font-size: 0.8rem;
-    }
-    
-    /* Adjust form inputs for very small screens */
-    .form-input {
-        padding: 0.6rem 0.8rem;
-        font-size: 0.9rem;
-    }
-    
-    .btn-full {
-        padding: 0.6rem 1rem;
-        font-size: 0.9rem;
-    }
-    
-    .stat-card {
-        padding: 1rem 0.75rem;
-    }
-    
-    .stat-number {
-        font-size: 1.3rem;
-    }
-    
-    .stat-icon {
-        font-size: 1.1rem;
-    }
-}
-
-@media (max-width: 320px) { /* Very small devices */
-    .calendar-day {
-        min-height: 35px;
-    }
-    
-    .day-number {
-        font-size: 0.6rem;
-    }
-    
-    .steps-indicator, .no-steps {
-        font-size: 0.5rem;
-    }
-    
-    .month-display {
-        font-size: 0.9rem;
-    }
-    
-    .month-steps-total {
-        font-size: 0.7rem;
-        padding: 0.4rem 0.6rem;
-        max-width: 140px;
-    }
-    
-    .nav-arrow {
-        width: 1.75rem;
-        height: 1.75rem;
-    }
-}
-
-/* Enhanced touch interactions for mobile */
-@media (max-width: 768px) {
-    .nav-arrow {
-        cursor: pointer;
-    }
-    
-    .calendar-day {
-        cursor: pointer;
-        -webkit-tap-highlight-color: transparent;
-    }
-    
-    .form-input, .btn-full {
-        -webkit-appearance: none;
-        border-radius: 8px;
-    }
-}
-
-/* Prevent horizontal scrolling issues */
-.calendar-container {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none; /* Firefox */
-}
-
-.calendar-container::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, Edge */
-}
-
-/* Ensure calendar grid doesn't break on very small screens */
-.calendar-grid {
-    grid-template-columns: repeat(7, minmax(0, 1fr));
-}
-
-.calendar-days-header {
-    grid-template-columns: repeat(7, minmax(0, 1fr));
-}
-
-/* Improve loading performance */
-.calendar-day {
-    will-change: transform;
-}
-
-/* Better focus states for accessibility */
-@media (max-width: 768px) {
-    .nav-arrow:focus,
-    .calendar-day:focus,
-    .form-input:focus,
-    .btn-full:focus {
-        outline: 2px solid var(--accent);
-        outline-offset: 2px;
+    .native-app-wrapper {
+        padding-bottom: calc(1rem + env(safe-area-inset-bottom));
     }
 }
 </style>
+
+<script>
+// Native mobile app interactions
+document.addEventListener('DOMContentLoaded', function() {
+    // Prevent zoom gestures
+    document.addEventListener('gesturestart', function(e) {
+        e.preventDefault();
+    });
+    
+    // Disable double-tap to zoom
+    let lastTouchEnd = 0;
+    document.addEventListener('touchend', function(e) {
+        const now = Date.now();
+        if (now - lastTouchEnd <= 300) {
+            e.preventDefault();
+        }
+        lastTouchEnd = now;
+    }, { passive: false });
+    
+    // Calendar cell interactions
+    const calendarCells = document.querySelectorAll('.calendar-cell:not(.empty)');
+    calendarCells.forEach(cell => {
+        // Touch feedback
+        cell.addEventListener('touchstart', function() {
+            if (!this.classList.contains('empty')) {
+                this.style.transform = 'scale(0.95)';
+            }
+        }, { passive: true });
+        
+        cell.addEventListener('touchend', function() {
+            this.style.transform = '';
+        }, { passive: true });
+        
+        cell.addEventListener('touchcancel', function() {
+            this.style.transform = '';
+        }, { passive: true });
+        
+        // Click to populate form
+        cell.addEventListener('click', function() {
+            const date = this.getAttribute('data-date');
+            const steps = this.getAttribute('data-steps');
+            
+            const dateInput = document.getElementById('native_entry_date');
+            const stepsInput = document.getElementById('native_steps_count');
+            
+            if (dateInput && stepsInput) {
+                dateInput.value = date;
+                
+                if (steps > 0) {
+                    stepsInput.value = steps;
+                    stepsInput.focus();
+                } else {
+                    stepsInput.value = '';
+                    stepsInput.focus();
+                }
+                
+                // Scroll to form
+                const form = document.querySelector('.native-quick-add-card');
+                if (form) {
+                    form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        });
+    });
+    
+    // Form submission handling
+    const form = document.querySelector('.native-steps-form');
+    if (form) {
+        form.addEventListener('submit', function() {
+            const submitBtn = this.querySelector('.native-primary-action-btn');
+            if (submitBtn) {
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Adding...</span>';
+                submitBtn.disabled = true;
+            }
+        });
+    }
+    
+    // Auto-hide toast message
+    const toast = document.querySelector('.native-message-toast');
+    if (toast) {
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(-50%) translateY(-20px)';
+            setTimeout(() => toast.remove(), 300);
+        }, 4000);
+    }
+    
+    // Set max date to today
+    const dateInput = document.getElementById('native_entry_date');
+    if (dateInput) {
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.max = today;
+    }
+    
+    // Steps input validation
+    const stepsInput = document.getElementById('native_steps_count');
+    if (stepsInput) {
+        stepsInput.addEventListener('input', function() {
+            let value = parseInt(this.value);
+            if (isNaN(value)) return;
+            
+            if (value > 100000) {
+                this.value = 100000;
+            } else if (value < 0) {
+                this.value = '';
+            }
+        });
+    }
+    
+    // Update viewport height for mobile
+    function updateViewportHeight() {
+        const vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty('--vh', `${vh}px`);
+    }
+    
+    window.addEventListener('resize', updateViewportHeight);
+    window.addEventListener('orientationchange', updateViewportHeight);
+    updateViewportHeight();
+    
+    // Smooth scroll to top when header is clicked
+    const header = document.querySelector('.native-app-header');
+    if (header) {
+        header.addEventListener('click', function(e) {
+            if (e.target === this || e.target.classList.contains('app-title')) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        });
+    }
+});
+</script>
 
 <?php require_once 'footer.php'; ?>

@@ -83,14 +83,40 @@ $week_devotions = $stmt->fetch(PDO::FETCH_ASSOC)['devotion_count'] ?? 0;
 ?>
 
 <style>
-    /* Dashboard Specific Styles */
+    /* Native Mobile App Reset */
+    * {
+        -webkit-tap-highlight-color: transparent;
+        -webkit-user-select: none;
+        user-select: none;
+        touch-action: manipulation;
+    }
+    
+    input, textarea, button, select {
+        -webkit-user-select: text;
+        user-select: text;
+    }
+    
+    html, body {
+        overscroll-behavior-y: contain;
+        -webkit-overflow-scrolling: touch;
+        overflow-x: hidden;
+        max-width: 100vw;
+    }
+    
+    /* Dashboard Native Mobile Styles */
+    .native-container {
+        padding: 0;
+        margin: 0;
+        width: 100%;
+        overflow-x: hidden;
+    }
+    
     .welcome-banner {
         background: var(--gradient-blue);
         color: white;
-        padding: 2rem;
-        border-radius: var(--radius);
-        margin-bottom: 2rem;
-        text-align: center;
+        padding: 2rem 1.5rem 1.5rem;
+        margin: 0 0 1.5rem;
+        border-radius: 0;
         position: relative;
         overflow: hidden;
     }
@@ -102,150 +128,56 @@ $week_devotions = $stmt->fetch(PDO::FETCH_ASSOC)['devotion_count'] ?? 0;
         left: 0;
         right: 0;
         bottom: 0;
-        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,100 Z" fill="rgba(255,255,255,0.1)"/></svg>');
-        background-size: cover;
+        background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
     }
     
     .welcome-banner h1 {
-        font-size: 1.8rem;
+        font-size: 1.5rem;
+        font-weight: 700;
         margin-bottom: 0.5rem;
         position: relative;
+        line-height: 1.3;
     }
     
     .welcome-banner p {
         opacity: 0.9;
         margin: 0;
         position: relative;
+        font-size: 0.95rem;
     }
     
+    /* Native Stats Cards */
     .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        padding: 0 1rem;
         margin-bottom: 2rem;
     }
     
     .stat-card {
         background: var(--glass-bg);
-        backdrop-filter: blur(10px);
+        backdrop-filter: blur(20px);
         border: 1px solid var(--glass-border);
-        border-radius: var(--radius);
-        padding: 1.5rem;
-        text-align: center;
-        transition: var(--transition);
-        position: relative;
-        overflow: hidden;
+        border-radius: 16px;
+        padding: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        min-height: 88px;
     }
     
-    .stat-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(26, 35, 126, 0.05), transparent);
-        transition: left 0.7s;
-    }
-    
-    .stat-card:hover::before {
-        left: 100%;
-    }
-    
-    .stat-card:hover {
-        transform: translateY(-5px);
-        box-shadow: var(--shadow-lg);
+    .stat-card:active {
+        transform: scale(0.98);
+        background: rgba(var(--accent-rgb, 26, 35, 126), 0.05);
     }
     
     .stat-icon {
-        width: 60px;
-        height: 60px;
-        margin: 0 auto 1rem;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
-        background: var(--gradient-accent);
-        color: white;
-    }
-    
-    .stat-value {
-        font-size: 2.5rem;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-        background: var(--gradient-blue);
-        -webkit-background-clip: text;
-        background-clip: text;
-        color: transparent;
-    }
-    
-    .stat-label {
-        color: var(--light-text);
-        font-size: 1rem;
-        margin-bottom: 1rem;
-    }
-    
-    .progress-section {
-        margin-bottom: 2rem;
-    }
-    
-    .section-title {
-        font-size: 1.5rem;
-        font-weight: 700;
-        margin-bottom: 1.5rem;
-        color: var(--text);
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-    }
-    
-    .section-title i {
-        color: var(--accent);
-    }
-    
-    /* Clean Quick Actions */
-    .quick-actions {
-        display: flex;
-        gap: 1rem;
-        overflow-x: auto;
-        padding: 0.5rem 0;
-        margin-bottom: 2rem;
-        scrollbar-width: none;
-        -ms-overflow-style: none;
-    }
-    
-    .quick-actions::-webkit-scrollbar {
-        display: none;
-    }
-    
-    .quick-action {
-        flex: 0 0 auto;
-        width: 120px;
-        background: var(--glass-bg);
-        border: 1px solid var(--glass-border);
-        border-radius: var(--radius);
-        padding: 1.5rem 1rem;
-        text-align: center;
-        text-decoration: none;
-        color: var(--text);
-        transition: var(--transition);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 0.75rem;
-    }
-    
-    .quick-action:hover {
-        transform: translateY(-3px);
-        box-shadow: var(--shadow);
-        color: var(--text);
-    }
-    
-    .quick-action-icon {
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
+        width: 52px;
+        height: 52px;
+        min-width: 52px;
+        border-radius: 14px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -254,26 +186,81 @@ $week_devotions = $stmt->fetch(PDO::FETCH_ASSOC)['devotion_count'] ?? 0;
         color: white;
     }
     
-    .quick-action-title {
-        font-weight: 600;
-        font-size: 0.9rem;
-        line-height: 1.3;
+    .stat-content {
+        flex: 1;
     }
     
+    .stat-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-bottom: 0.25rem;
+    }
+    
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        background: var(--gradient-blue);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        line-height: 1;
+    }
+    
+    .stat-label {
+        color: var(--light-text);
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+    
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 0.375rem 0.75rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        min-height: 28px;
+    }
+    
+    .status-complete {
+        background: rgba(76, 175, 80, 0.1);
+        color: #4CAF50;
+    }
+    
+    .status-pending {
+        background: rgba(255, 152, 0, 0.1);
+        color: #FF9800;
+    }
+    
+    /* Native Progress Alert */
     .progress-alert {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
-        padding: 1.5rem;
-        border-radius: var(--radius);
-        margin-bottom: 2rem;
+        padding: 1.25rem;
+        border-radius: 16px;
+        margin: 0 1rem 1.5rem;
         display: flex;
         align-items: center;
         gap: 1rem;
     }
     
+    .progress-alert:active {
+        opacity: 0.95;
+    }
+    
     .progress-alert-icon {
-        font-size: 2rem;
-        flex-shrink: 0;
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
     }
     
     .progress-alert-content {
@@ -281,12 +268,21 @@ $week_devotions = $stmt->fetch(PDO::FETCH_ASSOC)['devotion_count'] ?? 0;
     }
     
     .progress-alert h3 {
-        margin-bottom: 0.5rem;
+        font-size: 1rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
     }
     
+    .progress-alert p {
+        font-size: 0.875rem;
+        opacity: 0.9;
+        margin-bottom: 0.75rem;
+    }
+    
+    /* Native Photo Grid */
     .photo-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        grid-template-columns: repeat(3, 1fr);
         gap: 1rem;
         margin-bottom: 1.5rem;
     }
@@ -312,162 +308,259 @@ $week_devotions = $stmt->fetch(PDO::FETCH_ASSOC)['devotion_count'] ?? 0;
     }
     
     .photo-date {
-        font-size: 0.8rem;
+        font-size: 0.75rem;
         color: var(--light-text);
     }
     
-    .status-badge {
-        display: inline-flex;
+    /* Native Weekly Progress */
+    .weekly-progress {
+        padding: 0 1rem 2rem;
+    }
+    
+    .weekly-title {
+        font-size: 1.125rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        color: var(--text);
+        display: flex;
         align-items: center;
         gap: 0.5rem;
-        padding: 0.5rem 1rem;
-        border-radius: 20px;
-        font-size: 0.9rem;
+    }
+    
+    .weekly-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.75rem;
+    }
+    
+    .weekly-stat {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
+        padding: 1rem;
+        text-align: center;
+    }
+    
+    .weekly-stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+        background: var(--gradient-primary);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+    
+    .weekly-stat-label {
+        font-size: 0.75rem;
+        color: var(--light-text);
+        font-weight: 500;
+    }
+    
+    /* Native Button Styles */
+    .btn-native {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.875rem 1.25rem;
+        border-radius: 12px;
         font-weight: 600;
-        margin-top: 0.5rem;
+        font-size: 0.9375rem;
+        border: none;
+        text-decoration: none;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        min-height: 48px;
     }
     
-    .status-complete {
-        background: rgba(76, 175, 80, 0.1);
-        color: #4CAF50;
+    .btn-native:active {
+        transform: scale(0.98);
     }
     
-    .status-pending {
-        background: rgba(255, 152, 0, 0.1);
-        color: #FF9800;
+    .btn-primary {
+        background: var(--gradient-accent);
+        color: white;
     }
     
-    @media (max-width: 768px) {
-        .stats-grid {
-            grid-template-columns: 1fr;
-        }
-        
-        .quick-actions {
-            gap: 0.75rem;
-        }
-        
-        .quick-action {
-            width: 110px;
-            padding: 1.25rem 0.75rem;
+    .btn-outline {
+        background: transparent;
+        border: 1px solid var(--glass-border);
+        color: var(--text);
+    }
+    
+    /* Native Card */
+    .native-card {
+        background: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
+        padding: 1.25rem;
+        margin: 0 1rem 1.5rem;
+    }
+    
+    /* Responsive */
+    @media (min-width: 768px) {
+        .native-container {
+            max-width: 420px;
+            margin: 0 auto;
         }
         
         .welcome-banner {
-            padding: 1.5rem 1rem;
-        }
-        
-        .welcome-banner h1 {
-            font-size: 1.5rem;
+            border-radius: 0 0 24px 24px;
         }
     }
     
-    @media (max-width: 480px) {
-        .quick-action {
-            width: 100px;
-            padding: 1rem 0.5rem;
+    @media (max-width: 360px) {
+        .weekly-stats {
+            grid-template-columns: 1fr;
         }
         
-        .quick-action-icon {
-            width: 45px;
-            height: 45px;
-            font-size: 1.1rem;
+        .photo-grid {
+            grid-template-columns: repeat(2, 1fr);
         }
-        
-        .quick-action-title {
-            font-size: 0.85rem;
+    }
+    
+    /* Dark mode adjustments */
+    @media (prefers-color-scheme: dark) {
+        .stat-card,
+        .weekly-stat,
+        .native-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.1);
         }
+    }
+    
+    /* Loading skeleton animation */
+    @keyframes skeleton-loading {
+        0% { opacity: 0.5; }
+        50% { opacity: 0.8; }
+        100% { opacity: 0.5; }
+    }
+    
+    .skeleton {
+        animation: skeleton-loading 1.5s ease-in-out infinite;
+        background: var(--glass-bg);
+        border-radius: 8px;
     }
 </style>
 
-<!-- Welcome Banner -->
-<div class="welcome-banner">
-    <h1>Honor God with your body and your habits</h1>
-    <p>Welcome to your fitness journey with Christ</p>
-</div>
+<script>
+    // Prevent zoom gestures
+    document.addEventListener('touchstart', function(event) {
+        if (event.touches.length > 1) {
+            event.preventDefault();
+        }
+    }, { passive: false });
 
-<!-- Main Stats Grid -->
-<div class="stats-grid">
-    <!-- Devotion Card -->
-    <div class="stat-card">
-        <div class="stat-icon">
-            <i class="fas fa-bible"></i>
+    document.addEventListener('gesturestart', function(event) {
+        event.preventDefault();
+    });
+
+    // Add native-like tap feedback
+    document.addEventListener('touchstart', function() {}, {passive: true});
+</script>
+
+<div class="native-container">
+    <!-- Welcome Banner -->
+    <div class="welcome-banner">
+        <h1>Honor God with your body and your habits</h1>
+        <p>Welcome to your fitness journey with Christ</p>
+    </div>
+
+    <!-- Main Stats -->
+    <div class="stats-grid">
+        <!-- Devotion Card -->
+        <div class="stat-card" onclick="location.href='devotions.php'">
+            <div class="stat-icon">
+                <i class="fas fa-bible"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-row">
+                    <div class="stat-value"><?php echo $streak; ?></div>
+                    <div class="status-badge <?php echo $devotion_completed ? 'status-complete' : 'status-pending'; ?>">
+                        <i class="fas <?php echo $devotion_completed ? 'fa-check' : 'fa-clock'; ?>"></i>
+                        <?php echo $devotion_completed ? 'Done' : 'Pending'; ?>
+                    </div>
+                </div>
+                <div class="stat-label">Devotion Streak</div>
+            </div>
         </div>
-        <div class="stat-value"><?php echo $streak; ?></div>
-        <div class="stat-label">Devotion Streak</div>
-        <div class="status-badge <?php echo $devotion_completed ? 'status-complete' : 'status-pending'; ?>">
-            <i class="fas <?php echo $devotion_completed ? 'fa-check' : 'fa-clock'; ?>"></i>
-            <?php echo $devotion_completed ? 'Completed' : 'Pending'; ?>
+
+        <!-- Weight Card -->
+        <div class="stat-card" onclick="location.href='weight_tracker.php'">
+            <div class="stat-icon">
+                <i class="fas fa-weight-scale"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-row">
+                    <div class="stat-value">
+                        <?php echo $latest_weight ? $latest_weight['weight_kg'] . ' kg' : '--'; ?>
+                    </div>
+                    <div class="status-badge status-pending">
+                        <i class="fas fa-ruler"></i>
+                        Track
+                    </div>
+                </div>
+                <div class="stat-label">Current Weight</div>
+            </div>
+        </div>
+
+        <!-- Steps Card -->
+        <div class="stat-card" onclick="location.href='steps_tracker.php'">
+            <div class="stat-icon">
+                <i class="fas fa-walking"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-row">
+                    <div class="stat-value">
+                        <?php echo $today_steps ? number_format($today_steps['steps_count']) : '0'; ?>
+                    </div>
+                    <div class="status-badge <?php echo ($today_steps && $today_steps['steps_count'] > 0) ? 'status-complete' : 'status-pending'; ?>">
+                        <i class="fas <?php echo ($today_steps && $today_steps['steps_count'] > 0) ? 'fa-check' : 'fa-shoe-prints'; ?>"></i>
+                        <?php echo ($today_steps && $today_steps['steps_count'] > 0) ? 'Active' : 'Move'; ?>
+                    </div>
+                </div>
+                <div class="stat-label">Today's Steps</div>
+            </div>
         </div>
     </div>
 
-    <!-- Weight Card -->
-    <div class="stat-card">
-        <div class="stat-icon">
-            <i class="fas fa-weight-scale"></i>
-        </div>
-        <div class="stat-value">
-            <?php echo $latest_weight ? $latest_weight['weight_kg'] . ' kg' : '--'; ?>
-        </div>
-        <div class="stat-label">Current Weight</div>
-        <div class="status-badge status-pending">
-            <i class="fas fa-ruler"></i>
-            Track Progress
-        </div>
-    </div>
-
-    <!-- Steps Card -->
-    <div class="stat-card">
-        <div class="stat-icon">
-            <i class="fas fa-walking"></i>
-        </div>
-        <div class="stat-value">
-            <?php echo $today_steps ? number_format($today_steps['steps_count']) : '0'; ?>
-        </div>
-        <div class="stat-label">Today's Steps</div>
-        <div class="status-badge <?php echo ($today_steps && $today_steps['steps_count'] > 0) ? 'status-complete' : 'status-pending'; ?>">
-            <i class="fas <?php echo ($today_steps && $today_steps['steps_count'] > 0) ? 'fa-check' : 'fa-shoe-prints'; ?>"></i>
-            <?php echo ($today_steps && $today_steps['steps_count'] > 0) ? 'Active' : 'Get Moving'; ?>
-        </div>
-    </div>
-</div>
-
-<!-- Progress Photos Section - Only show on Friday -->
-<?php if ($is_friday): ?>
-<div class="progress-section">
-    <div class="card">
-        <div class="card-header">
-            <h2 class="section-title" style="margin: 0;">
+    <!-- Progress Photos Friday -->
+    <?php if ($is_friday): ?>
+    <div class="native-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <div style="font-size: 1.125rem; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 0.5rem;">
                 <i class="fas fa-camera"></i>
                 Progress Photos Friday
-            </h2>
+            </div>
             <?php if (!$already_uploaded): ?>
-                <span class="badge" style="background: var(--gradient-accent);">
-                    <i class="fas fa-camera"></i> Photo Day!
+                <span style="background: var(--gradient-accent); color: white; padding: 0.375rem 0.75rem; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">
+                    <i class="fas fa-camera"></i> Today
                 </span>
             <?php endif; ?>
         </div>
         
         <?php if (!$already_uploaded): ?>
-            <div class="progress-alert">
+            <div class="progress-alert" onclick="location.href='progress_photos.php'">
                 <div class="progress-alert-icon">
                     <i class="fas fa-camera"></i>
                 </div>
                 <div class="progress-alert-content">
-                    <h3>It's Progress Photo Friday!</h3>
-                    <p>Track your transformation by uploading your progress photos. Document your journey to see the amazing changes!</p>
-                    <a href="progress_photos.php" class="btn btn-primary" style="margin-top: 0.5rem;">
+                    <h3>Progress Photo Friday!</h3>
+                    <p>Upload your weekly progress photos to track your transformation</p>
+                    <button class="btn-native btn-primary" style="margin-top: 0.5rem;">
                         <i class="fas fa-camera"></i> Upload Photos
-                    </a>
+                    </button>
                 </div>
             </div>
         <?php else: ?>
-            <div style="text-align: center; padding: 1.5rem;">
-                <i class="fas fa-check-circle" style="color: #4CAF50; font-size: 3rem; margin-bottom: 1rem;"></i>
-                <h3 style="color: var(--text); margin-bottom: 0.5rem;">Photos Uploaded!</h3>
-                <p style="color: var(--light-text);">Great job tracking your progress today!</p>
+            <div style="text-align: center; padding: 1rem 0;">
+                <i class="fas fa-check-circle" style="color: #4CAF50; font-size: 2.5rem; margin-bottom: 0.75rem;"></i>
+                <h3 style="color: var(--text); margin-bottom: 0.25rem; font-size: 1rem;">Photos Uploaded!</h3>
+                <p style="color: var(--light-text); font-size: 0.875rem; margin-bottom: 1.5rem;">Great job tracking progress!</p>
                 
                 <?php if ($recent_photos): ?>
-                    <div style="margin-top: 1.5rem;">
-                        <h4 style="color: var(--text); margin-bottom: 1rem;">Your Recent Progress</h4>
+                    <div style="margin-top: 1rem;">
+                        <h4 style="color: var(--text); margin-bottom: 1rem; font-size: 0.9375rem; text-align: left;">Recent Progress</h4>
                         <div class="photo-grid">
                             <?php foreach ($recent_photos as $photo): ?>
                             <div class="photo-item">
@@ -482,50 +575,37 @@ $week_devotions = $stmt->fetch(PDO::FETCH_ASSOC)['devotion_count'] ?? 0;
                             <?php endforeach; ?>
                         </div>
                         
-                        <div style="text-align: center; margin-top: 1.5rem;">
-                            <a href="progress_photos_history.php" class="btn btn-outline">
-                                <i class="fas fa-history"></i> View All Progress Photos
-                            </a>
-                        </div>
+                        <button class="btn-native btn-outline" onclick="location.href='progress_photos_history.php'" style="margin-top: 1rem; width: 100%;">
+                            <i class="fas fa-history"></i> View All Photos
+                        </button>
                     </div>
                 <?php endif; ?>
             </div>
         <?php endif; ?>
     </div>
-</div>
-<?php endif; ?>
+    <?php endif; ?>
 
-<!-- Weekly Progress -->
-<div class="progress-section">
-    <div class="card">
-        <h2 class="section-title" style="margin: 0 0 1.5rem 0;">
+    <!-- Weekly Progress -->
+    <div class="weekly-progress">
+        <div class="weekly-title">
             <i class="fas fa-chart-line"></i>
             Weekly Progress
-        </h2>
+        </div>
         
-        <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
-            <div class="stat-card">
-                <div class="stat-icon" style="background: var(--gradient-primary);">
-                    <i class="fas fa-walking"></i>
-                </div>
-                <div class="stat-value"><?php echo number_format($week_steps); ?></div>
-                <div class="stat-label">Weekly Steps</div>
+        <div class="weekly-stats">
+            <div class="weekly-stat">
+                <div class="weekly-stat-value"><?php echo number_format($week_steps); ?></div>
+                <div class="weekly-stat-label">Weekly Steps</div>
             </div>
             
-            <div class="stat-card">
-                <div class="stat-icon" style="background: var(--gradient-primary);">
-                    <i class="fas fa-dumbbell"></i>
-                </div>
-                <div class="stat-value"><?php echo $week_workouts; ?></div>
-                <div class="stat-label">Workouts This Week</div>
+            <div class="weekly-stat">
+                <div class="weekly-stat-value"><?php echo $week_workouts; ?></div>
+                <div class="weekly-stat-label">Workouts</div>
             </div>
             
-            <div class="stat-card">
-                <div class="stat-icon" style="background: var(--gradient-primary);">
-                    <i class="fas fa-bible"></i>
-                </div>
-                <div class="stat-value"><?php echo $week_devotions; ?></div>
-                <div class="stat-label">Devotions This Week</div>
+            <div class="weekly-stat">
+                <div class="weekly-stat-value"><?php echo $week_devotions; ?></div>
+                <div class="weekly-stat-label">Devotions</div>
             </div>
         </div>
     </div>

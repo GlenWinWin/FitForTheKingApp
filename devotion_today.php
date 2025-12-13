@@ -81,230 +81,429 @@ if (!$devotion) {
 ?>
 
 <style>
+    /* Native App Base Styles */
+    :root {
+        --safe-area-top: env(safe-area-inset-top);
+        --safe-area-bottom: env(safe-area-inset-bottom);
+        --tap-target-min: 44px;
+        --radius-large: 16px;
+        --radius-medium: 12px;
+        --radius-small: 8px;
+        --elevation-1: 0 1px 3px rgba(0,0,0,0.12);
+        --elevation-2: 0 4px 12px rgba(0,0,0,0.08);
+        --ease-out: cubic-bezier(0.175, 0.885, 0.32, 1.1);
+        --spring-bounce: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    
+    /* Disable zoom to mimic native app */
+    body {
+        touch-action: pan-y;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        user-select: none;
+        max-width: 100vw;
+        overflow-x: hidden;
+        background: var(--bg);
+    }
+    
+    /* Enable text selection only in content areas */
+    .devotion-content,
+    .scripture-text {
+        -webkit-user-select: text;
+        user-select: text;
+    }
+    
+    /* Native-like scrolling */
     .devotion-container {
-        max-width: 800px;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+    }
+    
+    /* Main Container */
+    .devotion-container {
+        max-width: 100%;
         margin: 0 auto;
+        padding: 0 20px calc(var(--safe-area-bottom) + 80px);
+        min-height: 100vh;
+        position: relative;
     }
     
+    /* Minimal Header - Clean Native Design */
     .devotion-header {
-        text-align: center;
-        margin-bottom: 2rem;
+        padding: calc(var(--safe-area-top) + 16px) 0 20px;
+        margin-bottom: 8px;
+        position: relative;
     }
     
-    .devotion-day {
-        color: var(--light-text);
-        font-size: 1.1rem;
-        margin-bottom: 0.5rem;
+    /* Day Badge - Clean Design */
+    .day-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(var(--accent-rgb), 0.1);
+        color: var(--accent);
+        font-size: 14px;
+        font-weight: 600;
+        padding: 8px 16px;
+        border-radius: 20px;
+        margin-bottom: 16px;
+        border: 1px solid rgba(var(--accent-rgb), 0.2);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
     }
     
+    .day-badge i {
+        font-size: 12px;
+    }
+    
+    /* Main Title - Clean Typography */
     .devotion-title {
-        font-size: 2rem;
+        font-size: 28px;
         font-weight: 700;
         color: var(--text);
-        margin-bottom: 1rem;
-        line-height: 1.3;
+        margin-bottom: 16px;
+        line-height: 1.25;
+        letter-spacing: -0.3px;
+        word-break: break-word;
     }
     
-    .devotion-meta {
+    /* Date & Info Row - Clean Horizontal Layout */
+    .info-row {
         display: flex;
-        justify-content: center;
-        gap: 2rem;
-        margin-bottom: 2rem;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 4px;
         flex-wrap: wrap;
     }
     
-    .meta-item {
+    .info-item {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 6px;
         color: var(--light-text);
-        font-size: 0.9rem;
+        font-size: 14px;
+        font-weight: 500;
     }
     
+    .info-item i {
+        font-size: 13px;
+        opacity: 0.8;
+    }
+    
+    /* Main Card - Native Style */
     .devotion-card {
         background: var(--glass-bg);
-        backdrop-filter: blur(10px);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: var(--radius-large);
+        padding: 0;
+        margin-bottom: 24px;
         border: 1px solid var(--glass-border);
-        border-radius: var(--radius);
-        padding: 2.5rem;
-        margin-bottom: 2rem;
-        box-shadow: var(--shadow);
-        position: relative;
+        box-shadow: var(--elevation-2);
         overflow: hidden;
+        position: relative;
     }
     
-    .devotion-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 4px;
-        height: 100%;
-        background: var(--gradient-accent);
-    }
-    
+    /* Scripture Section */
     .scripture-section {
-        margin-bottom: 2.5rem;
+        padding: 24px;
+        border-bottom: 1px solid var(--glass-border);
     }
     
     .scripture-header {
         display: flex;
         align-items: center;
-        gap: 0.75rem;
-        margin-bottom: 1.5rem;
+        gap: 12px;
+        margin-bottom: 20px;
     }
     
     .scripture-icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
+        width: 44px;
+        height: 44px;
+        border-radius: var(--radius-medium);
         background: var(--gradient-accent);
         display: flex;
         align-items: center;
         justify-content: center;
         color: white;
-        font-size: 1.1rem;
+        font-size: 18px;
+        flex-shrink: 0;
     }
     
     .scripture-title {
-        font-size: 1.3rem;
+        font-size: 18px;
         font-weight: 600;
         color: var(--text);
+        letter-spacing: -0.1px;
     }
     
     .scripture-text {
-        font-size: 1.2rem;
-        line-height: 1.8;
+        font-size: 18px;
+        line-height: 1.6;
         color: var(--text);
         text-align: center;
         font-style: italic;
-        margin-bottom: 1.5rem;
-        padding: 0 1rem;
+        margin-bottom: 16px;
+        padding: 0 12px;
+        font-weight: 500;
     }
     
     .scripture-reference {
         text-align: center;
         color: var(--accent);
         font-weight: 600;
-        font-size: 1.1rem;
+        font-size: 15px;
+        letter-spacing: 0.2px;
+    }
+    
+    /* Content Section */
+    .devotion-content-section {
+        padding: 24px;
+        border-bottom: 1px solid var(--glass-border);
     }
     
     .devotion-content {
-        line-height: 1.8;
-        font-size: 1.1rem;
+        line-height: 1.7;
+        font-size: 17px;
         color: var(--text);
-        margin-bottom: 2rem;
     }
     
     .devotion-content p {
-        margin-bottom: 1.5rem;
+        margin-bottom: 20px;
+        letter-spacing: -0.1px;
     }
     
+    /* Reflection Section */
     .reflection-section {
-        background: rgba(26, 35, 126, 0.05);
-        border-left: 4px solid var(--accent);
-        padding: 1.5rem;
-        border-radius: 0 var(--radius) var(--radius) 0;
-        margin: 2rem 0;
+        padding: 24px;
+        background: rgba(var(--accent-rgb), 0.05);
+        border-left: 0;
+        border-top: 1px solid var(--glass-border);
+        border-bottom: 1px solid var(--glass-border);
+        margin: 0;
     }
     
     .reflection-title {
         font-weight: 600;
         color: var(--accent);
-        margin-bottom: 1rem;
+        margin-bottom: 12px;
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 8px;
+        font-size: 16px;
     }
     
+    /* Action Button */
     .action-section {
-        background: var(--glass-bg);
-        border: 1px solid var(--glass-border);
-        border-radius: var(--radius);
-        padding: 2rem;
+        padding: 32px 24px;
         text-align: center;
-        margin-top: 2rem;
+        background: rgba(var(--glass-border-rgb), 0.05);
     }
     
+    /* Native Button */
+    .btn-primary {
+        min-height: var(--tap-target-min);
+        padding: 16px 32px;
+        border-radius: var(--radius-medium);
+        font-weight: 600;
+        font-size: 17px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        transition: all 0.2s var(--spring-bounce);
+        transform-origin: center;
+        border: none;
+        position: relative;
+        overflow: hidden;
+        min-width: 200px;
+        background: var(--gradient-accent);
+        color: white;
+        box-shadow: 0 4px 20px rgba(var(--accent-rgb), 0.3);
+    }
+    
+    .btn-primary:active {
+        transform: scale(0.97);
+        box-shadow: 0 2px 10px rgba(var(--accent-rgb), 0.2);
+    }
+    
+    /* Completion State */
+    .completion-section {
+        padding: 32px 24px;
+        text-align: center;
+        background: linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(76, 175, 80, 0.05) 100%);
+        border-radius: var(--radius-large);
+        border: 1px solid rgba(76, 175, 80, 0.2);
+        margin: 24px;
+    }
+    
+    /* Completion Badge */
     .completion-badge {
         display: inline-flex;
         align-items: center;
-        gap: 0.75rem;
-        padding: 1rem 2rem;
-        border-radius: var(--radius);
+        gap: 10px;
+        padding: 14px 24px;
+        border-radius: 20px;
         font-weight: 600;
-        font-size: 1.1rem;
-        margin-bottom: 1.5rem;
+        font-size: 16px;
+        margin-bottom: 24px;
+        min-height: var(--tap-target-min);
     }
     
     .badge-completed {
-        background: rgba(76, 175, 80, 0.1);
+        background: rgba(76, 175, 80, 0.15);
         color: #4CAF50;
-        border: 2px solid rgba(76, 175, 80, 0.3);
+        border: 1.5px solid rgba(76, 175, 80, 0.3);
     }
     
     .badge-pending {
-        background: rgba(255, 152, 0, 0.1);
+        background: rgba(255, 152, 0, 0.15);
         color: #FF9800;
-        border: 2px solid rgba(255, 152, 0, 0.3);
+        border: 1.5px solid rgba(255, 152, 0, 0.3);
     }
     
-    .completion-section {
-        text-align: center;
-        padding: 2rem;
-        background: linear-gradient(135deg, rgba(76, 175, 80, 0.1) 0%, rgba(76, 175, 80, 0.05) 100%);
-        border-radius: var(--radius);
-        border: 2px solid rgba(76, 175, 80, 0.2);
+    .nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        padding: 8px;
+        min-height: var(--tap-target-min);
+        min-width: var(--tap-target-min);
+        justify-content: center;
+        border-radius: var(--radius-medium);
+        transition: all 0.2s;
+        text-decoration: none;
     }
     
-    @media (max-width: 768px) {
-        .devotion-card {
-            padding: 1.5rem;
-        }
-        
+    .nav-item:active {
+        background: rgba(var(--accent-rgb), 0.1);
+        transform: scale(0.95);
+    }
+    
+    .nav-icon {
+        font-size: 20px;
+        color: var(--light-text);
+        transition: all 0.2s;
+    }
+    
+    .nav-label {
+        font-size: 11px;
+        color: var(--light-text);
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+    
+    .nav-item.active {
+        background: rgba(var(--accent-rgb), 0.1);
+    }
+    
+    .nav-item.active .nav-icon {
+        color: var(--accent);
+        transform: translateY(-1px);
+    }
+    
+    .nav-item.active .nav-label {
+        color: var(--accent);
+        font-weight: 600;
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 370px) {
         .devotion-title {
-            font-size: 1.6rem;
+            font-size: 24px;
         }
         
         .scripture-text {
-            font-size: 1.1rem;
-            padding: 0;
+            font-size: 17px;
         }
         
-        .devotion-meta {
-            gap: 1rem;
+        .devotion-content {
+            font-size: 16px;
         }
+        
+        .devotion-header {
+            padding: calc(var(--safe-area-top) + 12px) 0 16px;
+        }
+        
+        .day-badge {
+            font-size: 13px;
+            padding: 6px 14px;
+        }
+    }
+    
+    @media (min-width: 400px) and (max-width: 500px) {
+        .devotion-container {
+            padding-left: 24px;
+            padding-right: 24px;
+        }
+    }
+    
+    /* Tablet Optimization */
+    @media (min-width: 768px) {
+        .devotion-container {
+            max-width: 768px;
+            margin: 0 auto;
+            padding-left: 24px;
+            padding-right: 24px;
+        }
+        
+        .devotion-card {
+            border-radius: 20px;
+        }
+    }
+    
+    /* Dark Mode */
+    @media (prefers-color-scheme: dark) {
+        .devotion-card {
+            background: var(--glass-bg);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .day-badge {
+            background: rgba(var(--accent-rgb), 0.15);
+            border-color: rgba(var(--accent-rgb), 0.3);
+        }
+    }
+    
+    /* Loading Animation */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .devotion-header,
+    .devotion-card {
+        animation: fadeIn 0.4s var(--ease-out);
     }
 </style>
 
+<!-- Main Content -->
 <div class="devotion-container">
-    <!-- Header Section -->
+    <!-- Clean Header -->
     <div class="devotion-header">
-        <div class="devotion-day">
-            <i class="fas fa-calendar-check"></i>
-            Day <?php echo $day_offset; ?> of 365
+        <div class="day-badge">
+            <i class="fas fa-calendar-alt"></i>
+            Day <?php echo $day_offset; ?> • <?php echo date('M j'); ?>
         </div>
+        
         <h1 class="devotion-title"><?php echo htmlspecialchars($devotion['title']); ?></h1>
         
-        <div class="devotion-meta">
-            <div class="meta-item">
-                <i class="fas fa-clock"></i>
-                <span><?php echo date('F j, Y'); ?></span>
-            </div>
-            <div class="meta-item">
-                <i class="fas fa-book-bible"></i>
+        <div class="info-row">
+            <div class="info-item">
+                <i class="fas fa-book"></i>
                 <span>Daily Devotion</span>
             </div>
-            <div class="meta-item">
-                <i class="fas fa-street-view"></i>
-                <span>Spiritual Journey</span>
+            <div class="info-item">
+                <i class="fas fa-clock"></i>
+                <span><?php echo date('g:i A'); ?></span>
             </div>
         </div>
     </div>
 
-    <!-- Main Devotion Card -->
+    <!-- Devotion Card -->
     <div class="devotion-card">
-        <!-- Scripture Section -->
+        <!-- Scripture -->
         <div class="scripture-section">
             <div class="scripture-header">
                 <div class="scripture-icon">
@@ -318,62 +517,130 @@ if (!$devotion) {
             </div>
             
             <div class="scripture-reference">
-                — <?php echo htmlspecialchars($devotion['verse_reference']); ?>
+                <?php echo htmlspecialchars($devotion['verse_reference']); ?>
             </div>
         </div>
 
-        <!-- Devotional Content -->
-        <div class="devotion-content">
-            <?php 
-            $content = $devotion['devotional_text'];
-            // Convert line breaks to paragraphs
-            $paragraphs = explode("\n\n", $content);
-            foreach ($paragraphs as $paragraph) {
-                if (trim($paragraph)) {
-                    echo '<p>' . nl2br(htmlspecialchars(trim($paragraph))) . '</p>';
+        <!-- Content -->
+        <div class="devotion-content-section">
+            <div class="devotion-content">
+                <?php 
+                $content = $devotion['devotional_text'];
+                $content = html_entity_decode($content, ENT_QUOTES, 'UTF-8');
+                $paragraphs = explode("\n\n", $content);
+                foreach ($paragraphs as $paragraph) {
+                    if (trim($paragraph)) {
+                        echo '<p>' . nl2br(htmlspecialchars(trim($paragraph), ENT_QUOTES, 'UTF-8')) . '</p>';
+                    }
                 }
-            }
-            ?>
+                ?>
+            </div>
         </div>
 
-        <!-- Reflection Section -->
+        <!-- Reflection -->
         <div class="reflection-section">
             <div class="reflection-title">
                 <i class="fas fa-lightbulb"></i>
-                Reflection Question
+                Reflection
             </div>
             <p><?php echo htmlspecialchars($devotion['reflection_question']); ?></p>
         </div>
 
-        <!-- Completion Section -->
+        <!-- Completion Action -->
         <?php if (!$completed): ?>
             <div class="action-section">
                 <div class="completion-badge badge-pending">
                     <i class="fas fa-clock"></i>
                     Ready to Complete
                 </div>
-                <p style="color: var(--light-text); margin-bottom: 1.5rem;">
-                    Take a moment to reflect on today's devotion before marking it complete.
+                <p style="color: var(--light-text); margin-bottom: 24px; font-size: 15px;">
+                    Take a moment to reflect before marking complete
                 </p>
                 <form method="POST" style="margin: 0;">
-                    <button type="submit" name="mark_completed" class="btn btn-primary" style="min-width: 200px;">
+                    <button type="submit" name="mark_completed" class="btn btn-primary">
                         <i class="fas fa-check-circle"></i> Mark as Completed
                     </button>
                 </form>
             </div>
         <?php else: ?>
             <div class="completion-section">
-                <i class="fas fa-check-circle" style="color: #4CAF50; font-size: 3rem; margin-bottom: 1rem;"></i>
-                <h3 style="color: var(--text); margin-bottom: 0.5rem;">Devotion Completed!</h3>
-                <p style="color: var(--light-text); margin-bottom: 1.5rem;">
-                    Great job completing Day <?php echo $day_offset; ?>. Come back tomorrow for Day <?php echo $day_offset + 1; ?>.
+                <i class="fas fa-check-circle" style="color: #4CAF50; font-size: 48px; margin-bottom: 16px;"></i>
+                <h3 style="color: var(--text); margin-bottom: 8px; font-size: 20px; font-weight: 700;">Devotion Complete!</h3>
+                <p style="color: var(--light-text); margin-bottom: 24px; font-size: 15px;">
+                    Great job on Day <?php echo $day_offset; ?>. Come back tomorrow for Day <?php echo $day_offset + 1; ?>.
                 </p>
                 <a href="dashboard.php" class="btn btn-outline">
-                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    <i class="fas fa-arrow-left"></i> Back to Home
                 </a>
             </div>
         <?php endif; ?>
     </div>
 </div>
+
+<script>
+    // Native-like interactions
+    document.addEventListener('DOMContentLoaded', function() {
+        // Button feedback
+        const buttons = document.querySelectorAll('.btn, .nav-item');
+        
+        buttons.forEach(btn => {
+            btn.addEventListener('touchstart', function() {
+                this.style.opacity = '0.8';
+            }, { passive: true });
+            
+            btn.addEventListener('touchend', function() {
+                this.style.opacity = '1';
+            }, { passive: true });
+            
+            btn.addEventListener('touchcancel', function() {
+                this.style.opacity = '1';
+            }, { passive: true });
+        });
+        
+        // Prevent double-tap zoom
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function(event) {
+            const now = Date.now();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, { passive: false });
+        
+        // Form submission feedback
+        const form = document.querySelector('form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const button = this.querySelector('button[type="submit"]');
+                if (button) {
+                    const originalText = button.innerHTML;
+                    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+                    button.disabled = true;
+                    
+                    // Restore button after 2 seconds if still disabled
+                    setTimeout(() => {
+                        if (button.disabled) {
+                            button.innerHTML = originalText;
+                            button.disabled = false;
+                        }
+                    }, 2000);
+                }
+            });
+        }
+        
+        // Add haptic feedback simulation
+        function simulateHaptic() {
+            if (navigator.vibrate) {
+                navigator.vibrate(10);
+            }
+        }
+        
+        // Add haptic to primary actions
+        const primaryActions = document.querySelectorAll('.btn-primary, .nav-item.active');
+        primaryActions.forEach(action => {
+            action.addEventListener('touchstart', simulateHaptic, { passive: true });
+        });
+    });
+</script>
 
 <?php require_once 'footer.php'; ?>

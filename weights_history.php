@@ -149,722 +149,993 @@ $success_message = $_GET['message'] ?? '';
 <div class="premium-bg"></div>
 <div class="particles-container" id="particles-container"></div>
 
-<?php if ($success_message): ?>
-<div class="card">
-    <div class="message success">
-        <?php echo htmlspecialchars($success_message); ?>
-    </div>
-</div>
-<?php endif; ?>
-
-<div class="card">
-    <div class="card-header mobile-card-header">
-        <h1 class="card-title">Weight Progress</h1>
-        <a href="weights_add.php" class="btn btn-primary mobile-btn">
-            <i class="fas fa-plus"></i> <span class="btn-text">Add Weight</span>
-        </a>
-    </div>
+<!-- Native Mobile App Container -->
+<div class="native-app-container" id="nativeAppContainer">
     
-    <?php if ($weights): ?>
-        <div class="chart-tabs">
-            <button class="tab-btn active" onclick="switchChart('daily')">Daily</button>
-            <button class="tab-btn" onclick="switchChart('weekly')">Weekly</button>
-            <button class="tab-btn" onclick="switchChart('monthly')">Monthly</button>
-            <button class="tab-btn" onclick="switchChart('yearly')">Yearly</button>
-        </div>
-        
-        <div id="dailyChart" class="chart-container">
-            <div class="chart-wrapper">
-                <canvas id="chartCanvas"></canvas>
-            </div>
-        </div>
-        
-        <div id="weeklyChart" class="chart-container" style="display: none;">
-            <div class="chart-wrapper">
-                <canvas id="weeklyChartCanvas"></canvas>
-            </div>
-        </div>
-        
-        <div id="monthlyChart" class="chart-container" style="display: none;">
-            <div class="chart-wrapper">
-                <canvas id="monthlyChartCanvas"></canvas>
-            </div>
-        </div>
-        
-        <div id="yearlyChart" class="chart-container" style="display: none;">
-            <div class="chart-wrapper">
-                <canvas id="yearlyChartCanvas"></canvas>
-            </div>
-        </div>
-    <?php else: ?>
-        <div class="empty-state">
-            <i class="fas fa-weight-scale"></i>
-            <p>No weight data yet. Start tracking to see your progress!</p>
-            <a href="weights_add.php" class="btn btn-primary">
-                <i class="fas fa-plus"></i> Add First Weight Entry
+    <!-- Sticky Header -->
+    <header class="native-app-header">
+        <div class="header-content">
+            <h1 class="app-header-title">Weight Progress</h1>
+            <a href="weights_add.php" class="native-icon-button" aria-label="Add Weight">
+                <i class="fas fa-plus"></i>
             </a>
         </div>
-    <?php endif; ?>
-</div>
+    </header>
 
-<!-- Weekly Weight Averages Card -->
-<?php if ($weekly_data): ?>
-<div class="card">
-    <h2 class="card-title">Weekly Averages (Sunday to Saturday)</h2>
-    <div class="data-grid">
-        <?php foreach ($weekly_data as $week): ?>
-        <div class="data-card">
-            <div class="data-card-header">
-                <div class="data-card-info">
-                    <div class="data-card-title">
-                        Week of <?php echo date('F j', strtotime($week['week_start'])); ?> - <?php echo date('j', strtotime($week['week_end'])); ?>
-                    </div>
-                    <div class="data-card-subtitle">
-                        <?php echo date('M j', strtotime($week['week_start'])); ?> (Sun) - <?php echo date('M j, Y', strtotime($week['week_end'])); ?> (Sat)
-                    </div>
-                </div>
-                <div class="data-card-value">
-                    <?php echo round($week['average'], 1); ?> kg
-                </div>
-            </div>
-            <div class="data-card-footer">
-                <?php echo count($week['weights']); ?> reading<?php echo count($week['weights']) > 1 ? 's' : ''; ?> this week
-            </div>
+    <!-- Main Content -->
+    <main class="native-app-content" id="mainContent">
+        
+        <?php if ($success_message): ?>
+        <div class="native-toast success">
+            <i class="fas fa-check-circle"></i>
+            <span><?php echo htmlspecialchars($success_message); ?></span>
         </div>
-        <?php endforeach; ?>
-    </div>
-</div>
-<?php endif; ?>
+        <?php endif; ?>
 
-<!-- Monthly Weight Averages Card -->
-<?php if ($monthly_data): ?>
-<div class="card">
-    <h2 class="card-title">Monthly Averages</h2>
-    <div class="data-grid">
-        <?php foreach ($monthly_data as $month): ?>
-        <div class="data-card">
-            <div class="data-card-header">
-                <div class="data-card-info">
-                    <div class="data-card-title">
-                        <?php echo date('F Y', strtotime($month['month_start'])); ?>
-                    </div>
-                    <div class="data-card-subtitle">
-                        <?php echo date('M j', strtotime($month['month_start'])); ?> - <?php echo date('M j, Y', strtotime($month['month_end'])); ?>
-                    </div>
+        <!-- Stats Overview Cards -->
+        <?php if ($weights): ?>
+        <section class="native-section">
+            <div class="native-stats-grid">
+                <div class="native-stat-card">
+                    <div class="stat-label">Current</div>
+                    <div class="stat-value"><?php echo $weights[0]['weight_kg']; ?> kg</div>
+                    <div class="stat-date"><?php echo date('M j', strtotime($weights[0]['entry_date'])); ?></div>
                 </div>
-                <div class="data-card-value">
-                    <?php echo round($month['average'], 1); ?> kg
+                <?php if (count($weights) > 1): ?>
+                <div class="native-stat-card">
+                    <div class="stat-label">Change</div>
+                    <?php 
+                    $change = $weights[0]['weight_kg'] - $weights[1]['weight_kg'];
+                    $trend = $change >= 0 ? 'up' : 'down';
+                    ?>
+                    <div class="stat-value trend-<?php echo $trend; ?>">
+                        <?php echo $trend === 'up' ? '+' : ''; ?><?php echo number_format($change, 1); ?> kg
+                    </div>
+                    <div class="stat-date">vs previous</div>
+                </div>
+                <?php endif; ?>
+                <div class="native-stat-card">
+                    <div class="stat-label">Entries</div>
+                    <div class="stat-value"><?php echo count($weights); ?></div>
+                    <div class="stat-date">total</div>
                 </div>
             </div>
-            <div class="data-card-footer">
-                <?php echo count($month['weights']); ?> reading<?php echo count($month['weights']) > 1 ? 's' : ''; ?> this month
-            </div>
-        </div>
-        <?php endforeach; ?>
-    </div>
-</div>
-<?php endif; ?>
+        </section>
 
-<!-- Yearly Weight Averages Card -->
-<?php if ($yearly_data): ?>
-<div class="card">
-    <h2 class="card-title">Yearly Averages</h2>
-    <div class="data-grid">
-        <?php foreach ($yearly_data as $year): ?>
-        <div class="data-card">
-            <div class="data-card-header">
-                <div class="data-card-info">
-                    <div class="data-card-title">
-                        <?php echo date('Y', strtotime($year['year_start'])); ?>
-                    </div>
-                    <div class="data-card-subtitle">
-                        <?php echo date('M j, Y', strtotime($year['year_start'])); ?> - <?php echo date('M j, Y', strtotime($year['year_end'])); ?>
-                    </div>
-                </div>
-                <div class="data-card-value">
-                    <?php echo round($year['average'], 1); ?> kg
-                </div>
+        <!-- Chart Section -->
+        <section class="native-section">
+            <div class="native-pill-tabs">
+                <button class="pill-tab active" onclick="switchChart('daily')" aria-label="Daily view">
+                    <span>Daily</span>
+                </button>
+                <button class="pill-tab" onclick="switchChart('weekly')" aria-label="Weekly view">
+                    <span>Weekly</span>
+                </button>
+                <button class="pill-tab" onclick="switchChart('monthly')" aria-label="Monthly view">
+                    <span>Monthly</span>
+                </button>
+                <button class="pill-tab" onclick="switchChart('yearly')" aria-label="Yearly view">
+                    <span>Yearly</span>
+                </button>
             </div>
-            <div class="data-card-footer">
-                <?php echo count($year['weights']); ?> reading<?php echo count($year['weights']) > 1 ? 's' : ''; ?> this year
+            
+            <div class="native-chart-container active" id="dailyChart">
+                <canvas id="chartCanvas"></canvas>
             </div>
-        </div>
-        <?php endforeach; ?>
-    </div>
-</div>
-<?php endif; ?>
+            
+            <div class="native-chart-container" id="weeklyChart">
+                <canvas id="weeklyChartCanvas"></canvas>
+            </div>
+            
+            <div class="native-chart-container" id="monthlyChart">
+                <canvas id="monthlyChartCanvas"></canvas>
+            </div>
+            
+            <div class="native-chart-container" id="yearlyChart">
+                <canvas id="yearlyChartCanvas"></canvas>
+            </div>
+        </section>
 
-<div class="card">
-    <h2 class="card-title">Daily Weight History</h2>
-    
-    <?php if ($weights): ?>
-        <div class="data-grid">
-            <?php foreach ($weights as $weight): ?>
-            <div class="data-card">
-                <div class="data-card-header">
-                    <div class="data-card-info">
-                        <div class="data-card-title"><?php echo date('F j, Y', strtotime($weight['entry_date'])); ?></div>
-                        <div class="data-card-subtitle">
-                            <?php echo date('l', strtotime($weight['entry_date'])); ?>
+        <!-- Time Period Sections -->
+        <section class="native-section">
+            <h2 class="native-section-title">Weekly Averages</h2>
+            <?php if ($weekly_data): ?>
+                <div class="native-list">
+                    <?php foreach ($weekly_data as $week): ?>
+                    <div class="native-list-item">
+                        <div class="list-item-main">
+                            <div class="list-item-title">
+                                <?php echo date('F j', strtotime($week['week_start'])); ?> - <?php echo date('j', strtotime($week['week_end'])); ?>
+                            </div>
+                            <div class="list-item-subtitle">
+                                <?php echo date('M j', strtotime($week['week_start'])); ?> (Sun) - <?php echo date('M j, Y', strtotime($week['week_end'])); ?> (Sat)
+                            </div>
+                        </div>
+                        <div class="list-item-trailing">
+                            <span class="weight-value"><?php echo round($week['average'], 1); ?> kg</span>
+                            <span class="reading-count"><?php echo count($week['weights']); ?> reading<?php echo count($week['weights']) > 1 ? 's' : ''; ?></span>
                         </div>
                     </div>
-                    <div class="data-card-value">
-                        <?php echo $weight['weight_kg']; ?> kg
-                    </div>
+                    <?php endforeach; ?>
                 </div>
+            <?php else: ?>
+                <div class="native-empty-state">
+                    <i class="fas fa-chart-line"></i>
+                    <p>No weekly data yet</p>
+                </div>
+            <?php endif; ?>
+        </section>
+
+        <section class="native-section">
+            <h2 class="native-section-title">Monthly Averages</h2>
+            <?php if ($monthly_data): ?>
+                <div class="native-list">
+                    <?php foreach ($monthly_data as $month): ?>
+                    <div class="native-list-item">
+                        <div class="list-item-main">
+                            <div class="list-item-title"><?php echo date('F Y', strtotime($month['month_start'])); ?></div>
+                            <div class="list-item-subtitle">
+                                <?php echo date('M j', strtotime($month['month_start'])); ?> - <?php echo date('M j, Y', strtotime($month['month_end'])); ?>
+                            </div>
+                        </div>
+                        <div class="list-item-trailing">
+                            <span class="weight-value"><?php echo round($month['average'], 1); ?> kg</span>
+                            <span class="reading-count"><?php echo count($month['weights']); ?> reading<?php echo count($month['weights']) > 1 ? 's' : ''; ?></span>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php else: ?>
+                <div class="native-empty-state">
+                    <i class="fas fa-chart-column"></i>
+                    <p>No monthly data yet</p>
+                </div>
+            <?php endif; ?>
+        </section>
+
+        <section class="native-section">
+            <h2 class="native-section-title">Daily History</h2>
+            <?php if ($weights): ?>
+                <div class="native-list">
+                    <?php foreach ($weights as $weight): ?>
+                    <div class="native-list-item">
+                        <div class="list-item-main">
+                            <div class="list-item-title"><?php echo date('F j, Y', strtotime($weight['entry_date'])); ?></div>
+                            <div class="list-item-subtitle"><?php echo date('l', strtotime($weight['entry_date'])); ?></div>
+                        </div>
+                        <div class="list-item-trailing">
+                            <span class="weight-value"><?php echo $weight['weight_kg']; ?> kg</span>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php else: ?>
+                <div class="native-empty-state">
+                    <i class="fas fa-weight-scale"></i>
+                    <p>No weight entries yet</p>
+                    <a href="weights_add.php" class="native-button primary">
+                        <i class="fas fa-plus"></i>
+                        <span>Add First Entry</span>
+                    </a>
+                </div>
+            <?php endif; ?>
+        </section>
+        
+        <?php else: ?>
+        <!-- Empty State -->
+        <section class="native-empty-section">
+            <div class="native-empty-state large">
+                <i class="fas fa-weight-scale"></i>
+                <h2>No Weight Data</h2>
+                <p>Start tracking your weight to see progress over time</p>
+                <a href="weights_add.php" class="native-button primary large">
+                    <i class="fas fa-plus"></i>
+                    <span>Add First Weight Entry</span>
+                </a>
             </div>
-            <?php endforeach; ?>
-        </div>
-    <?php else: ?>
-        <div class="empty-state">
-            <p>No weight entries yet. <a href="weights_add.php" class="btn btn-outline">Add your first weight entry</a>.</p>
-        </div>
+        </section>
+        <?php endif; ?>
+        
+        <!-- Bottom Safe Area Spacer -->
+        <div class="safe-area-bottom"></div>
+    </main>
+
+    <!-- Floating Action Button -->
+    <?php if ($weights): ?>
+    <a href="weights_add.php" class="native-fab" aria-label="Add weight entry">
+        <i class="fas fa-plus"></i>
+    </a>
     <?php endif; ?>
 </div>
 
 <?php if ($weights): ?>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    const chartData = <?php echo $chart_json; ?>;
-    const weeklyChartData = <?php echo $weekly_chart_json; ?>;
-    const monthlyChartData = <?php echo $monthly_chart_json; ?>;
-    const yearlyChartData = <?php echo $yearly_chart_json; ?>;
-    
-    // Daily Chart
-    const ctx = document.getElementById('chartCanvas').getContext('2d');
-    const weightChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: chartData.map(item => {
-                const date = new Date(item.date);
-                return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-            }),
-            datasets: [{
-                label: 'Weight (kg)',
-                data: chartData.map(item => item.weight),
-                borderColor: '#1a237e',
-                backgroundColor: 'rgba(26, 35, 126, 0.1)',
-                borderWidth: 3,
-                fill: true,
-                tension: 0.4,
-                pointBackgroundColor: '#1a237e',
-                pointBorderColor: '#ffffff',
-                pointBorderWidth: 2,
-                pointRadius: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    backgroundColor: 'rgba(26, 35, 126, 0.9)',
-                    titleColor: '#ffffff',
-                    bodyColor: '#ffffff',
-                    borderColor: '#1a237e',
-                    borderWidth: 1
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: false,
-                    grid: {
-                        color: 'rgba(26, 35, 126, 0.1)'
-                    },
-                    ticks: {
-                        color: '#1a237e'
-                    }
-                },
-                x: {
-                    grid: {
-                        color: 'rgba(26, 35, 126, 0.1)'
-                    },
-                    ticks: {
-                        color: '#1a237e',
-                        maxTicksLimit: 6
-                    }
-                }
-            }
-        }
-    });
-    
-    // Weekly Chart
-    const weeklyCtx = document.getElementById('weeklyChartCanvas').getContext('2d');
-    const weeklyWeightChart = new Chart(weeklyCtx, {
-        type: 'line',
-        data: {
-            labels: weeklyChartData.map(item => {
-                const startDate = new Date(item.week_start);
-                const endDate = new Date(item.week_end);
-                return startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' - ' + 
-                       endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-            }),
-            datasets: [{
-                label: 'Weekly Average (kg)',
-                data: weeklyChartData.map(item => item.average),
-                borderColor: '#4caf50',
-                backgroundColor: 'rgba(76, 175, 80, 0.1)',
-                borderWidth: 3,
-                fill: true,
-                tension: 0.4,
-                pointBackgroundColor: '#4caf50',
-                pointBorderColor: '#ffffff',
-                pointBorderWidth: 2,
-                pointRadius: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    backgroundColor: 'rgba(76, 175, 80, 0.9)',
-                    titleColor: '#ffffff',
-                    bodyColor: '#ffffff',
-                    borderColor: '#4caf50',
-                    borderWidth: 1,
-                    callbacks: {
-                        title: function(tooltipItems) {
-                            const index = tooltipItems[0].dataIndex;
-                            const week = weeklyChartData[index];
-                            const startDate = new Date(week.week_start);
-                            const endDate = new Date(week.week_end);
-                            return 'Week: ' + startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + 
-                                   ' (Sun) - ' + endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' (Sat)';
-                        }
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: false,
-                    grid: {
-                        color: 'rgba(76, 175, 80, 0.1)'
-                    },
-                    ticks: {
-                        color: '#4caf50'
-                    }
-                },
-                x: {
-                    grid: {
-                        color: 'rgba(76, 175, 80, 0.1)'
-                    },
-                    ticks: {
-                        color: '#4caf50',
-                        maxTicksLimit: 6
-                    }
-                }
-            }
-        }
-    });
-    
-    // Monthly Chart
-    const monthlyCtx = document.getElementById('monthlyChartCanvas').getContext('2d');
-    const monthlyWeightChart = new Chart(monthlyCtx, {
-        type: 'line',
-        data: {
-            labels: monthlyChartData.map(item => {
-                const date = new Date(item.month_start);
-                return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-            }),
-            datasets: [{
-                label: 'Monthly Average (kg)',
-                data: monthlyChartData.map(item => item.average),
-                borderColor: '#ff9800',
-                backgroundColor: 'rgba(255, 152, 0, 0.1)',
-                borderWidth: 3,
-                fill: true,
-                tension: 0.4,
-                pointBackgroundColor: '#ff9800',
-                pointBorderColor: '#ffffff',
-                pointBorderWidth: 2,
-                pointRadius: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    backgroundColor: 'rgba(255, 152, 0, 0.9)',
-                    titleColor: '#ffffff',
-                    bodyColor: '#ffffff',
-                    borderColor: '#ff9800',
-                    borderWidth: 1,
-                    callbacks: {
-                        title: function(tooltipItems) {
-                            const index = tooltipItems[0].dataIndex;
-                            const month = monthlyChartData[index];
-                            const startDate = new Date(month.month_start);
-                            const endDate = new Date(month.month_end);
-                            return startDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) + 
-                                   ' (' + startDate.toLocaleDateString('en-US', { day: 'numeric' }) + 
-                                   ' - ' + endDate.toLocaleDateString('en-US', { day: 'numeric' }) + ')';
-                        }
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: false,
-                    grid: {
-                        color: 'rgba(255, 152, 0, 0.1)'
-                    },
-                    ticks: {
-                        color: '#ff9800'
-                    }
-                },
-                x: {
-                    grid: {
-                        color: 'rgba(255, 152, 0, 0.1)'
-                    },
-                    ticks: {
-                        color: '#ff9800',
-                        maxTicksLimit: 6
-                    }
-                }
-            }
-        }
-    });
-    
-    // Yearly Chart
-    const yearlyCtx = document.getElementById('yearlyChartCanvas').getContext('2d');
-    const yearlyWeightChart = new Chart(yearlyCtx, {
-        type: 'line',
-        data: {
-            labels: yearlyChartData.map(item => {
-                const date = new Date(item.year_start);
-                return date.toLocaleDateString('en-US', { year: 'numeric' });
-            }),
-            datasets: [{
-                label: 'Yearly Average (kg)',
-                data: yearlyChartData.map(item => item.average),
-                borderColor: '#9c27b0',
-                backgroundColor: 'rgba(156, 39, 176, 0.1)',
-                borderWidth: 3,
-                fill: true,
-                tension: 0.4,
-                pointBackgroundColor: '#9c27b0',
-                pointBorderColor: '#ffffff',
-                pointBorderWidth: 2,
-                pointRadius: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    backgroundColor: 'rgba(156, 39, 176, 0.9)',
-                    titleColor: '#ffffff',
-                    bodyColor: '#ffffff',
-                    borderColor: '#9c27b0',
-                    borderWidth: 1,
-                    callbacks: {
-                        title: function(tooltipItems) {
-                            const index = tooltipItems[0].dataIndex;
-                            const year = yearlyChartData[index];
-                            const startDate = new Date(year.year_start);
-                            const endDate = new Date(year.year_end);
-                            return startDate.toLocaleDateString('en-US', { year: 'numeric' }) + 
-                                   ' (' + startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + 
-                                   ' - ' + endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ')';
-                        }
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: false,
-                    grid: {
-                        color: 'rgba(156, 39, 176, 0.1)'
-                    },
-                    ticks: {
-                        color: '#9c27b0'
-                    }
-                },
-                x: {
-                    grid: {
-                        color: 'rgba(156, 39, 176, 0.1)'
-                    },
-                    ticks: {
-                        color: '#9c27b0',
-                        maxTicksLimit: 6
-                    }
-                }
-            }
-        }
-    });
-    
-    // Chart switching function
-    function switchChart(type) {
-        const charts = ['daily', 'weekly', 'monthly', 'yearly'];
-        const tabs = document.querySelectorAll('.tab-btn');
-        
-        charts.forEach(chart => {
-            const element = document.getElementById(chart + 'Chart');
-            if (element) {
-                element.style.display = chart === type ? 'block' : 'none';
-            }
-        });
-        
-        tabs.forEach((tab, index) => {
-            if (charts[index] === type) {
-                tab.classList.add('active');
-            } else {
-                tab.classList.remove('active');
-            }
-        });
+// Disable zoom gestures for native app feel
+document.addEventListener('touchstart', function(e) {
+    if (e.touches.length > 1) {
+        e.preventDefault();
     }
+}, { passive: false });
+
+let lastTouchEnd = 0;
+document.addEventListener('touchend', function(e) {
+    const now = (new Date()).getTime();
+    if (now - lastTouchEnd <= 300) {
+        e.preventDefault();
+    }
+    lastTouchEnd = now;
+}, false);
+
+document.documentElement.style.touchAction = 'manipulation';
+
+// Charts initialization
+const chartData = <?php echo $chart_json; ?>;
+const weeklyChartData = <?php echo $weekly_chart_json; ?>;
+const monthlyChartData = <?php echo $monthly_chart_json; ?>;
+const yearlyChartData = <?php echo $yearly_chart_json; ?>;
+
+// Chart configuration
+// Chart configuration with fixed tooltip colors
+const chartConfig = {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: {
+        mode: 'index',
+        intersect: false
+    },
+    plugins: {
+        legend: { display: false },
+        tooltip: {
+            enabled: true,
+            mode: 'nearest',
+            intersect: false,
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            titleColor: '#ffffff',
+            bodyColor: '#ffffff',
+            borderColor: 'rgba(255, 255, 255, 0.2)',
+            borderWidth: 1,
+            cornerRadius: 8,
+            padding: 12,
+            displayColors: false,
+            callbacks: {
+                label: function(context) {
+                    return `Weight: ${context.parsed.y} kg`;
+                }
+            }
+        }
+    },
+    scales: {
+        y: {
+            beginAtZero: false,
+            grid: { color: 'var(--border-color)' },
+            ticks: { color: 'var(--light-text)' }
+        },
+        x: {
+            grid: { display: false },
+            ticks: { color: 'var(--light-text)', maxTicksLimit: 6 }
+        }
+    },
+    elements: {
+        point: {
+            radius: 4,
+            hoverRadius: 6,
+            borderColor: '#ffffff',
+            borderWidth: 2
+        },
+        line: {
+            tension: 0.4,
+            borderWidth: 3
+        }
+    }
+};
+
+// Daily Chart - Blue/Indigo color
+const ctx = document.getElementById('chartCanvas').getContext('2d');
+const weightChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: chartData.map(item => {
+            const date = new Date(item.date);
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        }),
+        datasets: [{
+            data: chartData.map(item => item.weight),
+            borderColor: '#1a237e', // Dark blue/indigo
+            backgroundColor: 'rgba(26, 35, 126, 0.1)',
+            fill: true,
+            pointBackgroundColor: '#1a237e',
+            pointBorderColor: '#ffffff',
+        }]
+    },
+    options: chartConfig
+});
+
+// Weekly Chart - Green color
+const weeklyCtx = document.getElementById('weeklyChartCanvas').getContext('2d');
+const weeklyWeightChart = new Chart(weeklyCtx, {
+    type: 'line',
+    data: {
+        labels: weeklyChartData.map(item => {
+            const startDate = new Date(item.week_start);
+            return startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        }),
+        datasets: [{
+            data: weeklyChartData.map(item => item.average),
+            borderColor: '#4caf50', // Green
+            backgroundColor: 'rgba(76, 175, 80, 0.1)',
+            fill: true,
+            pointBackgroundColor: '#4caf50',
+            pointBorderColor: '#ffffff',
+        }]
+    },
+    options: {
+        ...chartConfig,
+        plugins: {
+            ...chartConfig.plugins,
+            tooltip: {
+                ...chartConfig.plugins.tooltip,
+                callbacks: {
+                    title: function(tooltipItems) {
+                        const index = tooltipItems[0].dataIndex;
+                        const week = weeklyChartData[index];
+                        const startDate = new Date(week.week_start);
+                        const endDate = new Date(week.week_end);
+                        return `Week ${startDate.getDate()} - ${endDate.getDate()}`;
+                    },
+                    label: function(context) {
+                        return `Average: ${context.parsed.y} kg`;
+                    }
+                }
+            }
+        }
+    }
+});
+
+// Monthly Chart - Orange color
+const monthlyCtx = document.getElementById('monthlyChartCanvas').getContext('2d');
+const monthlyWeightChart = new Chart(monthlyCtx, {
+    type: 'line',
+    data: {
+        labels: monthlyChartData.map(item => {
+            const date = new Date(item.month_start);
+            return date.toLocaleDateString('en-US', { month: 'short' });
+        }),
+        datasets: [{
+            data: monthlyChartData.map(item => item.average),
+            borderColor: '#ff9800', // Orange
+            backgroundColor: 'rgba(255, 152, 0, 0.1)',
+            fill: true,
+            pointBackgroundColor: '#ff9800',
+            pointBorderColor: '#ffffff',
+        }]
+    },
+    options: {
+        ...chartConfig,
+        plugins: {
+            ...chartConfig.plugins,
+            tooltip: {
+                ...chartConfig.plugins.tooltip,
+                callbacks: {
+                    label: function(context) {
+                        return `Average: ${context.parsed.y} kg`;
+                    }
+                }
+            }
+        }
+    }
+});
+
+// Yearly Chart - Purple color
+const yearlyCtx = document.getElementById('yearlyChartCanvas').getContext('2d');
+const yearlyWeightChart = new Chart(yearlyCtx, {
+    type: 'line',
+    data: {
+        labels: yearlyChartData.map(item => {
+            const date = new Date(item.year_start);
+            return date.getFullYear().toString();
+        }),
+        datasets: [{
+            data: yearlyChartData.map(item => item.average),
+            borderColor: '#9c27b0', // Purple
+            backgroundColor: 'rgba(156, 39, 176, 0.1)',
+            fill: true,
+            pointBackgroundColor: '#9c27b0',
+            pointBorderColor: '#ffffff',
+        }]
+    },
+    options: {
+        ...chartConfig,
+        plugins: {
+            ...chartConfig.plugins,
+            tooltip: {
+                ...chartConfig.plugins.tooltip,
+                callbacks: {
+                    label: function(context) {
+                        return `Average: ${context.parsed.y} kg`;
+                    }
+                }
+            }
+        }
+    }
+});
+
+// Chart switching with smooth transition
+function switchChart(type) {
+    const charts = ['daily', 'weekly', 'monthly', 'yearly'];
+    const tabs = document.querySelectorAll('.pill-tab');
     
-    // Handle window resize for charts
-    window.addEventListener('resize', function() {
+    // Update tabs
+    tabs.forEach((tab, index) => {
+        if (charts[index] === type) {
+            tab.classList.add('active');
+        } else {
+            tab.classList.remove('active');
+        }
+    });
+    
+    // Update charts with transition
+    charts.forEach(chart => {
+        const element = document.getElementById(chart + 'Chart');
+        if (element) {
+            if (chart === type) {
+                element.style.opacity = '0';
+                element.classList.add('active');
+                setTimeout(() => {
+                    element.style.opacity = '1';
+                }, 10);
+            } else {
+                element.classList.remove('active');
+                element.style.opacity = '0';
+            }
+        }
+    });
+    
+    // Trigger resize after transition
+    setTimeout(() => {
         weightChart.resize();
         weeklyWeightChart.resize();
         monthlyWeightChart.resize();
         yearlyWeightChart.resize();
+    }, 300);
+}
+
+// Handle window resize
+let resizeTimeout;
+window.addEventListener('resize', function() {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+        weightChart.resize();
+        weeklyWeightChart.resize();
+        monthlyWeightChart.resize();
+        yearlyWeightChart.resize();
+    }, 150);
+});
+
+// Add touch feedback to interactive elements
+document.querySelectorAll('.pill-tab, .native-list-item, .native-button').forEach(element => {
+    element.addEventListener('touchstart', function() {
+        this.classList.add('touch-active');
     });
+    
+    element.addEventListener('touchend', function() {
+        this.classList.remove('touch-active');
+    });
+    
+    element.addEventListener('touchcancel', function() {
+        this.classList.remove('touch-active');
+    });
+});
+
+// Smooth scroll behavior
+document.documentElement.style.scrollBehavior = 'smooth';
 </script>
 
 <style>
-/* Mobile-first responsive styles */
-.chart-tabs {
-    display: flex;
-    border-bottom: 2px solid var(--border-color);
-    margin-bottom: 1rem;
-    flex-wrap: wrap;
-    overflow-x: auto;
+/* Native Mobile App Styles */
+:root {
+    --accent-rgb: 26, 35, 126;
+    --safe-area-top: env(safe-area-inset-top, 0px);
+    --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Disable zoom */
+html {
+    touch-action: manipulation;
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    overflow-x: hidden;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg-color);
+    overscroll-behavior-y: none;
     -webkit-overflow-scrolling: touch;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
 }
 
-.tab-btn {
-    background: none;
-    border: none;
-    padding: 0.75rem 1rem;
-    cursor: pointer;
-    color: var(--light-text);
-    font-weight: 600;
-    border-bottom: 3px solid transparent;
-    transition: all 0.3s ease;
-    flex: 1;
-    min-width: 70px;
-    text-align: center;
-    white-space: nowrap;
-    font-size: 0.9rem;
-}
-
-.tab-btn.active {
-    color: var(--accent);
-    border-bottom-color: var(--accent);
-}
-
-.tab-btn:hover:not(.active) {
-    color: var(--text-color);
-    background: rgba(26, 35, 126, 0.05);
-}
-
-.chart-container {
-    transition: all 0.3s ease;
-}
-
-.chart-wrapper {
-    height: 300px;
-    margin: 1rem 0;
+/* Native App Container */
+.native-app-container {
     position: relative;
+    max-width: 768px;
+    margin: 0 auto;
+    background: var(--bg-color);
+    min-height: 100vh;
+    overflow-x: hidden;
 }
 
-.data-grid {
-    display: grid;
-    gap: 0.75rem;
-}
-
-.data-card {
-    padding: 1rem;
-    border-radius: 8px;
+/* Sticky Header */
+.native-app-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
     background: var(--card-bg);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border-color);
+    padding: calc(12px + var(--safe-area-top)) 16px 12px;
 }
 
-.data-card-header {
+.header-content {
     display: flex;
+    align-items: center;
     justify-content: space-between;
-    align-items: flex-start;
-    gap: 1rem;
+    min-height: 44px;
 }
 
-.data-card-info {
-    flex: 1;
-    min-width: 0; /* Prevent flex item from overflowing */
+.app-header-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-color);
+    margin: 0;
+    letter-spacing: -0.3px;
 }
 
-.data-card-title {
+.native-icon-button {
+    width: 44px;
+    height: 44px;
+    border-radius: 22px;
+    background: var(--accent);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    border: none;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.native-icon-button:active {
+    transform: scale(0.95);
+    opacity: 0.8;
+}
+
+/* Main Content */
+.native-app-content {
+    padding: 16px;
+    padding-bottom: calc(16px + var(--safe-area-bottom));
+}
+
+/* Sections */
+.native-section {
+    margin-bottom: 32px;
+    animation: fadeInUp 0.4s ease-out;
+}
+
+.native-section-title {
+    font-size: 1.125rem;
     font-weight: 600;
-    font-size: 1rem;
-    margin-bottom: 0.25rem;
-    word-break: break-word;
+    color: var(--text-color);
+    margin: 0 0 16px 0;
+    letter-spacing: -0.2px;
 }
 
-.data-card-subtitle {
-    font-size: 0.85rem;
+/* Stats Grid */
+.native-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.native-stat-card {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 16px;
+    border: 1px solid var(--border-color);
+    text-align: center;
+    transition: all 0.2s ease;
+}
+
+.native-stat-card:active {
+    transform: scale(0.98);
+    opacity: 0.9;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: var(--light-text);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-color);
+    margin-bottom: 4px;
+    line-height: 1.2;
+}
+
+.stat-date {
+    font-size: 0.75rem;
+    color: var(--light-text);
+}
+
+.trend-up {
+    color: #4caf50;
+}
+
+.trend-down {
+    color: #f44336;
+}
+
+/* Pill Tabs */
+.native-pill-tabs {
+    display: flex;
+    background: var(--border-color);
+    border-radius: 24px;
+    padding: 4px;
+    margin-bottom: 24px;
+}
+
+.pill-tab {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: 12px 16px;
+    border-radius: 20px;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--light-text);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    min-height: 44px;
+    -webkit-tap-highlight-color: transparent;
+    cursor: pointer;
+}
+
+.pill-tab.active {
+    background: var(--accent);
+    color: white;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.pill-tab:active:not(.active) {
+    opacity: 0.6;
+}
+
+/* Charts */
+.native-chart-container {
+    background: var(--card-bg);
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 16px;
+    border: 1px solid var(--border-color);
+    height: 280px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    position: absolute;
+    width: calc(100% - 32px);
+    pointer-events: none;
+}
+
+.native-chart-container.active {
+    opacity: 1;
+    position: relative;
+    pointer-events: auto;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.native-chart-container canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* Lists */
+.native-list {
+    background: var(--card-bg);
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+}
+
+.native-list-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    min-height: 60px;
+    border-bottom: 1px solid var(--border-color);
+    transition: all 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.native-list-item:last-child {
+    border-bottom: none;
+}
+
+.native-list-item:active {
+    background: rgba(var(--accent-rgb), 0.05);
+}
+
+.list-item-main {
+    flex: 1;
+    min-width: 0;
+}
+
+.list-item-title {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-color);
+    margin-bottom: 2px;
+    line-height: 1.3;
+}
+
+.list-item-subtitle {
+    font-size: 0.8125rem;
     color: var(--light-text);
     line-height: 1.3;
 }
 
-.data-card-value {
-    font-weight: 700;
+.list-item-trailing {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    margin-left: 12px;
+}
+
+.weight-value {
+    font-size: 1.0625rem;
+    font-weight: 600;
     color: var(--accent);
-    font-size: 1.1rem;
     white-space: nowrap;
 }
 
-.data-card-footer {
-    margin-top: 0.5rem;
-    font-size: 0.8rem;
+.reading-count {
+    font-size: 0.75rem;
     color: var(--light-text);
+    white-space: nowrap;
 }
 
-.empty-state {
+/* Empty States */
+.native-empty-state {
     text-align: center;
-    padding: 2rem 1rem;
+    padding: 48px 24px;
+}
+
+.native-empty-state.large {
+    padding: 80px 24px;
+}
+
+.native-empty-state i {
+    font-size: 3rem;
     color: var(--light-text);
+    margin-bottom: 16px;
+    opacity: 0.5;
 }
 
-.empty-state i {
-    font-size: 2.5rem;
-    margin-bottom: 1rem;
-    display: block;
+.native-empty-state h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin: 0 0 8px 0;
 }
 
-.empty-state p {
-    margin-bottom: 1.5rem;
-    line-height: 1.5;
+.native-empty-state p {
+    font-size: 0.9375rem;
+    color: var(--light-text);
+    margin: 0 0 24px 0;
+    line-height: 1.4;
 }
 
-.mobile-card-header {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    align-items: flex-start;
-}
-
-.mobile-btn {
-    width: 100%;
+/* Buttons */
+.native-button {
+    display: inline-flex;
+    align-items: center;
     justify-content: center;
+    gap: 8px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    padding: 16px 24px;
+    font-size: 1rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    min-height: 44px;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.btn-text {
-    margin-left: 0.5rem;
+.native-button.primary {
+    background: var(--accent);
 }
 
-/* Responsive adjustments */
+.native-button.large {
+    padding: 18px 32px;
+    font-size: 1.0625rem;
+}
+
+.native-button:active {
+    transform: scale(0.96);
+    opacity: 0.9;
+}
+
+/* Floating Action Button */
+.native-fab {
+    position: fixed;
+    bottom: calc(24px + var(--safe-area-bottom));
+    right: 24px;
+    width: 56px;
+    height: 56px;
+    border-radius: 28px;
+    background: var(--accent);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    box-shadow: 0 4px 20px rgba(var(--accent-rgb), 0.3);
+    border: none;
+    z-index: 1000;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.native-fab:active {
+    transform: scale(0.92);
+    box-shadow: 0 2px 10px rgba(var(--accent-rgb), 0.4);
+}
+
+/* Toast */
+.native-toast {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: slideInDown 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.native-toast.success {
+    border-left: 4px solid #4caf50;
+}
+
+.native-toast i {
+    color: #4caf50;
+    font-size: 1.25rem;
+}
+
+.native-toast span {
+    flex: 1;
+    font-size: 0.9375rem;
+    color: var(--text-color);
+    line-height: 1.4;
+}
+
+/* Safe Area */
+.safe-area-bottom {
+    height: var(--safe-area-bottom);
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Touch Feedback */
+.touch-active {
+    opacity: 0.7 !important;
+}
+
+/* Responsive */
 @media (max-width: 480px) {
-    .card {
-        margin: 0.5rem;
-        padding: 1rem;
+    .native-stats-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
     }
     
-    .card-title {
-        font-size: 1.3rem;
+    .native-chart-container {
+        height: 240px;
+        padding: 16px;
     }
     
-    .data-card-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.5rem;
+    .native-section-title {
+        font-size: 1.0625rem;
     }
     
-    .data-card-value {
-        align-self: flex-start;
-    }
-    
-    .chart-wrapper {
-        height: 250px;
-    }
-    
-    .tab-btn {
-        padding: 0.6rem 0.8rem;
-        font-size: 0.85rem;
-        min-width: 60px;
-    }
-    
-    .mobile-card-header {
-        align-items: stretch;
+    .native-fab {
+        bottom: calc(20px + var(--safe-area-bottom));
+        right: 20px;
+        width: 52px;
+        height: 52px;
     }
 }
 
 @media (min-width: 481px) and (max-width: 768px) {
-    .mobile-card-header {
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
+    .native-stats-grid {
+        gap: 16px;
     }
     
-    .mobile-btn {
-        width: auto;
-    }
-    
-    .data-card-header {
-        flex-direction: row;
-        align-items: center;
+    .native-chart-container {
+        height: 260px;
     }
 }
 
-@media (min-width: 769px) {
-    .mobile-card-header {
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+    .native-app-header {
+        background: rgba(var(--card-bg-rgb), 0.8);
     }
     
-    .mobile-btn {
-        width: auto;
+    .native-stat-card,
+    .native-chart-container,
+    .native-list {
+        background: rgba(var(--card-bg-rgb), 0.9);
+    }
+    
+    .pill-tab.active {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     }
 }
 
-/* Improve touch targets for mobile */
-.btn, .tab-btn {
-    min-height: 44px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+/* Performance optimizations */
+.native-app-container * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
-/* Prevent horizontal scrolling on mobile */
-body {
-    overflow-x: hidden;
+/* Hide scrollbar but keep functionality */
+.native-app-content::-webkit-scrollbar {
+    display: none;
 }
 
-/* Improve readability on small screens */
-@media (max-width: 360px) {
-    .data-card-title {
-        font-size: 0.95rem;
-    }
-    
-    .data-card-subtitle {
-        font-size: 0.8rem;
-    }
-    
-    .data-card-value {
-        font-size: 1rem;
-    }
-    
-    .tab-btn {
-        padding: 0.5rem 0.6rem;
-        font-size: 0.8rem;
-        min-width: 55px;
-    }
+.native-app-content {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }
 </style>
 <?php endif; ?>
