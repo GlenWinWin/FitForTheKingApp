@@ -951,7 +951,7 @@ input, textarea {
         <!-- Day Picker -->
         <div class="day-picker">
             <?php foreach ($all_days as $day): ?>
-            <button class="day-pill <?php echo $day['day_order'] == $current_day_index ? 'active current' : ''; ?>"
+            <button class="day-pill <?php echo $day['day_order'] == $current_day_index ? 'active' : ''; ?>"
                     data-day="<?php echo $day['day_order']; ?>"
                     onclick="switchDay(<?php echo $day['day_order']; ?>)">
                 Day <?php echo $day['day_order']; ?>
