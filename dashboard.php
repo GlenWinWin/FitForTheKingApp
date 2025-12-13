@@ -469,7 +469,7 @@ $week_devotions = $stmt->fetch(PDO::FETCH_ASSOC)['devotion_count'] ?? 0;
     <!-- Main Stats -->
     <div class="stats-grid">
         <!-- Devotion Card -->
-        <div class="stat-card" onclick="location.href='devotions.php'">
+        <div class="stat-card">
             <div class="stat-icon">
                 <i class="fas fa-bible"></i>
             </div>
@@ -486,7 +486,7 @@ $week_devotions = $stmt->fetch(PDO::FETCH_ASSOC)['devotion_count'] ?? 0;
         </div>
 
         <!-- Weight Card -->
-        <div class="stat-card" onclick="location.href='weight_tracker.php'">
+        <div class="stat-card">
             <div class="stat-icon">
                 <i class="fas fa-weight-scale"></i>
             </div>
@@ -505,7 +505,7 @@ $week_devotions = $stmt->fetch(PDO::FETCH_ASSOC)['devotion_count'] ?? 0;
         </div>
 
         <!-- Steps Card -->
-        <div class="stat-card" onclick="location.href='steps_tracker.php'">
+        <div class="stat-card">
             <div class="stat-icon">
                 <i class="fas fa-walking"></i>
             </div>
