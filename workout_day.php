@@ -421,7 +421,6 @@ input, textarea {
 /* ===== EXERCISE CONTENT ===== */
 .exercise-content {
     max-height: 0;
-    overflow: hidden;
     transition: max-height 0.3s ease;
 }
 
@@ -438,7 +437,6 @@ input, textarea {
     width: 100%;
     padding-bottom: 56.25%;
     border-radius: 12px;
-    overflow: hidden;
     background: #000;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
