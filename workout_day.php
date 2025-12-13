@@ -103,9 +103,9 @@ if (!empty($exercise_ids)) {
     user-select: none;
 }
 
-html {
+html, body {
     height: 100%;
-    overflow: auto;
+    overflow: auto; /* Prevent body scrolling */
     touch-action: manipulation;
 }
 
@@ -115,7 +115,6 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
     height: 100vh;
     height: -webkit-fill-available;
-    overflow: auto;
     /* Keep your original background */
     background: var(--background, #F2F2F7);
     color: var(--text, #000000);
@@ -147,7 +146,7 @@ input, textarea {
     height: -webkit-fill-available;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow: auto;
     position: relative;
     /* Keep your gradient background */
 }
@@ -194,7 +193,7 @@ input, textarea {
     justify-content: center;
 }
 
-/* ===== MAIN CONTENT ===== */
+/* ===== MAIN CONTENT - FIXED SCROLLING ===== */
 .main-content {
     flex: 1;
     overflow-y: auto;
@@ -206,11 +205,23 @@ input, textarea {
     background: rgba(255, 255, 255, 0.9);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
+    position: relative;
+    z-index: 1;
+}
+
+/* Enable smooth scrolling */
+.main-content {
+    scroll-behavior: smooth;
 }
 
 /* Hide scrollbar but keep functionality */
 .main-content::-webkit-scrollbar {
     display: none;
+}
+
+.main-content {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }
 
 /* ===== WORKOUT HEADER ===== */
@@ -220,6 +231,9 @@ input, textarea {
     -webkit-backdrop-filter: blur(10px);
     padding: 20px 16px;
     border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
 .workout-title {
@@ -271,6 +285,9 @@ input, textarea {
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
 .day-picker::-webkit-scrollbar {
@@ -907,6 +924,33 @@ input, textarea {
     .complete-button {
         padding: 14px;
         font-size: 15px;
+    }
+}
+
+/* ===== SCROLLING FIXES ===== */
+/* Make sure the body doesn't scroll */
+body.workout-page {
+    overflow: auto;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+}
+
+/* Prevent pull-to-refresh on iOS */
+@supports (-webkit-touch-callout: none) {
+    .main-content {
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+/* Fix for iOS safe areas */
+@supports (padding: max(0px)) {
+    .main-content {
+        padding-bottom: max(100px, env(safe-area-inset-bottom, 100px));
+    }
+    
+    .complete-section {
+        bottom: max(100px, calc(100px + env(safe-area-inset-bottom, 0px)));
     }
 }
 </style>
