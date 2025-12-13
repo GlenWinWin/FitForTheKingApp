@@ -105,7 +105,8 @@ if (!empty($exercise_ids)) {
 
 html, body {
     height: 100%;
-    overflow: auto; /* Prevent body scrolling */
+    width: 100%;
+    overflow: hidden;
     touch-action: manipulation;
 }
 
@@ -113,11 +114,10 @@ body {
     margin: 0;
     padding: 0;
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', sans-serif;
-    height: 100vh;
-    height: -webkit-fill-available;
-    /* Keep your original background */
     background: var(--background, #F2F2F7);
     color: var(--text, #000000);
+    -webkit-overflow-scrolling: touch;
+    position: relative;
 }
 
 input, button, textarea {
@@ -131,24 +131,18 @@ input {
     user-select: text;
 }
 
-/* Disable zoom and double-tap */
-* {
-    touch-action: pan-y;
-}
-
-input, textarea {
-    touch-action: pan-y;
-}
-
 /* ===== APP CONTAINER ===== */
 .app-container {
     height: 100vh;
     height: -webkit-fill-available;
     display: flex;
     flex-direction: column;
-    overflow: auto;
-    position: relative;
-    /* Keep your gradient background */
+    overflow: hidden;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
 }
 
 /* ===== STATUS BAR ===== */
@@ -193,86 +187,6 @@ input, textarea {
     justify-content: center;
 }
 
-/* ===== MAIN CONTENT - FIXED SCROLLING ===== */
-.main-content {
-    flex: 1;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
-    padding: 0;
-    padding-bottom: 100px; /* Space for complete button */
-    /* Glass morphism effect */
-    background: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    position: relative;
-    z-index: 1;
-}
-
-/* Enable smooth scrolling */
-.main-content {
-    scroll-behavior: smooth;
-}
-
-/* Hide scrollbar but keep functionality */
-.main-content::-webkit-scrollbar {
-    display: none;
-}
-
-.main-content {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-}
-
-/* ===== WORKOUT HEADER ===== */
-.workout-header {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    padding: 20px 16px;
-    border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
-    position: sticky;
-    top: 0;
-    z-index: 10;
-}
-
-.workout-title {
-    font-size: 28px;
-    font-weight: 700;
-    margin: 0 0 4px 0;
-    line-height: 1.2;
-    color: var(--text, #000000);
-    background: var(--gradient-accent, linear-gradient(135deg, #667eea 0%, #764ba2 100%));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.workout-subtitle {
-    font-size: 15px;
-    color: var(--light-text, #666666);
-    margin: 0 0 16px 0;
-    line-height: 1.4;
-}
-
-.workout-stats {
-    display: flex;
-    gap: 16px;
-}
-
-.stat-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 14px;
-    color: var(--light-text, #666666);
-}
-
-.stat-icon {
-    font-size: 16px;
-    color: var(--accent, #667eea);
-}
-
 /* ===== DAY PICKER ===== */
 .day-picker {
     display: flex;
@@ -285,9 +199,7 @@ input, textarea {
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
-    position: sticky;
-    top: 0;
-    z-index: 10;
+    flex-shrink: 0;
 }
 
 .day-picker::-webkit-scrollbar {
@@ -332,22 +244,22 @@ input, textarea {
     border: 2px solid white;
 }
 
-/* ===== DAY CONTENT ===== */
-.day-content {
-    display: none;
-    animation: slideIn 0.3s ease;
+/* ===== EXERCISE TABS CONTAINER ===== */
+.exercise-tabs-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
-.day-content.active {
-    display: block;
-}
-
-.day-info {
+/* ===== EXERCISE HEADER ===== */
+.exercise-header {
     padding: 20px 16px;
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
+    flex-shrink: 0;
 }
 
 .day-title {
@@ -364,72 +276,149 @@ input, textarea {
     line-height: 1.4;
 }
 
-/* ===== EXERCISE LIST ===== */
-.exercise-list {
-    padding: 0;
-    margin-bottom: 20px;
+.workout-stats {
+    display: flex;
+    gap: 16px;
 }
 
-.exercise-card {
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    color: var(--light-text, #666666);
+}
+
+.stat-icon {
+    font-size: 16px;
+    color: var(--accent, #667eea);
+}
+
+/* ===== EXERCISE TABS NAVIGATION ===== */
+.exercise-tabs-nav {
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    margin-bottom: 8px;
     border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
+    flex-shrink: 0;
 }
 
-.exercise-header {
-    padding: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    min-height: 60px;
+.exercise-tabs-nav::-webkit-scrollbar {
+    display: none;
 }
 
-.exercise-title {
-    font-size: 17px;
-    font-weight: 600;
-    color: var(--text, #000000);
-    margin: 0;
-    flex: 1;
-}
-
-.exercise-number {
-    color: var(--accent, #667eea);
-    margin-right: 8px;
-}
-
-.exercise-toggle {
-    width: 30px;
-    height: 30px;
-    border-radius: 15px;
-    background: rgba(0, 0, 0, 0.05);
+.exercise-tab {
+    padding: 16px 20px;
+    background: none;
     border: none;
+    border-bottom: 3px solid transparent;
+    font-size: 15px;
+    font-weight: 500;
     color: var(--light-text, #666666);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+    position: relative;
 }
 
-.exercise-card.open .exercise-toggle {
-    transform: rotate(180deg);
-    background: var(--gradient-accent, linear-gradient(135deg, #667eea 0%, #764ba2 100%));
+.exercise-tab.active {
+    color: var(--accent, #667eea);
+    border-bottom-color: var(--accent, #667eea);
+    font-weight: 600;
+}
+
+.exercise-tab-number {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    background: rgba(102, 126, 234, 0.1);
+    border-radius: 12px;
+    text-align: center;
+    line-height: 24px;
+    margin-right: 8px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.exercise-tab.active .exercise-tab-number {
+    background: var(--accent, #667eea);
     color: white;
 }
 
-/* ===== EXERCISE CONTENT ===== */
-.exercise-content {
-    max-height: 0;
-    transition: max-height 0.3s ease;
+/* ===== EXERCISE CONTENT (TAB CONTENT) - SCROLLABLE ===== */
+.exercise-tab-content {
+    flex: 1;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    display: none;
+    padding-bottom: 140px; /* Space for tab navigation and history button */
+    position: relative;
+    height: 100%;
 }
 
-.exercise-card.open .exercise-content {
-    max-height: 1000px;
+.exercise-tab-content.active {
+    display: block;
 }
 
+.exercise-tab-content::-webkit-scrollbar {
+    display: none;
+}
+
+.exercise-tab-content {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* Enable smooth scrolling */
+.exercise-tab-content {
+    scroll-behavior: smooth;
+}
+
+/* ===== EXERCISE INFO ===== */
+.exercise-info {
+    padding: 20px 16px;
+    border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
+}
+
+.exercise-name {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0 0 8px 0;
+    color: var(--text, #000000);
+}
+
+.exercise-meta {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.exercise-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    color: var(--light-text, #666666);
+}
+
+.exercise-instructions {
+    font-size: 15px;
+    color: var(--text, #000000);
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* ===== EXERCISE MEDIA ===== */
 .exercise-media {
-    padding: 0 16px 16px;
+    padding: 20px 16px;
+    border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
 }
 
 .video-container {
@@ -437,6 +426,7 @@ input, textarea {
     width: 100%;
     padding-bottom: 56.25%;
     border-radius: 12px;
+    overflow: hidden;
     background: #000;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
@@ -451,19 +441,26 @@ input, textarea {
 }
 
 .exercise-notes {
-    padding: 12px;
+    padding: 16px;
     background: rgba(102, 126, 234, 0.05);
     border-left: 3px solid var(--accent, #667eea);
     border-radius: 0 8px 8px 0;
-    margin-top: 12px;
+    margin-top: 16px;
     font-size: 14px;
     color: var(--text, #000000);
-    line-height: 1.4;
+    line-height: 1.5;
 }
 
-/* ===== SETS TABLE ===== */
+/* ===== SETS SECTION ===== */
 .sets-section {
-    padding: 16px;
+    padding: 20px 16px;
+}
+
+.sets-header {
+    font-size: 17px;
+    font-weight: 600;
+    margin: 0 0 20px 0;
+    color: var(--text, #000000);
 }
 
 .set-row {
@@ -495,7 +492,7 @@ input, textarea {
 
 .set-inputs {
     display: flex;
-    gap: 8px;
+    gap: 12px;
     flex: 1;
 }
 
@@ -512,7 +509,7 @@ input, textarea {
 
 .native-input {
     width: 100%;
-    padding: 10px 12px;
+    padding: 12px;
     background: rgba(255, 255, 255, 0.9);
     border: 2px solid #e0e0e0;
     border-radius: 8px;
@@ -529,20 +526,10 @@ input, textarea {
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
-.native-input.progress-up {
-    border-color: #4CAF50;
-    background: rgba(76, 175, 80, 0.05);
-}
-
-.native-input.progress-down {
-    border-color: #f44336;
-    background: rgba(244, 67, 54, 0.05);
-}
-
 .set-timer {
-    width: 40px;
-    height: 40px;
-    border-radius: 20px;
+    width: 44px;
+    height: 44px;
+    border-radius: 22px;
     background: var(--gradient-accent, linear-gradient(135deg, #667eea 0%, #764ba2 100%));
     border: none;
     color: white;
@@ -551,19 +538,31 @@ input, textarea {
     justify-content: center;
     flex-shrink: 0;
     box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
+    transition: all 0.2s ease;
+}
+
+.set-timer:active {
+    transform: scale(0.95);
 }
 
 .set-timer i {
-    font-size: 16px;
+    font-size: 18px;
 }
 
-/* ===== HISTORY BUTTON ===== */
+/* ===== HISTORY BUTTON SECTION ===== */
+.history-section {
+    padding: 16px;
+    border-top: 0.5px solid rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+    background: rgba(255, 255, 255, 0.95);
+}
+
 .history-button {
     width: 100%;
     padding: 16px;
     background: rgba(255, 255, 255, 0.9);
-    border: none;
-    border-radius: 0;
+    border: 0.5px solid rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
     font-size: 15px;
     color: var(--accent, #667eea);
     display: flex;
@@ -571,62 +570,111 @@ input, textarea {
     justify-content: center;
     gap: 8px;
     min-height: 44px;
-    border-top: 0.5px solid rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+    font-weight: 500;
 }
 
-/* ===== COMPLETE BUTTON - FIXED FOR FOOTER ===== */
-.complete-section {
+.history-button:active {
+    background: rgba(102, 126, 234, 0.05);
+    transform: scale(0.98);
+}
+
+/* ===== TAB NAVIGATION CONTROLS ===== */
+.tab-navigation {
     position: fixed;
-    bottom: 100px; /* Position above footer (approx 49px nav + 20px buffer) */
+    bottom: 100px; /* Above footer */
     left: 0;
     right: 0;
-    padding: 12px 16px;
+    padding: 16px;
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border-top: 0.5px solid rgba(0, 0, 0, 0.1);
+    display: flex;
+    gap: 12px;
     z-index: 998;
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
 }
 
-.complete-button {
-    width: 100%;
-    padding: 18px;
-    background: var(--gradient-accent, linear-gradient(135deg, #667eea 0%, #764ba2 100%));
-    border: none;
+.tab-nav-button {
+    flex: 1;
+    padding: 16px;
     border-radius: 12px;
-    color: white;
+    border: none;
     font-size: 17px;
     font-weight: 600;
+    min-height: 50px;
+    transition: all 0.2s ease;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    min-height: 50px;
-    transition: all 0.2s ease;
+}
+
+.tab-nav-button.prev {
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid #e0e0e0;
+    color: var(--text, #000000);
+}
+
+.tab-nav-button.next {
+    background: var(--gradient-accent, linear-gradient(135deg, #667eea 0%, #764ba2 100%));
+    color: white;
     box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
-.complete-button:active {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+.tab-nav-button.complete {
+    background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
 }
 
-.complete-button:disabled {
+.tab-nav-button:active {
+    transform: translateY(-2px);
+}
+
+.tab-nav-button:disabled {
     opacity: 0.5;
     cursor: not-allowed;
     transform: none;
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
 }
 
-/* Adjust for smaller screens */
-@media (max-height: 700px) {
-    .complete-section {
-        bottom: 90px;
-    }
+/* ===== WORKOUT HISTORY BUTTON ===== */
+.workout-history-section {
+    position: fixed;
+    bottom: 160px; /* Above tab navigation */
+    left: 0;
+    right: 0;
+    padding: 0 16px;
+    z-index: 997;
 }
 
-/* ===== NATIVE MODALS ===== */
+.workout-history-button {
+    width: 100%;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 0.5px solid rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    font-size: 15px;
+    color: var(--accent, #667eea);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.workout-history-button:active {
+    background: rgba(102, 126, 234, 0.05);
+    transform: scale(0.98);
+}
+
+/* ===== NATIVE MODALS - CENTERED POPUP ===== */
 .native-modal {
     position: fixed;
     top: 0;
@@ -635,33 +683,43 @@ input, textarea {
     bottom: 0;
     background: rgba(0,0,0,0.5);
     display: none;
-    align-items: flex-end;
+    align-items: center;
+    justify-content: center;
     z-index: 1000;
+    padding: 20px;
+    animation: fadeIn 0.3s ease;
 }
 
 .modal-content {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-top-left-radius: 16px;
-    border-top-right-radius: 16px;
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border-radius: 20px;
     width: 100%;
+    max-width: 400px;
     max-height: 80vh;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    animation: slideUp 0.3s ease;
+    animation: scaleIn 0.3s ease;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    transform-origin: center center;
 }
 
 .modal-header {
-    padding: 16px;
+    padding: 20px 24px;
     border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
     display: flex;
     align-items: center;
     justify-content: space-between;
+    position: sticky;
+    top: 0;
+    background: inherit;
+    backdrop-filter: inherit;
+    border-radius: 20px 20px 0 0;
 }
 
 .modal-title {
-    font-size: 17px;
+    font-size: 18px;
     font-weight: 600;
     margin: 0;
     color: var(--text, #000000);
@@ -675,6 +733,7 @@ input, textarea {
     padding: 8px;
     min-height: 44px;
     min-width: 44px;
+    font-weight: 500;
 }
 
 /* ===== TIMER MODAL ===== */
@@ -691,18 +750,20 @@ input, textarea {
 .timer-controls {
     display: flex;
     gap: 12px;
-    padding: 0 16px 20px;
+    padding: 0 24px 24px;
+    flex-wrap: wrap;
 }
 
 .timer-button {
     flex: 1;
-    padding: 18px;
+    padding: 16px;
     border-radius: 12px;
     border: none;
     font-size: 17px;
     font-weight: 600;
     min-height: 50px;
     transition: all 0.2s ease;
+    min-width: 120px;
 }
 
 .timer-primary {
@@ -723,7 +784,7 @@ input, textarea {
 
 /* ===== HISTORY MODAL ===== */
 .history-list {
-    padding: 16px;
+    padding: 24px;
 }
 
 .history-session {
@@ -766,6 +827,52 @@ input, textarea {
 }
 
 .reps-value {
+    color: var(--light-text, #666666);
+}
+
+/* ===== WORKOUT HISTORY MODAL ===== */
+.workout-history-content {
+    padding: 24px;
+}
+
+.workout-history-session {
+    padding: 16px 0;
+    border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
+}
+
+.workout-history-session:last-child {
+    border-bottom: none;
+}
+
+.workout-history-date {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text, #000000);
+    margin-bottom: 12px;
+}
+
+.workout-history-exercises {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.workout-history-exercise {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 15px;
+    padding: 8px 0;
+}
+
+.workout-history-exercise-name {
+    font-weight: 500;
+    color: var(--text, #000000);
+}
+
+.workout-history-exercise-stats {
+    display: flex;
+    gap: 12px;
     color: var(--light-text, #666666);
 }
 
@@ -817,20 +924,22 @@ input, textarea {
 @keyframes slideIn {
     from {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateX(20px);
     }
     to {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateX(0);
     }
 }
 
-@keyframes slideUp {
+@keyframes scaleIn {
     from {
-        transform: translateY(100%);
+        opacity: 0;
+        transform: scale(0.9);
     }
     to {
-        transform: translateY(0);
+        opacity: 1;
+        transform: scale(1);
     }
 }
 
@@ -868,45 +977,32 @@ input, textarea {
 
 /* ===== RESPONSIVE ADJUSTMENTS ===== */
 @media (max-width: 768px) {
-    .workout-title {
-        font-size: 24px;
-    }
-    
-    .day-title {
+    .exercise-name {
         font-size: 20px;
     }
     
-    .exercise-title {
-        font-size: 16px;
-    }
-    
     .native-input {
-        padding: 8px 10px;
+        padding: 10px;
         font-size: 16px;
     }
     
-    .day-pill {
-        padding: 10px 16px;
-        font-size: 14px;
+    .tab-navigation {
+        bottom: 90px;
     }
     
-    .complete-button {
-        padding: 16px;
-        font-size: 16px;
+    .workout-history-section {
+        bottom: 150px;
+    }
+    
+    .modal-content {
+        max-width: 90%;
+        margin: 20px;
     }
 }
 
 @media (max-width: 350px) {
-    .workout-title {
-        font-size: 22px;
-    }
-    
-    .day-title {
+    .exercise-name {
         font-size: 18px;
-    }
-    
-    .exercise-title {
-        font-size: 15px;
     }
     
     .native-input {
@@ -919,37 +1015,46 @@ input, textarea {
         gap: 8px;
     }
     
-    .complete-button {
+    .timer-button {
+        min-width: 100px;
         padding: 14px;
-        font-size: 15px;
     }
 }
 
-/* ===== SCROLLING FIXES ===== */
-/* Make sure the body doesn't scroll */
-body.workout-page {
-    overflow: auto;
-    position: fixed;
-    width: 100%;
-    height: 100%;
+/* ===== iOS SCROLLING FIXES ===== */
+@supports (-webkit-touch-callout: none) {
+    .exercise-tab-content {
+        overflow-y: scroll !important;
+        -webkit-overflow-scrolling: touch !important;
+        height: 100%;
+    }
+    
+    /* Force GPU acceleration for smoother scrolling */
+    .exercise-tab-content {
+        -webkit-transform: translate3d(0,0,0);
+        transform: translate3d(0,0,0);
+    }
+    
+    .tab-navigation {
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+    
+    .workout-history-section {
+        bottom: calc(160px + env(safe-area-inset-bottom));
+    }
 }
 
-/* Prevent pull-to-refresh on iOS */
-@supports (-webkit-touch-callout: none) {
-    .main-content {
+/* Fix for scrolling in iOS Safari */
+@media (pointer: coarse) and (hover: none) {
+    .exercise-tab-content {
+        overflow-y: auto;
         -webkit-overflow-scrolling: touch;
     }
 }
 
-/* Fix for iOS safe areas */
-@supports (padding: max(0px)) {
-    .main-content {
-        padding-bottom: max(100px, env(safe-area-inset-bottom, 100px));
-    }
-    
-    .complete-section {
-        bottom: max(100px, calc(100px + env(safe-area-inset-bottom, 0px)));
-    }
+/* Prevent pull-to-refresh */
+.exercise-tab-content {
+    overscroll-behavior: contain;
 }
 </style>
 
@@ -964,168 +1069,196 @@ body.workout-page {
         </div>
     </div>
 
-    <!-- Main Content -->
-    <div class="main-content">
-        <!-- Workout Header -->
-        <div class="workout-header">
-            <h1 class="workout-title"><?php echo htmlspecialchars($user_plan['name']); ?></h1>
-            <p class="workout-subtitle"><?php echo htmlspecialchars($user_plan['description']); ?></p>
+    <!-- Day Picker -->
+    <div class="day-picker">
+        <?php foreach ($all_days as $day): ?>
+        <button class="day-pill <?php echo $day['day_order'] == $current_day_index ? 'active current' : ''; ?>"
+                data-day="<?php echo $day['day_order']; ?>"
+                onclick="switchDay(<?php echo $day['day_order']; ?>)">
+            Day <?php echo $day['day_order']; ?>
+        </button>
+        <?php endforeach; ?>
+    </div>
+
+    <!-- Day Content - Each day has its own exercise tabs -->
+    <?php foreach ($all_days as $day): 
+        $exercises = $all_exercises[$day['day_order']];
+        $exercise_count = count($exercises);
+    ?>
+    <div class="exercise-tabs-container" id="day-<?php echo $day['day_order']; ?>"
+         style="<?php echo $day['day_order'] != $current_day_index ? 'display: none;' : ''; ?>">
+        
+        <!-- Day Header -->
+        <div class="exercise-header">
+            <h2 class="day-title"><?php echo htmlspecialchars($day['title']); ?></h2>
+            <p class="day-description"><?php echo htmlspecialchars($day['description']); ?></p>
             <div class="workout-stats">
                 <div class="stat-item">
-                    <i class="fas fa-calendar stat-icon"></i>
-                    <span><?php echo $total_days; ?> Days</span>
+                    <i class="fas fa-dumbbell stat-icon"></i>
+                    <span><?php echo $exercise_count; ?> Exercises</span>
                 </div>
                 <div class="stat-item">
-                    <i class="fas fa-dumbbell stat-icon"></i>
-                    <span>
-                        <?php
-                        $total_exercises = 0;
-                        foreach ($all_exercises as $exercises) {
-                            $total_exercises += count($exercises);
-                        }
-                        echo $total_exercises;
-                        ?> Exercises
-                    </span>
+                    <i class="fas fa-clock stat-icon"></i>
+                    <span>45-60 min</span>
                 </div>
             </div>
         </div>
 
-        <!-- Day Picker -->
-        <div class="day-picker">
-            <?php foreach ($all_days as $day): ?>
-            <button class="day-pill <?php echo $day['day_order'] == $current_day_index ? 'active' : ''; ?>"
-                    data-day="<?php echo $day['day_order']; ?>"
-                    onclick="switchDay(<?php echo $day['day_order']; ?>)">
-                Day <?php echo $day['day_order']; ?>
+        <!-- Exercise Tabs Navigation -->
+        <div class="exercise-tabs-nav" id="exercise-tabs-<?php echo $day['day_order']; ?>">
+            <?php foreach ($exercises as $index => $exercise): ?>
+            <button class="exercise-tab <?php echo $index === 0 ? 'active' : ''; ?>"
+                    data-tab="<?php echo $index + 1; ?>"
+                    onclick="switchExerciseTab(<?php echo $day['day_order']; ?>, <?php echo $index + 1; ?>)">
+                <span class="exercise-tab-number"><?php echo $index + 1; ?></span>
+                <?php echo htmlspecialchars(substr($exercise['exercise_name'], 0, 15)); ?>
+                <?php echo strlen($exercise['exercise_name']) > 15 ? '...' : ''; ?>
             </button>
             <?php endforeach; ?>
         </div>
 
-        <!-- Day Content -->
-        <?php foreach ($all_days as $day): ?>
-        <div class="day-content <?php echo $day['day_order'] == $current_day_index ? 'active' : ''; ?>" 
-             id="day-<?php echo $day['day_order']; ?>">
+        <!-- Exercise Tab Contents -->
+        <form class="workout-form" id="workout-form-<?php echo $day['day_order']; ?>" 
+              data-day-id="<?php echo $day['id']; ?>">
+            <input type="hidden" name="day_id" value="<?php echo $day['id']; ?>">
             
-            <!-- Day Info -->
-            <div class="day-info">
-                <h2 class="day-title"><?php echo htmlspecialchars($day['title']); ?></h2>
-                <p class="day-description"><?php echo htmlspecialchars($day['description']); ?></p>
-                <div class="workout-stats">
-                    <div class="stat-item">
-                        <i class="fas fa-dumbbell stat-icon"></i>
-                        <span><?php echo count($all_exercises[$day['day_order']]); ?> Exercises</span>
+            <?php foreach ($exercises as $index => $exercise): 
+                $last_workout = $last_workout_data[$exercise['id']] ?? [];
+                $is_last_exercise = ($index + 1) === $exercise_count;
+            ?>
+            <div class="exercise-tab-content <?php echo $index === 0 ? 'active' : ''; ?>"
+                 id="exercise-<?php echo $day['day_order']; ?>-<?php echo $index + 1; ?>">
+                
+                <!-- Exercise Info -->
+                <div class="exercise-info">
+                    <h3 class="exercise-name"><?php echo htmlspecialchars($exercise['exercise_name']); ?></h3>
+                    <div class="exercise-meta">
+                        <div class="exercise-meta-item">
+                            <i class="fas fa-repeat"></i>
+                            <span><?php echo isset($exercise['default_sets']) ? $exercise['default_sets'] : 3; ?> sets</span>
+                        </div>
+                        <div class="exercise-meta-item">
+                            <i class="fas fa-redo"></i>
+                            <span><?php echo isset($exercise['default_reps']) ? $exercise['default_reps'] : 10; ?> reps</span>
+                        </div>
                     </div>
+                    <?php if (isset($exercise['instructions']) && !empty(trim($exercise['instructions']))): ?>
+                    <p class="exercise-instructions"><?php echo htmlspecialchars($exercise['instructions']); ?></p>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Video -->
+                <?php if (isset($exercise['youtube_link']) && !empty(trim($exercise['youtube_link']))): ?>
+                <div class="exercise-media">
+                    <div class="video-container">
+                        <iframe src="<?php echo htmlspecialchars($exercise['youtube_link']); ?>"
+                                allowfullscreen></iframe>
+                    </div>
+                </div>
+                <?php endif; ?>
+
+                <!-- Notes -->
+                <?php if (isset($exercise['notes']) && !empty(trim($exercise['notes']))): ?>
+                <div class="exercise-media">
+                    <div class="exercise-notes">
+                        <?php echo htmlspecialchars($exercise['notes']); ?>
+                    </div>
+                </div>
+                <?php endif; ?>
+
+                <!-- Sets -->
+                <div class="sets-section">
+                    <h4 class="sets-header">Sets</h4>
+                    <?php 
+                    $sets_count = isset($exercise['default_sets']) ? $exercise['default_sets'] : 3;
+                    for ($i = 1; $i <= $sets_count; $i++): 
+                        $last_set = $last_workout[$i] ?? null;
+                        $last_weight = $last_set['weight'] ?? 0;
+                        $last_reps = $last_set['reps'] ?? 0;
+                    ?>
+                    <div class="set-row">
+                        <div class="set-number"><?php echo $i; ?></div>
+                        
+                        <div class="set-inputs">
+                            <div class="input-group">
+                                <label class="input-label">Weight (kg)</label>
+                                <input type="number"
+                                       name="sets[<?php echo $exercise['id']; ?>][<?php echo $i; ?>][weight]"
+                                       class="native-input weight-input"
+                                       placeholder="0"
+                                       step="0.5"
+                                       min="0"
+                                       value="<?php echo $last_weight > 0 ? $last_weight : ''; ?>"
+                                       data-last-weight="<?php echo $last_weight; ?>">
+                            </div>
+                            
+                            <div class="input-group">
+                                <label class="input-label">Reps</label>
+                                <input type="number"
+                                       name="sets[<?php echo $exercise['id']; ?>][<?php echo $i; ?>][reps]"
+                                       class="native-input reps-input"
+                                       placeholder="0"
+                                       min="0"
+                                       max="100"
+                                       value="<?php echo $last_reps > 0 ? $last_reps : ''; ?>"
+                                       data-last-reps="<?php echo $last_reps; ?>">
+                            </div>
+                        </div>
+                        
+                        <button type="button" class="set-timer"
+                                onclick="startTimerForSet(<?php echo $exercise['id']; ?>, <?php echo $i; ?>)">
+                            <i class="fas fa-clock"></i>
+                        </button>
+                    </div>
+                    <?php endfor; ?>
+                </div>
+
+                <!-- Exercise History Button -->
+                <div class="history-section">
+                    <button type="button" class="history-button"
+                            onclick="showExerciseHistory(<?php echo $exercise['id']; ?>, '<?php echo htmlspecialchars($exercise['exercise_name']); ?>')">
+                        <i class="fas fa-history"></i>
+                        View Exercise History
+                    </button>
                 </div>
             </div>
-
-            <!-- Exercise List -->
-            <form class="workout-form" id="workout-form-<?php echo $day['day_order']; ?>" 
-                  data-day-id="<?php echo $day['id']; ?>">
-                <input type="hidden" name="day_id" value="<?php echo $day['id']; ?>">
-                
-                <div class="exercise-list">
-                    <?php foreach ($all_exercises[$day['day_order']] as $index => $exercise): 
-                        $last_workout = $last_workout_data[$exercise['id']] ?? [];
-                    ?>
-                    <div class="exercise-card" id="exercise-<?php echo $exercise['id']; ?>">
-                        <div class="exercise-header" onclick="toggleExercise(<?php echo $exercise['id']; ?>)">
-                            <h3 class="exercise-title">
-                                <span class="exercise-number">#<?php echo $index + 1; ?></span>
-                                <?php echo htmlspecialchars($exercise['exercise_name']); ?>
-                            </h3>
-                            <button type="button" class="exercise-toggle">
-                                <i class="fas fa-chevron-down"></i>
-                            </button>
-                        </div>
-
-                        <div class="exercise-content">
-                            <!-- Video -->
-                            <?php if ($exercise['youtube_link']): ?>
-                            <div class="exercise-media">
-                                <div class="video-container">
-                                    <iframe src="<?php echo htmlspecialchars($exercise['youtube_link']); ?>"
-                                            allowfullscreen></iframe>
-                                </div>
-                            </div>
-                            <?php endif; ?>
-
-                            <!-- Notes -->
-                            <?php if ($exercise['notes']): ?>
-                            <div class="exercise-media">
-                                <div class="exercise-notes">
-                                    <?php echo htmlspecialchars($exercise['notes']); ?>
-                                </div>
-                            </div>
-                            <?php endif; ?>
-
-                            <!-- Sets -->
-                            <div class="sets-section">
-                                <?php for ($i = 1; $i <= $exercise['default_sets']; $i++): 
-                                    $last_set = $last_workout[$i] ?? null;
-                                    $last_weight = $last_set['weight'] ?? 0;
-                                    $last_reps = $last_set['reps'] ?? 0;
-                                ?>
-                                <div class="set-row">
-                                    <div class="set-number"><?php echo $i; ?></div>
-                                    
-                                    <div class="set-inputs">
-                                        <div class="input-group">
-                                            <label class="input-label">Weight (kg)</label>
-                                            <input type="number"
-                                                   name="sets[<?php echo $exercise['id']; ?>][<?php echo $i; ?>][weight]"
-                                                   class="native-input weight-input"
-                                                   placeholder="0"
-                                                   step="0.5"
-                                                   min="0"
-                                                   value="<?php echo $last_weight > 0 ? $last_weight : ''; ?>"
-                                                   data-last-weight="<?php echo $last_weight; ?>">
-                                        </div>
-                                        
-                                        <div class="input-group">
-                                            <label class="input-label">Reps</label>
-                                            <input type="number"
-                                                   name="sets[<?php echo $exercise['id']; ?>][<?php echo $i; ?>][reps]"
-                                                   class="native-input reps-input"
-                                                   placeholder="0"
-                                                   min="0"
-                                                   max="100"
-                                                   value="<?php echo $last_reps > 0 ? $last_reps : ''; ?>"
-                                                   data-last-reps="<?php echo $last_reps; ?>">
-                                        </div>
-                                    </div>
-                                    
-                                    <button type="button" class="set-timer"
-                                            onclick="startTimerForSet(<?php echo $exercise['id']; ?>, <?php echo $i; ?>)">
-                                        <i class="fas fa-clock"></i>
-                                    </button>
-                                </div>
-                                <?php endfor; ?>
-                                
-                                <!-- History Button -->
-                                <button type="button" class="history-button"
-                                        onclick="showExerciseHistory(<?php echo $exercise['id']; ?>, '<?php echo htmlspecialchars($exercise['exercise_name']); ?>')">
-                                    <i class="fas fa-history"></i>
-                                    View History
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    <?php endforeach; ?>
-                </div>
-            </form>
-        </div>
-        <?php endforeach; ?>
+            <?php endforeach; ?>
+        </form>
     </div>
+    <?php endforeach; ?>
 
-    <!-- Complete Button - Fixed position -->
+    <!-- Workout History Button (Complete Workout History) -->
     <?php foreach ($all_days as $day): ?>
-    <div class="complete-section" id="complete-section-<?php echo $day['day_order']; ?>"
+    <div class="workout-history-section" id="workout-history-<?php echo $day['day_order']; ?>"
          style="<?php echo $day['day_order'] != $current_day_index ? 'display: none;' : ''; ?>">
-        <button type="button" class="complete-button" 
-                onclick="submitWorkout(<?php echo $day['day_order']; ?>)"
-                id="complete-button-<?php echo $day['day_order']; ?>">
-            <i class="fas fa-check-circle"></i>
-            Complete Day <?php echo $day['day_order']; ?>
+        <button class="workout-history-button" onclick="showWorkoutHistory(<?php echo $day['id']; ?>, '<?php echo htmlspecialchars($day['title']); ?>')">
+            <i class="fas fa-chart-line"></i>
+            View Workout History
+        </button>
+    </div>
+    <?php endforeach; ?>
+
+    <!-- Tab Navigation Controls -->
+    <?php foreach ($all_days as $day): 
+        $exercise_count = count($all_exercises[$day['day_order']]);
+    ?>
+    <div class="tab-navigation" id="tab-nav-<?php echo $day['day_order']; ?>"
+         style="<?php echo $day['day_order'] != $current_day_index ? 'display: none;' : ''; ?>">
+        <button class="tab-nav-button prev" 
+                onclick="prevExercise(<?php echo $day['day_order']; ?>)">
+            <i class="fas fa-arrow-left"></i>
+            Previous
+        </button>
+        <button class="tab-nav-button <?php echo $exercise_count === 1 ? 'complete' : 'next'; ?>"
+                onclick="<?php echo $exercise_count === 1 ? "submitWorkout({$day['day_order']})" : "nextExercise({$day['day_order']})"; ?>"
+                id="nav-button-<?php echo $day['day_order']; ?>">
+            <?php if ($exercise_count === 1): ?>
+                <i class="fas fa-check-circle"></i>
+                Complete
+            <?php else: ?>
+                <i class="fas fa-arrow-right"></i>
+                Next
+            <?php endif; ?>
         </button>
     </div>
     <?php endforeach; ?>
@@ -1153,15 +1286,28 @@ body.workout-page {
     </div>
 </div>
 
-<!-- History Modal -->
+<!-- Exercise History Modal -->
 <div class="native-modal" id="historyModal">
     <div class="modal-content">
         <div class="modal-header">
-            <h3 class="modal-title" id="historyTitle">Workout History</h3>
+            <h3 class="modal-title" id="historyTitle">Exercise History</h3>
             <button class="modal-close" onclick="hideHistoryModal()">Done</button>
         </div>
         <div class="history-list" id="historyContent">
             <!-- History will be loaded here -->
+        </div>
+    </div>
+</div>
+
+<!-- Workout History Modal -->
+<div class="native-modal" id="workoutHistoryModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title" id="workoutHistoryTitle">Workout History</h3>
+            <button class="modal-close" onclick="hideWorkoutHistoryModal()">Done</button>
+        </div>
+        <div class="workout-history-content" id="workoutHistoryContent">
+            <!-- Workout history will be loaded here -->
         </div>
     </div>
 </div>
@@ -1189,64 +1335,126 @@ body.workout-page {
 </div>
 
 <script>
-// ===== NATIVE APP BEHAVIOR =====
+// ===== TAB MANAGEMENT =====
+let currentTabs = {};
 
-// Disable zoom
-document.addEventListener('gesturestart', function(e) {
-    e.preventDefault();
-});
+// Initialize tabs for each day
+<?php foreach ($all_days as $day): ?>
+currentTabs[<?php echo $day['day_order']; ?>] = 1;
+<?php endforeach; ?>
 
-document.addEventListener('touchmove', function(e) {
-    if(e.scale !== 1) {
-        e.preventDefault();
-    }
-}, { passive: false });
-
-// Prevent pull-to-refresh on main content
-let startY;
-document.querySelector('.main-content').addEventListener('touchstart', function(e) {
-    startY = e.touches[0].clientY;
-});
-
-document.querySelector('.main-content').addEventListener('touchmove', function(e) {
-    const currentY = e.touches[0].clientY;
-    if (currentY < startY && window.scrollY === 0) {
-        e.preventDefault();
-    }
-}, { passive: false });
-
-// ===== DAY NAVIGATION =====
 function switchDay(dayNumber) {
-    // Add haptic feedback
     triggerHaptic();
     
-    // Update pills
+    // Update day pills
     document.querySelectorAll('.day-pill').forEach(pill => {
         pill.classList.remove('active');
     });
     event.target.classList.add('active');
     
-    // Switch content
-    document.querySelectorAll('.day-content').forEach(content => {
-        content.classList.remove('active');
+    // Hide all day containers
+    document.querySelectorAll('.exercise-tabs-container').forEach(container => {
+        container.style.display = 'none';
     });
-    document.getElementById('day-' + dayNumber).classList.add('active');
     
-    // Switch complete button
-    document.querySelectorAll('.complete-section').forEach(section => {
+    // Hide all tab navigations
+    document.querySelectorAll('.tab-navigation').forEach(nav => {
+        nav.style.display = 'none';
+    });
+    
+    // Hide all workout history buttons
+    document.querySelectorAll('.workout-history-section').forEach(section => {
         section.style.display = 'none';
     });
-    document.getElementById('complete-section-' + dayNumber).style.display = 'block';
     
-    // Scroll to top
-    document.querySelector('.main-content').scrollTop = 0;
+    // Show selected day
+    document.getElementById('day-' + dayNumber).style.display = 'flex';
+    document.getElementById('tab-nav-' + dayNumber).style.display = 'flex';
+    document.getElementById('workout-history-' + dayNumber).style.display = 'block';
+    
+    // Reset to first exercise tab
+    switchExerciseTab(dayNumber, 1);
 }
 
-// ===== EXERCISE TOGGLE =====
-function toggleExercise(exerciseId) {
+function switchExerciseTab(dayNumber, tabNumber) {
     triggerHaptic();
-    const card = document.getElementById('exercise-' + exerciseId);
-    card.classList.toggle('open');
+    
+    // Update current tab
+    currentTabs[dayNumber] = tabNumber;
+    
+    // Update tab buttons
+    const tabNav = document.getElementById('exercise-tabs-' + dayNumber);
+    tabNav.querySelectorAll('.exercise-tab').forEach(tab => {
+        tab.classList.remove('active');
+        if (parseInt(tab.dataset.tab) === tabNumber) {
+            tab.classList.add('active');
+            
+            // Scroll tab into view
+            tab.scrollIntoView({
+                behavior: 'smooth',
+                inline: 'center',
+                block: 'nearest'
+            });
+        }
+    });
+    
+    // Update tab content
+    const container = document.getElementById('day-' + dayNumber);
+    container.querySelectorAll('.exercise-tab-content').forEach(content => {
+        content.classList.remove('active');
+    });
+    const activeTab = document.getElementById('exercise-' + dayNumber + '-' + tabNumber);
+    activeTab.classList.add('active');
+    
+    // Scroll to top of active tab
+    setTimeout(() => {
+        activeTab.scrollTop = 0;
+    }, 100);
+    
+    // Update navigation buttons
+    updateNavigationButtons(dayNumber);
+}
+
+function prevExercise(dayNumber) {
+    if (currentTabs[dayNumber] > 1) {
+        switchExerciseTab(dayNumber, currentTabs[dayNumber] - 1);
+    }
+}
+
+function nextExercise(dayNumber) {
+    const exerciseCount = document.querySelectorAll('#exercise-tabs-' + dayNumber + ' .exercise-tab').length;
+    if (currentTabs[dayNumber] < exerciseCount) {
+        switchExerciseTab(dayNumber, currentTabs[dayNumber] + 1);
+    }
+}
+
+function updateNavigationButtons(dayNumber) {
+    const exerciseCount = document.querySelectorAll('#exercise-tabs-' + dayNumber + ' .exercise-tab').length;
+    const currentTab = currentTabs[dayNumber];
+    const navButton = document.getElementById('nav-button-' + dayNumber);
+    const prevButton = document.querySelector('#tab-nav-' + dayNumber + ' .prev');
+    
+    // Update previous button
+    if (currentTab === 1) {
+        prevButton.disabled = true;
+        prevButton.style.opacity = '0.5';
+    } else {
+        prevButton.disabled = false;
+        prevButton.style.opacity = '1';
+    }
+    
+    // Update next/complete button
+    if (currentTab === exerciseCount) {
+        // Last exercise - show Complete button
+        navButton.innerHTML = '<i class="fas fa-check-circle"></i> Complete';
+        navButton.className = 'tab-nav-button complete';
+        navButton.onclick = function() { submitWorkout(dayNumber); };
+    } else {
+        // Not last exercise - show Next button
+        navButton.innerHTML = '<i class="fas fa-arrow-right"></i> Next';
+        navButton.className = 'tab-nav-button next';
+        navButton.onclick = function() { nextExercise(dayNumber); };
+    }
 }
 
 // ===== TIMER SYSTEM =====
@@ -1354,23 +1562,81 @@ function showTimerComplete() {
     }, 2000);
 }
 
-// ===== HISTORY MODAL =====
+// ===== WORKOUT SUBMISSION =====
+function submitWorkout(dayNumber) {
+    const form = document.getElementById('workout-form-' + dayNumber);
+    const navButton = document.getElementById('nav-button-' + dayNumber);
+    
+    // Validate at least one set has data
+    const hasData = Array.from(form.querySelectorAll('.reps-input'))
+        .some(input => input.value.trim() !== '' && parseInt(input.value) > 0);
+    
+    if (!hasData) {
+        alert('Please enter at least one set to complete your workout.');
+        return;
+    }
+    
+    // Prepare data
+    const formData = new FormData(form);
+    formData.append('ajax_complete_workout', 'true');
+    
+    const originalHTML = navButton.innerHTML;
+    
+    // Show loading
+    navButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    navButton.disabled = true;
+    
+    // Submit
+    fetch('ajax_save_workout.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showSuccessModal();
+            triggerHaptic('success');
+        } else {
+            alert(data.message || 'Error saving workout');
+            navButton.innerHTML = originalHTML;
+            navButton.disabled = false;
+        }
+    })
+    .catch(error => {
+        alert('Network error. Please try again.');
+        navButton.innerHTML = originalHTML;
+        navButton.disabled = false;
+    });
+}
+
+// ===== SUCCESS MODAL =====
+function showSuccessModal() {
+    document.getElementById('successModal').style.display = 'flex';
+    createConfetti();
+}
+
+function goToDashboard() {
+    triggerHaptic();
+    window.location.href = 'dashboard.php?message=workout_completed';
+}
+
+// ===== EXERCISE HISTORY MODAL =====
 function showExerciseHistory(exerciseId, exerciseName) {
     triggerHaptic();
-    document.getElementById('historyTitle').textContent = exerciseName;
+    document.getElementById('historyTitle').textContent = exerciseName + ' - History';
     document.getElementById('historyModal').style.display = 'flex';
     
     // Show loading
     const content = document.getElementById('historyContent');
     content.innerHTML = `
         <div style="text-align: center; padding: 40px 20px;">
-            <i class="fas fa-spinner fa-spin" style="font-size: 24px; color: var(--primary);"></i>
-            <p style="margin-top: 16px; color: var(--text-secondary);">Loading history...</p>
+            <i class="fas fa-spinner fa-spin" style="font-size: 24px; color: var(--accent);"></i>
+            <p style="margin-top: 16px; color: var(--light-text);">Loading exercise history...</p>
         </div>
     `;
     
-    // Load history
-    loadHistory(exerciseId, content);
+    // Load exercise history
+    loadExerciseHistory(exerciseId, content);
 }
 
 function hideHistoryModal() {
@@ -1378,7 +1644,7 @@ function hideHistoryModal() {
     document.getElementById('historyModal').style.display = 'none';
 }
 
-function loadHistory(exerciseId, container) {
+function loadExerciseHistory(exerciseId, container) {
     const formData = new FormData();
     formData.append('ajax_get_exercise_history', 'true');
     formData.append('exercise_id', exerciseId);
@@ -1396,7 +1662,8 @@ function loadHistory(exerciseId, container) {
                 const formattedDate = date.toLocaleDateString('en-US', {
                     weekday: 'short',
                     month: 'short',
-                    day: 'numeric'
+                    day: 'numeric',
+                    year: 'numeric'
                 });
                 
                 html += `
@@ -1436,9 +1703,9 @@ function loadHistory(exerciseId, container) {
         } else {
             container.innerHTML = `
                 <div style="text-align: center; padding: 40px 20px;">
-                    <i class="fas fa-chart-line" style="font-size: 32px; color: var(--text-tertiary); margin-bottom: 16px;"></i>
-                    <h3 style="margin: 0 0 8px 0; color: var(--text-primary);">No History Yet</h3>
-                    <p style="margin: 0; color: var(--text-secondary);">Complete this exercise to track your progress</p>
+                    <i class="fas fa-chart-line" style="font-size: 32px; color: var(--light-text); margin-bottom: 16px;"></i>
+                    <h3 style="margin: 0 0 8px 0; color: var(--text);">No History Yet</h3>
+                    <p style="margin: 0; color: var(--light-text);">Complete this exercise to track your progress</p>
                 </div>
             `;
         }
@@ -1446,69 +1713,120 @@ function loadHistory(exerciseId, container) {
     .catch(error => {
         container.innerHTML = `
             <div style="text-align: center; padding: 40px 20px;">
-                <i class="fas fa-exclamation-triangle" style="font-size: 32px; color: var(--danger); margin-bottom: 16px;"></i>
-                <p style="margin: 0; color: var(--text-secondary);">Failed to load history</p>
+                <i class="fas fa-exclamation-triangle" style="font-size: 32px; color: #f44336; margin-bottom: 16px;"></i>
+                <h3 style="margin: 0 0 8px 0; color: var(--text);">Error Loading History</h3>
+                <p style="margin: 0; color: var(--light-text);">Failed to load exercise history</p>
             </div>
         `;
     });
 }
 
-// ===== WORKOUT SUBMISSION =====
-function submitWorkout(dayNumber) {
-    const form = document.getElementById('workout-form-' + dayNumber);
-    const button = document.getElementById('complete-button-' + dayNumber);
-    
-    // Validate
-    const hasData = Array.from(form.querySelectorAll('.reps-input'))
-        .some(input => input.value.trim() !== '' && parseInt(input.value) > 0);
-    
-    if (!hasData) {
-        alert('Please enter at least one set to complete your workout.');
-        return;
-    }
-    
-    // Prepare data
-    const formData = new FormData(form);
-    formData.append('ajax_complete_workout', 'true');
-    
-    const originalHTML = button.innerHTML;
+// ===== WORKOUT HISTORY MODAL =====
+function showWorkoutHistory(dayId, dayTitle) {
+    triggerHaptic();
+    document.getElementById('workoutHistoryTitle').textContent = dayTitle + ' - Workout History';
+    document.getElementById('workoutHistoryModal').style.display = 'flex';
     
     // Show loading
-    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-    button.disabled = true;
+    const content = document.getElementById('workoutHistoryContent');
+    content.innerHTML = `
+        <div style="text-align: center; padding: 40px 20px;">
+            <i class="fas fa-spinner fa-spin" style="font-size: 24px; color: var(--accent);"></i>
+            <p style="margin-top: 16px; color: var(--light-text);">Loading workout history...</p>
+        </div>
+    `;
     
-    // Submit
-    fetch('ajax_save_workout.php', {
+    // Load workout history
+    loadWorkoutHistory(dayId, content);
+}
+
+function hideWorkoutHistoryModal() {
+    triggerHaptic();
+    document.getElementById('workoutHistoryModal').style.display = 'none';
+}
+
+function loadWorkoutHistory(dayId, container) {
+    const formData = new FormData();
+    formData.append('ajax_get_workout_history', 'true');
+    formData.append('day_id', dayId);
+    
+    fetch('ajax_get_workout_history.php', {
         method: 'POST',
         body: formData
     })
     .then(response => response.json())
     .then(data => {
-        if (data.success) {
-            showSuccessModal();
-            triggerHaptic('success');
+        if (data.success && data.history.length > 0) {
+            let html = '';
+            data.history.forEach(session => {
+                const date = new Date(session.completed_at);
+                const formattedDate = date.toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                html += `
+                    <div class="workout-history-session">
+                        <div class="workout-history-date">${formattedDate}</div>
+                        <div class="workout-history-exercises">
+                `;
+                
+                // Group exercises by workout session
+                const exercisesBySession = {};
+                session.exercises.forEach(exercise => {
+                    if (!exercisesBySession[exercise.exercise_name]) {
+                        exercisesBySession[exercise.exercise_name] = [];
+                    }
+                    exercisesBySession[exercise.exercise_name].push(exercise);
+                });
+                
+                Object.entries(exercisesBySession).forEach(([exerciseName, sets]) => {
+                    const totalSets = sets.length;
+                    const bestSet = sets.reduce((best, set) => {
+                        return set.weight > best.weight ? set : best;
+                    }, { weight: 0, reps: 0 });
+                    
+                    html += `
+                        <div class="workout-history-exercise">
+                            <span class="workout-history-exercise-name">${exerciseName}</span>
+                            <div class="workout-history-exercise-stats">
+                                <span>${totalSets} sets</span>
+                                ${bestSet.weight > 0 ? `<span>Best: ${bestSet.weight}kg × ${bestSet.reps}</span>` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
         } else {
-            alert(data.message || 'Error saving workout');
-            button.innerHTML = originalHTML;
-            button.disabled = false;
+            container.innerHTML = `
+                <div style="text-align: center; padding: 40px 20px;">
+                    <i class="fas fa-dumbbell" style="font-size: 32px; color: var(--light-text); margin-bottom: 16px;"></i>
+                    <h3 style="margin: 0 0 8px 0; color: var(--text);">No Workout History</h3>
+                    <p style="margin: 0; color: var(--light-text);">Complete this workout to see your history here</p>
+                </div>
+            `;
         }
     })
     .catch(error => {
-        alert('Network error. Please try again.');
-        button.innerHTML = originalHTML;
-        button.disabled = false;
+        container.innerHTML = `
+            <div style="text-align: center; padding: 40px 20px;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 32px; color: #f44336; margin-bottom: 16px;"></i>
+                <h3 style="margin: 0 0 8px 0; color: var(--text);">Error Loading History</h3>
+                <p style="margin: 0; color: var(--light-text);">Failed to load workout history</p>
+            </div>
+        `;
     });
-}
-
-// ===== SUCCESS MODAL =====
-function showSuccessModal() {
-    document.getElementById('successModal').style.display = 'flex';
-    createConfetti();
-}
-
-function goToDashboard() {
-    triggerHaptic();
-    window.location.href = 'dashboard.php?message=workout_completed';
 }
 
 // ===== HAPTIC FEEDBACK =====
@@ -1519,11 +1837,6 @@ function triggerHaptic(type = 'light') {
     setTimeout(() => {
         element.classList.remove('haptic-feedback');
     }, 100);
-    
-    // If on iOS with haptic support
-    if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.haptic) {
-        window.webkit.messageHandlers.haptic.postMessage(type);
-    }
 }
 
 // ===== CONFETTI EFFECT =====
@@ -1557,74 +1870,59 @@ function createConfetti() {
     }
 }
 
-// ===== PROGRESSIVE OVERLOAD INDICATORS =====
-document.querySelectorAll('.weight-input, .reps-input').forEach(input => {
-    input.addEventListener('input', function() {
-        const lastValue = parseFloat(this.dataset.lastWeight || this.dataset.lastReps) || 0;
-        const currentValue = parseFloat(this.value) || 0;
-        
-        if (lastValue > 0) {
-            if (currentValue > lastValue) {
-                this.style.borderColor = 'var(--success)';
-            } else if (currentValue < lastValue) {
-                this.style.borderColor = 'var(--danger)';
-            } else {
-                this.style.borderColor = 'var(--separator)';
-            }
-        }
-    });
-});
-
 // ===== INITIALIZATION =====
 document.addEventListener('DOMContentLoaded', function() {
-    // Open first exercise of active day
-    const firstExercise = document.querySelector('.day-content.active .exercise-card');
-    if (firstExercise) {
-        firstExercise.classList.add('open');
-    }
+    // Initialize navigation buttons for current day
+    updateNavigationButtons(<?php echo $current_day_index; ?>);
     
-    // Auto-scroll day picker to current day
-    const currentPill = document.querySelector('.day-pill.current');
-    if (currentPill) {
+    // Scroll first tab into view
+    const firstTab = document.querySelector('.exercise-tab.active');
+    if (firstTab) {
         setTimeout(() => {
-            currentPill.scrollIntoView({
-                behavior: 'smooth',
-                inline: 'center'
+            firstTab.scrollIntoView({
+                inline: 'center',
+                block: 'nearest'
             });
         }, 300);
     }
-});
-
-// ===== PULL TO REFRESH SIMULATION =====
-let pullStartY = 0;
-let pulling = false;
-
-document.querySelector('.main-content').addEventListener('touchstart', function(e) {
-    if (this.scrollTop === 0) {
-        pullStartY = e.touches[0].pageY;
-        pulling = true;
-    }
-});
-
-document.querySelector('.main-content').addEventListener('touchmove', function(e) {
-    if (!pulling) return;
     
-    const pullDistance = e.touches[0].pageY - pullStartY;
-    if (pullDistance > 0) {
-        e.preventDefault();
-        // Could implement pull-to-refresh UI here
+    // Fix iOS scrolling for tab contents
+    const tabContents = document.querySelectorAll('.exercise-tab-content');
+    tabContents.forEach(content => {
+        // Force iOS to recognize as scrollable
+        content.style.webkitOverflowScrolling = 'touch';
+        content.style.overflow = 'scroll';
+        
+        // Prevent body from scrolling when reaching top/bottom
+        content.addEventListener('touchmove', function(e) {
+            if (this.scrollTop === 0 && e.touches[0].clientY > 0) {
+                e.preventDefault();
+            }
+            if (this.scrollHeight <= this.scrollTop + this.clientHeight && e.touches[0].clientY < 0) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+    });
+    
+    // Initialize first tab content scroll
+    const firstTabContent = document.querySelector('.exercise-tab-content.active');
+    if (firstTabContent) {
+        firstTabContent.scrollTop = 0;
     }
 });
 
-document.querySelector('.main-content').addEventListener('touchend', function(e) {
-    if (pulling) {
-        const pullDistance = e.changedTouches[0].pageY - pullStartY;
-        if (pullDistance > 100) {
-            // Refresh workout data
-            location.reload();
-        }
-        pulling = false;
-    }
+// Prevent body scrolling
+document.body.style.overflow = 'hidden';
+document.body.style.position = 'fixed';
+document.body.style.width = '100%';
+document.body.style.height = '100%';
+
+// Fix for modal backdrop scrolling
+const modals = document.querySelectorAll('.native-modal');
+modals.forEach(modal => {
+    modal.addEventListener('touchmove', function(e) {
+        e.preventDefault();
+    }, { passive: false });
 });
 </script>
 
