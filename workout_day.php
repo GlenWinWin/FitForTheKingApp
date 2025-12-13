@@ -973,10 +973,6 @@ input, textarea {
                         <i class="fas fa-dumbbell stat-icon"></i>
                         <span><?php echo count($all_exercises[$day['day_order']]); ?> Exercises</span>
                     </div>
-                    <div class="stat-item">
-                        <i class="fas fa-clock stat-icon"></i>
-                        <span>45-60 min</span>
-                    </div>
                 </div>
             </div>
 
