@@ -1,61 +1,78 @@
 <?php
 date_default_timezone_set("Asia/Hong_Kong");
 
-$pageTitle = "Today's Devotion";
+$pageTitle = "This Week's Devotion";
 require_once 'header.php';
 requireLogin();
 
 $user_id = $_SESSION['user_id'];
 
-// Get user's creation date to calculate day offset
+// Get user's creation date to calculate week offset
 $user_query = "SELECT created_at FROM users WHERE id = ?";
 $stmt = $db->prepare($user_query);
 $stmt->execute([$user_id]);
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-// Calculate days since user creation - MIDNIGHT-BASED CALENDAR DAYS
+// Calculate the week starting from user creation (Sunday-based)
 $created_at = new DateTime($user['created_at']);
 $today = new DateTime('today');
 
-// Reset both dates to midnight for simple day counting
-$created_midnight = new DateTime($user['created_at']);
-$created_midnight->setTime(0, 0, 0);
-$today_midnight = new DateTime();
-$today_midnight->setTime(0, 0, 0);
-
-$interval = $created_midnight->diff($today_midnight);
-$day_offset = $interval->days + 1; // Start from day 1
-
-// If beyond 365 days, loop back to day 1 (or show day 365 as you prefer)
-if ($day_offset > 365) {
-    $day_offset = 365; // or $day_offset = (($day_offset - 1) % 365) + 1; to loop continuously
+// Get the Sunday of the creation week
+$creation_sunday = clone $created_at;
+// If creation day is not Sunday, get the previous Sunday
+if ($creation_sunday->format('w') != 0) { // 0 = Sunday
+    $creation_sunday->modify('last sunday');
 }
-// Get today's devotion
+$creation_sunday->setTime(0, 0, 0);
+
+// Get the current week's Sunday (start of the week)
+$current_sunday = clone $today;
+// If today is not Sunday, get the most recent Sunday
+if ($current_sunday->format('w') != 0) { // 0 = Sunday
+    $current_sunday->modify('last sunday');
+}
+$current_sunday->setTime(0, 0, 0);
+$current_sunday_str = $current_sunday->format('Y-m-d');
+
+// Calculate week offset based on Sundays
+$interval = $creation_sunday->diff($current_sunday);
+$week_offset = floor($interval->days / 7) + 1; // Start from week 1
+
+// Calculate devotion day: week 1 = days 1-7, week 2 = days 8-14, etc.
+$devotion_day = $week_offset; // Use week number as devotion day
+
+// If beyond 52 weeks (1 year), loop back to week 1 (or show week 52)
+if ($week_offset > 52) {
+    $week_offset = 52; // or $week_offset = (($week_offset - 1) % 52) + 1; to loop continuously
+    $devotion_day = $week_offset;
+}
+
+// Get this week's devotion using devotion_day (which now represents week number)
 $devotion_query = "SELECT * FROM devotions WHERE devotion_day = ?";
 $stmt = $db->prepare($devotion_query);
-$stmt->execute([$day_offset]);
+$stmt->execute([$devotion_day]);
 $devotion = $stmt->fetch(PDO::FETCH_ASSOC);
 
-// Handle case where devotion for calculated day doesn't exist
+// Handle case where devotion for calculated week doesn't exist
 if (!$devotion) {
-    // If no devotion found for calculated day, find the closest available one
+    // If no devotion found, find the closest available one
     $max_day_query = "SELECT MAX(devotion_day) as max_day FROM devotions";
     $stmt = $db->prepare($max_day_query);
     $stmt->execute();
     $max_day = $stmt->fetch(PDO::FETCH_ASSOC)['max_day'];
     
-    if ($day_offset > $max_day) {
-        $day_offset = $max_day;
+    if ($devotion_day > $max_day) {
+        $devotion_day = $max_day;
     }
     
-    // Try again with the adjusted day offset
+    // Try again with the adjusted devotion day
     $stmt = $db->prepare($devotion_query);
-    $stmt->execute([$day_offset]);
+    $stmt->execute([$devotion_day]);
     $devotion = $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
-// Check if already completed today - IMPORTANT: Check by date, not devotion_id
-$completion_query = "SELECT id FROM devotional_reads WHERE user_id = ? AND date_read = CURDATE()";
+// Check if already completed this week - IMPORTANT: Check by week (Sunday date)
+$completion_query = "SELECT id FROM devotional_reads WHERE user_id = ? AND WEEK(date_read, 0) = WEEK(CURDATE(), 0) AND YEAR(date_read) = YEAR(CURDATE())";
 $stmt = $db->prepare($completion_query);
 $stmt->execute([$user_id]);
 $completed = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -72,12 +89,17 @@ if ($_POST && isset($_POST['mark_completed'])) {
     }
 }
 
-// If no devotion found for today's offset, show a message
+// If no devotion found for this week, show a message
 if (!$devotion) {
-    echo "<div class='alert alert-info'>No devotion found for today. Please check back tomorrow.</div>";
+    echo "<div class='alert alert-info'>No devotion found for this week. Please check back next week.</div>";
     require_once 'footer.php';
     exit();
 }
+
+// Get the date range for this week (Sunday to Saturday)
+$week_start = clone $current_sunday;
+$week_end = clone $current_sunday;
+$week_end->modify('+6 days'); // Sunday + 6 days = Saturday
 ?>
 
 <style>
@@ -143,8 +165,8 @@ if (!$devotion) {
         margin-bottom: 4px;
     }
     
-    /* Day Indicator - Clean */
-    .day-indicator {
+    /* Week Indicator - Clean */
+    .week-indicator {
         display: inline-flex;
         align-items: center;
         gap: 8px;
@@ -155,6 +177,21 @@ if (!$devotion) {
         padding: 8px 16px;
         border-radius: 100px;
         margin-bottom: 16px;
+    }
+    
+    /* Week Range Display */
+    .week-range {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: var(--light-text);
+        font-size: 14px;
+        margin-bottom: 16px;
+        padding: 8px 0;
+    }
+    
+    .week-range i {
+        opacity: 0.8;
     }
     
     /* Main Title - Clean Typography */
@@ -247,24 +284,26 @@ if (!$devotion) {
     }
     
     .scripture-text {
-        font-size: 20px;
+        font-size: 22px;
         line-height: 1.6;
         color: var(--text);
-        text-align: left;
+        text-align: center;
         font-style: italic;
         margin-bottom: 20px;
-        padding: 20px;
+        padding: 28px;
         background: rgba(var(--accent-rgb), 0.06);
         border-radius: var(--radius-medium);
-        border-left: 3px solid var(--accent);
+        border: 2px solid rgba(var(--accent-rgb), 0.1);
+        font-weight: 500;
     }
     
     .scripture-reference {
-        text-align: right;
+        text-align: center;
         color: var(--accent);
         font-weight: 700;
-        font-size: 16px;
-        padding-right: 4px;
+        font-size: 18px;
+        padding-top: 10px;
+        border-top: 1px solid rgba(var(--accent-rgb), 0.2);
     }
     
     /* Content Card */
@@ -357,6 +396,31 @@ if (!$devotion) {
     
     .reflection-content p:last-child {
         margin-bottom: 0;
+    }
+    
+    /* Weekly Focus Section */
+    .weekly-focus {
+        background: rgba(var(--accent-rgb), 0.05);
+        border-left: 4px solid var(--accent);
+        padding: 20px;
+        border-radius: var(--radius-medium);
+        margin: 24px 0;
+    }
+    
+    .focus-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--accent);
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .focus-text {
+        font-size: 18px;
+        font-weight: 500;
+        color: var(--text);
+        line-height: 1.5;
     }
     
     /* Action Section */
@@ -493,15 +557,15 @@ if (!$devotion) {
         }
         
         .scripture-text {
-            font-size: 18px;
-            padding: 16px;
+            font-size: 20px;
+            padding: 20px;
         }
         
         .devotion-content {
             font-size: 16px;
         }
         
-        .day-indicator {
+        .week-indicator {
             font-size: 13px;
             padding: 6px 14px;
         }
@@ -537,7 +601,7 @@ if (!$devotion) {
         }
         
         .scripture-text {
-            font-size: 22px;
+            font-size: 24px;
         }
         
         .devotion-content {
@@ -560,12 +624,17 @@ if (!$devotion) {
         
         .scripture-text {
             background: rgba(var(--accent-rgb), 0.08);
-            border-left-color: var(--accent);
+            border-color: rgba(var(--accent-rgb), 0.15);
         }
         
         .reflection-card {
             background: rgba(var(--accent-rgb), 0.12);
             border-color: rgba(var(--accent-rgb), 0.2);
+        }
+        
+        .weekly-focus {
+            background: rgba(var(--accent-rgb), 0.08);
+            border-left-color: var(--accent);
         }
         
         .completion-card {
@@ -605,9 +674,14 @@ if (!$devotion) {
 <div class="devotion-scroll-container">
     <!-- Header Card -->
     <div class="header-card">
-        <div class="day-indicator">
+        <div class="week-indicator">
+            <i class="fas fa-calendar-week"></i>
+            Week <?php echo $week_offset; ?> of 52
+        </div>
+        
+        <div class="week-range">
             <i class="fas fa-calendar-alt"></i>
-            Day <?php echo $day_offset; ?> of 365
+            <span><?php echo $week_start->format('F j') . ' - ' . $week_end->format('F j, Y'); ?></span>
         </div>
         
         <h1 class="devotion-title"><?php echo htmlspecialchars($devotion['title']); ?></h1>
@@ -615,7 +689,7 @@ if (!$devotion) {
         <div class="info-row">
             <div class="info-item">
                 <i class="fas fa-calendar"></i>
-                <span><?php echo date('F j, Y'); ?></span>
+                <span>Updated Weekly on Sunday</span>
             </div>
             <div class="info-item">
                 <i class="fas fa-clock"></i>
@@ -624,13 +698,13 @@ if (!$devotion) {
         </div>
     </div>
 
-    <!-- Scripture Card -->
+    <!-- Scripture Card - Larger for Weekly Meditation -->
     <div class="content-card scripture-card">
         <div class="scripture-header">
             <div class="scripture-icon">
                 <i class="fas fa-bible"></i>
             </div>
-            <div class="scripture-label">Today's Scripture</div>
+            <div class="scripture-label">This Week's Scripture Focus</div>
         </div>
         
         <div class="scripture-text">
@@ -640,6 +714,11 @@ if (!$devotion) {
         <div class="scripture-reference">
             <?php echo htmlspecialchars($devotion['verse_reference']); ?>
         </div>
+        
+        <div class="weekly-focus">
+            <div class="focus-title">This Week's Meditation</div>
+            <div class="focus-text">Meditate on this scripture throughout the week. Let it guide your thoughts and actions from Sunday to Saturday.</div>
+        </div>
     </div>
 
     <!-- Content Card -->
@@ -648,7 +727,7 @@ if (!$devotion) {
             <div class="content-icon">
                 <i class="fas fa-book-open"></i>
             </div>
-            <div class="content-label">Devotional</div>
+            <div class="content-label">Weekly Devotional</div>
         </div>
         
         <div class="devotion-content">
@@ -671,7 +750,7 @@ if (!$devotion) {
             <div class="reflection-icon">
                 <i class="fas fa-lightbulb"></i>
             </div>
-            <div class="reflection-label">Reflection</div>
+            <div class="reflection-label">Weekly Reflection</div>
         </div>
         
         <div class="reflection-content">
@@ -693,16 +772,17 @@ if (!$devotion) {
         <div class="action-section">
             <div class="status-indicator status-pending">
                 <i class="fas fa-clock"></i>
-                <span>Ready to Complete</span>
+                <span>Ready to Begin This Week's Journey</span>
             </div>
             
             <p style="color: var(--light-text); margin-bottom: 28px; font-size: 16px; line-height: 1.5;">
-                Take a moment to reflect on today's message before marking it complete.
+                Commit to meditating on this scripture throughout the week (Sunday to Saturday). 
+                You can mark it complete anytime this week after reflecting on it.
             </p>
             
             <form method="POST" style="margin: 0;">
                 <button type="submit" name="mark_completed" class="btn-primary">
-                    <i class="fas fa-check-circle"></i> Mark as Completed
+                    <i class="fas fa-check-circle"></i> Commit to This Week's Meditation
                 </button>
             </form>
         </div>
@@ -711,10 +791,10 @@ if (!$devotion) {
             <div class="completion-icon">
                 <i class="fas fa-check-circle"></i>
             </div>
-            <h3 class="completion-title">Devotion Complete!</h3>
+            <h3 class="completion-title">Week <?php echo $week_offset; ?> Committed!</h3>
             <p class="completion-message">
-                Great job completing Day <?php echo $day_offset; ?>. 
-                Come back tomorrow for Day <?php echo $day_offset + 1; ?> of your spiritual journey.
+                You've committed to meditating on this scripture throughout the week. 
+                Come back next Sunday for Week <?php echo $week_offset + 1; ?> of your spiritual journey.
             </p>
             <a href="dashboard.php" class="btn-outline">
                 <i class="fas fa-arrow-left"></i> Back to Dashboard
