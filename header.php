@@ -138,7 +138,7 @@ require_once 'config.php';
             100% { transform: translateY(-100px) scale(1); opacity: 0; }
         }
 
-        /* Header - Simplified */
+        /* Header - Desktop Only */
         .app-header {
             background: var(--glass-bg);
             backdrop-filter: blur(15px);
@@ -149,6 +149,7 @@ require_once 'config.php';
             top: 0;
             z-index: 100;
             box-shadow: var(--shadow);
+            display: none; /* Hidden by default on mobile */
         }
 
         .header-content {
@@ -182,7 +183,7 @@ require_once 'config.php';
             filter: drop-shadow(0 4px 8px rgba(26, 35, 126, 0.3));
         }
 
-        /* Desktop Navigation - Simplified */
+        /* Desktop Navigation - Desktop Only */
         .nav-links {
             display: flex;
             gap: 1rem;
@@ -225,7 +226,7 @@ require_once 'config.php';
             box-shadow: 0 8px 20px rgba(26, 35, 126, 0.15);
         }
 
-        /* Bottom Navigation Bar - Fixed version */
+        /* Bottom Navigation Bar - Mobile Only */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -238,7 +239,7 @@ require_once 'config.php';
             padding: 0.75rem 1rem;
             z-index: 1000;
             box-shadow: 0 -5px 20px rgba(26, 35, 126, 0.1);
-            display: none;
+            display: none; /* Hidden by default */
             transform: translateZ(0); /* Force hardware acceleration */
             -webkit-transform: translateZ(0);
         }
@@ -285,7 +286,7 @@ require_once 'config.php';
             text-align: center;
         }
 
-        /* More Menu - Fixed positioning */
+        /* More Menu - Mobile Only */
         .more-menu {
             position: fixed;
             bottom: 70px;
@@ -300,7 +301,7 @@ require_once 'config.php';
             display: none;
             flex-direction: column;
             gap: 0.5rem;
-            min-width: 150px;
+            min-width: 200px;
             transform: translateZ(0); /* Force hardware acceleration */
         }
 
@@ -345,8 +346,8 @@ require_once 'config.php';
             max-width: 1200px;
             margin: 0 auto;
             padding: 2rem;
-            min-height: calc(100vh - 140px); /* Account for header and bottom nav */
-            padding-bottom: 80px; /* Space for bottom nav */
+            min-height: calc(100vh - 80px);
+            padding-bottom: 80px; /* Space for bottom nav on mobile */
         }
 
         /* Card Styles */
@@ -457,7 +458,7 @@ require_once 'config.php';
         /* Mobile Responsive */
         @media (max-width: 768px) {
             .app-header {
-                padding: 1rem;
+                display: none; /* Hide header on mobile */
             }
 
             .nav-links {
@@ -465,13 +466,13 @@ require_once 'config.php';
             }
 
             .bottom-nav {
-                display: block;
+                display: block; /* Show bottom nav on mobile */
             }
 
             .main-content {
                 padding: 1rem;
                 padding-bottom: 80px; /* Space for bottom nav */
-                min-height: calc(100vh - 60px);
+                min-height: calc(100vh - 0px); /* No header on mobile */
             }
             
             /* Force bottom positioning for mobile browsers */
@@ -487,8 +488,21 @@ require_once 'config.php';
         }
 
         @media (min-width: 769px) {
+            .app-header {
+                display: block; /* Show header on desktop */
+            }
+
             .bottom-nav {
-                display: none;
+                display: none; /* Hide bottom nav on desktop */
+            }
+            
+            .more-menu {
+                display: none !important; /* Hide more menu on desktop */
+            }
+            
+            .main-content {
+                padding-bottom: 2rem; /* No need for bottom nav space on desktop */
+                min-height: calc(100vh - 80px); /* Account for header only */
             }
         }
     </style>
@@ -498,7 +512,7 @@ require_once 'config.php';
     <div class="premium-bg"></div>
     <div class="particles-container" id="particles-container"></div>
 
-    <!-- Header -->
+    <!-- Header - Desktop Only -->
     <header class="app-header">
         <div class="header-content">
             <a href="dashboard.php" class="logo">
@@ -529,9 +543,9 @@ require_once 'config.php';
     </header>
 
     <main class="main-content">
-
-    <!-- YOUR PAGE CONTENT GOES HERE - DON'T FORGET TO CLOSE MAIN TAG -->
-
+    <!-- YOUR PAGE CONTENT GOES HERE -->
+    <!-- Make sure to close main content in your page files -->
+    
     <!-- Bottom Navigation (Mobile Only) -->
     <nav class="bottom-nav" id="bottomNav">
         <div class="bottom-nav-container">
@@ -558,41 +572,70 @@ require_once 'config.php';
         </div>
     </nav>
 
-    <!-- More Menu -->
+    <!-- More Menu (Mobile Only) - Shows ALL links -->
     <div class="more-menu" id="moreMenu">
-        <a href="profile.php" class="more-item">
-            <i class="fas fa-user more-icon"></i>
-            <span>Profile</span>
-        </a>
-        <?php if (isAdmin()): ?>
-        <a href="admin/index.php" class="more-item">
-            <i class="fas fa-crown more-icon"></i>
-            <span>Admin</span>
-        </a>
+        <?php if (isLoggedIn()): ?>
+            <!-- Already have these in bottom nav, but include them for completeness -->
+            <a href="dashboard.php" class="more-item">
+                <i class="fas fa-home more-icon"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="devotion_today.php" class="more-item">
+                <i class="fas fa-bible more-icon"></i>
+                <span>Devotion</span>
+            </a>
+            <a href="workout_day.php" class="more-item">
+                <i class="fas fa-dumbbell more-icon"></i>
+                <span>Workouts</span>
+            </a>
+            <a href="steps_calendar.php" class="more-item">
+                <i class="fas fa-walking more-icon"></i>
+                <span>Steps</span>
+            </a>
+            <a href="profile.php" class="more-item">
+                <i class="fas fa-user more-icon"></i>
+                <span>Profile</span>
+            </a>
+            
+            <?php if (isAdmin()): ?>
+                <a href="admin/index.php" class="more-item">
+                    <i class="fas fa-crown more-icon"></i>
+                    <span>Admin</span>
+                </a>
+            <?php endif; ?>
+            
+            <a href="logout.php" class="more-item" onclick="return confirm('Are you sure you want to log out?')">
+                <i class="fas fa-sign-out-alt more-icon"></i>
+                <span>Logout</span>
+            </a>
+        <?php else: ?>
+            <a href="index.php" class="more-item">
+                <i class="fas fa-sign-in-alt more-icon"></i>
+                <span>Login</span>
+            </a>
         <?php endif; ?>
-        <a href="logout.php" class="more-item" onclick="return confirm('Are you sure you want to log out?')">
-            <i class="fas fa-sign-out-alt more-icon"></i>
-            <span>Logout</span>
-        </a>
     </div>
 
     <!-- JavaScript -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // More Menu functionality
+            // More Menu functionality (mobile only)
             const moreBtn = document.getElementById('navMore');
             const moreMenu = document.getElementById('moreMenu');
             
-            if (moreBtn && moreMenu) {
+            if (moreBtn && moreMenu && window.innerWidth <= 768) {
                 moreBtn.addEventListener('click', function(e) {
                     e.preventDefault();
+                    e.stopPropagation();
                     moreMenu.classList.toggle('active');
                 });
                 
                 // Close menu when clicking outside
                 document.addEventListener('click', function(e) {
-                    if (!moreBtn.contains(e.target) && !moreMenu.contains(e.target)) {
-                        moreMenu.classList.remove('active');
+                    if (moreMenu.classList.contains('active')) {
+                        if (!moreBtn.contains(e.target) && !moreMenu.contains(e.target)) {
+                            moreMenu.classList.remove('active');
+                        }
                     }
                 });
                 
@@ -612,7 +655,9 @@ require_once 'config.php';
                 'devotion_today.php': 'navDevotion',
                 'workout_day.php': 'navWorkout',
                 'steps_calendar.php': 'navSteps',
-                'profile.php': 'navMore'
+                'profile.php': 'navMore',
+                'admin.php': 'navMore',
+                'index.php': 'navMore'
             };
             
             if (navItems[currentPage]) {
@@ -667,6 +712,16 @@ require_once 'config.php';
         window.addEventListener('resize', function() {
             clearTimeout(resizeTimeout);
             resizeTimeout = setTimeout(createParticles, 250);
+        });
+        
+        // Close more menu when switching to desktop
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) {
+                const moreMenu = document.getElementById('moreMenu');
+                if (moreMenu) {
+                    moreMenu.classList.remove('active');
+                }
+            }
         });
     </script>
 </body>
