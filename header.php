@@ -138,7 +138,7 @@ require_once 'config.php';
             100% { transform: translateY(-100px) scale(1); opacity: 0; }
         }
 
-        /* Header - Desktop Only */
+        /* Header - Simplified */
         .app-header {
             background: var(--glass-bg);
             backdrop-filter: blur(15px);
@@ -182,7 +182,7 @@ require_once 'config.php';
             filter: drop-shadow(0 4px 8px rgba(26, 35, 126, 0.3));
         }
 
-        /* Desktop Navigation - Desktop Only */
+        /* Desktop Navigation - Simplified */
         .nav-links {
             display: flex;
             gap: 1rem;
@@ -225,7 +225,7 @@ require_once 'config.php';
             box-shadow: 0 8px 20px rgba(26, 35, 126, 0.15);
         }
 
-        /* Bottom Navigation Bar - FIXED for Mobile */
+        /* Bottom Navigation Bar - Fixed version */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -239,7 +239,7 @@ require_once 'config.php';
             z-index: 1000;
             box-shadow: 0 -5px 20px rgba(26, 35, 126, 0.1);
             display: none;
-            transform: translateZ(0);
+            transform: translateZ(0); /* Force hardware acceleration */
             -webkit-transform: translateZ(0);
         }
 
@@ -285,7 +285,7 @@ require_once 'config.php';
             text-align: center;
         }
 
-        /* More Menu - FIXED */
+        /* More Menu - Fixed positioning */
         .more-menu {
             position: fixed;
             bottom: 70px;
@@ -300,8 +300,8 @@ require_once 'config.php';
             display: none;
             flex-direction: column;
             gap: 0.5rem;
-            min-width: 200px;
-            transform: translateZ(0);
+            min-width: 150px;
+            transform: translateZ(0); /* Force hardware acceleration */
         }
 
         .more-menu.active {
@@ -345,7 +345,7 @@ require_once 'config.php';
             max-width: 1200px;
             margin: 0 auto;
             padding: 2rem;
-            min-height: calc(100vh - 80px);
+            min-height: calc(100vh - 140px); /* Account for header and bottom nav */
             padding-bottom: 80px; /* Space for bottom nav */
         }
 
@@ -454,10 +454,10 @@ require_once 'config.php';
             box-shadow: 0 8px 20px rgba(26, 35, 126, 0.2);
         }
 
-        /* Mobile Responsive - FIXED */
+        /* Mobile Responsive */
         @media (max-width: 768px) {
             .app-header {
-                display: none !important; /* Hide header on mobile */
+                padding: 1rem;
             }
 
             .nav-links {
@@ -465,13 +465,13 @@ require_once 'config.php';
             }
 
             .bottom-nav {
-                display: block !important; /* Show bottom nav on mobile */
+                display: block;
             }
 
             .main-content {
                 padding: 1rem;
                 padding-bottom: 80px; /* Space for bottom nav */
-                min-height: calc(100vh - 0px); /* No header on mobile */
+                min-height: calc(100vh - 60px);
             }
             
             /* Force bottom positioning for mobile browsers */
@@ -488,11 +488,7 @@ require_once 'config.php';
 
         @media (min-width: 769px) {
             .bottom-nav {
-                display: none !important; /* Hide bottom nav on desktop */
-            }
-            
-            .more-menu {
-                display: none !important; /* Hide more menu on desktop */
+                display: none;
             }
         }
     </style>
@@ -502,7 +498,7 @@ require_once 'config.php';
     <div class="premium-bg"></div>
     <div class="particles-container" id="particles-container"></div>
 
-    <!-- Header - Desktop Only -->
+    <!-- Header -->
     <header class="app-header">
         <div class="header-content">
             <a href="dashboard.php" class="logo">
@@ -534,180 +530,144 @@ require_once 'config.php';
 
     <main class="main-content">
 
-<!-- Bottom Navigation (Mobile Only) - MOVED HERE -->
-<nav class="bottom-nav" id="bottomNav">
-    <div class="bottom-nav-container">
-        <a href="dashboard.php" class="nav-item" id="navDashboard">
-            <i class="fas fa-home nav-icon"></i>
-            <span class="nav-label">Dashboard</span>
-        </a>
-        <a href="devotion_today.php" class="nav-item" id="navDevotion">
-            <i class="fas fa-bible nav-icon"></i>
-            <span class="nav-label">Devotion</span>
-        </a>
-        <a href="workout_day.php" class="nav-item" id="navWorkout">
-            <i class="fas fa-dumbbell nav-icon"></i>
-            <span class="nav-label">Workout</span>
-        </a>
-        <a href="steps_calendar.php" class="nav-item" id="navSteps">
-            <i class="fas fa-walking nav-icon"></i>
-            <span class="nav-label">Steps</span>
-        </a>
-        <a href="#" class="nav-item" id="navMore">
-            <i class="fas fa-ellipsis-h nav-icon"></i>
-            <span class="nav-label">More</span>
-        </a>
-    </div>
-</nav>
+    <!-- YOUR PAGE CONTENT GOES HERE - DON'T FORGET TO CLOSE MAIN TAG -->
 
-<!-- More Menu (Mobile Only) - SHOWS ALL LINKS -->
-<div class="more-menu" id="moreMenu">
-    <?php if (isLoggedIn()): ?>
-        <a href="dashboard.php" class="more-item">
-            <i class="fas fa-home more-icon"></i>
-            <span>Dashboard</span>
-        </a>
-        <a href="devotion_today.php" class="more-item">
-            <i class="fas fa-bible more-icon"></i>
-            <span>Devotion</span>
-        </a>
-        <a href="workout_day.php" class="more-item">
-            <i class="fas fa-dumbbell more-icon"></i>
-            <span>Workouts</span>
-        </a>
-        <a href="steps_calendar.php" class="more-item">
-            <i class="fas fa-walking more-icon"></i>
-            <span>Steps</span>
-        </a>
+    <!-- Bottom Navigation (Mobile Only) -->
+    <nav class="bottom-nav" id="bottomNav">
+        <div class="bottom-nav-container">
+            <a href="dashboard.php" class="nav-item" id="navDashboard">
+                <i class="fas fa-home nav-icon"></i>
+                <span class="nav-label">Dashboard</span>
+            </a>
+            <a href="devotion_today.php" class="nav-item" id="navDevotion">
+                <i class="fas fa-bible nav-icon"></i>
+                <span class="nav-label">Devotion</span>
+            </a>
+            <a href="workout_day.php" class="nav-item" id="navWorkout">
+                <i class="fas fa-dumbbell nav-icon"></i>
+                <span class="nav-label">Workout</span>
+            </a>
+            <a href="steps_calendar.php" class="nav-item" id="navSteps">
+                <i class="fas fa-walking nav-icon"></i>
+                <span class="nav-label">Steps</span>
+            </a>
+            <a href="#" class="nav-item" id="navMore">
+                <i class="fas fa-ellipsis-h nav-icon"></i>
+                <span class="nav-label">More</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- More Menu -->
+    <div class="more-menu" id="moreMenu">
         <a href="profile.php" class="more-item">
             <i class="fas fa-user more-icon"></i>
             <span>Profile</span>
         </a>
-        
         <?php if (isAdmin()): ?>
-            <a href="admin/index.php" class="more-item">
-                <i class="fas fa-crown more-icon"></i>
-                <span>Admin</span>
-            </a>
+        <a href="admin/index.php" class="more-item">
+            <i class="fas fa-crown more-icon"></i>
+            <span>Admin</span>
+        </a>
         <?php endif; ?>
-        
         <a href="logout.php" class="more-item" onclick="return confirm('Are you sure you want to log out?')">
             <i class="fas fa-sign-out-alt more-icon"></i>
             <span>Logout</span>
         </a>
-    <?php else: ?>
-        <a href="index.php" class="more-item">
-            <i class="fas fa-sign-in-alt more-icon"></i>
-            <span>Login</span>
-        </a>
-    <?php endif; ?>
-</div>
+    </div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // More Menu functionality
-        const moreBtn = document.getElementById('navMore');
-        const moreMenu = document.getElementById('moreMenu');
-        
-        if (moreBtn && moreMenu) {
-            moreBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                moreMenu.classList.toggle('active');
-            });
+    <!-- JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // More Menu functionality
+            const moreBtn = document.getElementById('navMore');
+            const moreMenu = document.getElementById('moreMenu');
             
-            // Close menu when clicking outside
-            document.addEventListener('click', function(e) {
-                if (moreMenu.classList.contains('active')) {
+            if (moreBtn && moreMenu) {
+                moreBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    moreMenu.classList.toggle('active');
+                });
+                
+                // Close menu when clicking outside
+                document.addEventListener('click', function(e) {
                     if (!moreBtn.contains(e.target) && !moreMenu.contains(e.target)) {
                         moreMenu.classList.remove('active');
                     }
-                }
-            });
-            
-            // Close menu when clicking a menu item
-            const menuItems = moreMenu.querySelectorAll('.more-item');
-            menuItems.forEach(item => {
-                item.addEventListener('click', function() {
-                    moreMenu.classList.remove('active');
                 });
-            });
-        }
+                
+                // Close menu when clicking a menu item
+                const menuItems = moreMenu.querySelectorAll('.more-item');
+                menuItems.forEach(item => {
+                    item.addEventListener('click', function() {
+                        moreMenu.classList.remove('active');
+                    });
+                });
+            }
+            
+            // Highlight active page in bottom nav
+            const currentPage = window.location.pathname.split('/').pop();
+            const navItems = {
+                'dashboard.php': 'navDashboard',
+                'devotion_today.php': 'navDevotion',
+                'workout_day.php': 'navWorkout',
+                'steps_calendar.php': 'navSteps',
+                'profile.php': 'navMore'
+            };
+            
+            if (navItems[currentPage]) {
+                const activeNav = document.getElementById(navItems[currentPage]);
+                if (activeNav) {
+                    activeNav.classList.add('active');
+                }
+            }
+            
+            // Create particles for background
+            createParticles();
+        });
         
-        // Highlight active page in bottom nav
-        const currentPage = window.location.pathname.split('/').pop();
-        const navItems = {
-            'dashboard.php': 'navDashboard',
-            'devotion_today.php': 'navDevotion',
-            'workout_day.php': 'navWorkout',
-            'steps_calendar.php': 'navSteps',
-            'profile.php': 'navMore',
-            'admin.php': 'navMore',
-            'index.php': 'navMore',
-            'logout.php': 'navMore'
-        };
-        
-        if (navItems[currentPage]) {
-            const activeNav = document.getElementById(navItems[currentPage]);
-            if (activeNav) {
-                activeNav.classList.add('active');
+        function createParticles() {
+            const container = document.getElementById('particles-container');
+            if (!container) return;
+            
+            // Clear existing particles
+            container.innerHTML = '';
+            
+            const particleCount = window.innerWidth < 768 ? 15 : 30;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                // Random size between 2-6px
+                const size = Math.random() * 4 + 2;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                
+                // Random position
+                particle.style.left = `${Math.random() * 100}%`;
+                
+                // Random color opacity
+                const opacity = Math.random() * 0.3 + 0.1;
+                particle.style.opacity = opacity;
+                particle.style.background = `rgba(26, 35, 126, ${opacity})`;
+                
+                // Random animation delay and duration
+                const delay = Math.random() * 20;
+                const duration = Math.random() * 10 + 20;
+                particle.style.animationDelay = `${delay}s`;
+                particle.style.animationDuration = `${duration}s`;
+                
+                container.appendChild(particle);
             }
         }
         
-        // Create particles for background
-        createParticles();
-    });
-    
-    function createParticles() {
-        const container = document.getElementById('particles-container');
-        if (!container) return;
-        
-        // Clear existing particles
-        container.innerHTML = '';
-        
-        const particleCount = window.innerWidth < 768 ? 15 : 30;
-        
-        for (let i = 0; i < particleCount; i++) {
-            const particle = document.createElement('div');
-            particle.classList.add('particle');
-            
-            // Random size between 2-6px
-            const size = Math.random() * 4 + 2;
-            particle.style.width = `${size}px`;
-            particle.style.height = `${size}px`;
-            
-            // Random position
-            particle.style.left = `${Math.random() * 100}%`;
-            
-            // Random color opacity
-            const opacity = Math.random() * 0.3 + 0.1;
-            particle.style.opacity = opacity;
-            particle.style.background = `rgba(26, 35, 126, ${opacity})`;
-            
-            // Random animation delay and duration
-            const delay = Math.random() * 20;
-            const duration = Math.random() * 10 + 20;
-            particle.style.animationDelay = `${delay}s`;
-            particle.style.animationDuration = `${duration}s`;
-            
-            container.appendChild(particle);
-        }
-    }
-    
-    // Recreate particles on window resize
-    let resizeTimeout;
-    window.addEventListener('resize', function() {
-        clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(createParticles, 250);
-    });
-    
-    // Close more menu when switching to desktop
-    window.addEventListener('resize', function() {
-        if (window.innerWidth > 768) {
-            const moreMenu = document.getElementById('moreMenu');
-            if (moreMenu) {
-                moreMenu.classList.remove('active');
-            }
-        }
-    });
-</script>
+        // Recreate particles on window resize
+        let resizeTimeout;
+        window.addEventListener('resize', function() {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(createParticles, 250);
+        });
+    </script>
+</body>
+</html>
