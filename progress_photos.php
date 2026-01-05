@@ -18,7 +18,7 @@ $stmt->execute([$user_id, $today]);
 $already_uploaded = $stmt->fetch(PDO::FETCH_ASSOC);
 
 // Handle photo upload
-if ($_POST && (isset($_FILES['front_photo']) || isset($_FILES['side_photo']) || isset($_FILES['back_photo']))) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_FILES['front_photo']) || isset($_FILES['side_photo']) || isset($_FILES['back_photo']))) {
     $upload_dir = 'uploads/progress_photos/' . $user_id . '/';
     
     // Create directory if it doesn't exist
@@ -107,8 +107,15 @@ if ($_POST && (isset($_FILES['front_photo']) || isset($_FILES['side_photo']) || 
                 }
             }
             
-            if ($message) {
-                echo "<script>window.location.href = 'progress_photos_history.php?message=" . urlencode($message)."';</script>";
+            // Return JSON response for AJAX
+            if (!empty($message) || !empty($error)) {
+                header('Content-Type: application/json');
+                echo json_encode([
+                    'success' => empty($error),
+                    'message' => $message,
+                    'error' => $error,
+                    'redirect' => empty($error) ? 'progress_photos_history.php?message=' . urlencode($message) : null
+                ]);
                 exit();
             }
         } else {
@@ -118,6 +125,14 @@ if ($_POST && (isset($_FILES['front_photo']) || isset($_FILES['side_photo']) || 
                     unlink($file_path);
                 }
             }
+            
+            // Return JSON error response
+            header('Content-Type: application/json');
+            echo json_encode([
+                'success' => false,
+                'error' => $error
+            ]);
+            exit();
         }
     }
 }
@@ -386,8 +401,25 @@ if ($already_uploaded) {
     transform: none !important;
 }
 
+.btn-primary.loading {
+    position: relative;
+    color: transparent;
+}
+
+.btn-primary.loading::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spin 1s ease-in-out infinite;
+}
+
 .info-banner {
-    background: var(--gradient-primary);
+    background: var(--accent);
+    color: white;
     padding: 1.25rem;
     border-radius: 12px;
     margin-bottom: 1.5rem;
@@ -520,6 +552,48 @@ if ($already_uploaded) {
     25% { transform: translateX(-5px); }
     75% { transform: translateX(5px); }
 }
+
+/* Toast notification */
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 20px;
+    border-radius: 8px;
+    color: white;
+    font-weight: 500;
+    z-index: 1000;
+    animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s forwards;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.toast.success {
+    background: #4caf50;
+}
+
+.toast.error {
+    background: #f44336;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
 </style>
 
 <!-- Include browser-image-compression library -->
@@ -547,8 +621,8 @@ if ($already_uploaded) {
     </div>
 
     <div class="info-banner">
-        <h3>
-            <i class="fas fa-camera"></i> Track Your Transformation
+        <h3 style="color:white">
+            <i class="fas fa-camera" style="color:white"></i> Track Your Transformation
         </h3>
         <p>
             <strong>Why progress photos?</strong> Photos provide visual evidence of your hard work and help you stay motivated.
@@ -833,8 +907,32 @@ function updateProgressPhoto(photoType, percent, text) {
     progressText.innerHTML = text;
 }
 
-// Enhanced form submission validation
-document.getElementById('progressPhotosForm').addEventListener('submit', function(e) {
+// Show toast notification
+function showToast(message, type = 'success') {
+    // Remove existing toast
+    const existingToast = document.querySelector('.toast');
+    if (existingToast) {
+        existingToast.remove();
+    }
+    
+    // Create new toast
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    // Remove toast after animation
+    setTimeout(() => {
+        if (toast.parentNode) {
+            toast.remove();
+        }
+    }, 3000);
+}
+
+// Enhanced form submission with AJAX
+document.getElementById('progressPhotosForm').addEventListener('submit', async function(e) {
+    e.preventDefault(); // Prevent default form submission
+    
     const fileInputs = [
         document.getElementById('front_photo'),
         document.getElementById('side_photo'), 
@@ -842,9 +940,11 @@ document.getElementById('progressPhotosForm').addEventListener('submit', functio
     ];
     
     const submitBtn = document.getElementById('submitBtn');
-    let hasValidFiles = false;
+    const form = this;
+    const formData = new FormData(form);
     
-    // Check if at least one file is selected and processed
+    // Check if at least one file is selected or if we have existing photos
+    let hasValidFiles = false;
     for (const input of fileInputs) {
         if (input.files.length > 0) {
             const uploadBtn = document.getElementById(input.name + 'UploadBtn');
@@ -859,14 +959,51 @@ document.getElementById('progressPhotosForm').addEventListener('submit', functio
     const hasExistingPhotos = <?php echo $today_photos ? 'true' : 'false'; ?>;
     
     if (!hasValidFiles && !hasExistingPhotos) {
-        e.preventDefault();
-        alert('Please upload at least one progress photo before saving.');
+        showToast('Please upload at least one progress photo before saving.', 'error');
         return false;
     }
     
-    // Show uploading state
+    // Show loading state
+    const originalText = submitBtn.innerHTML;
     submitBtn.innerHTML = '<i class="fas fa-spinner loading-spinner"></i> Uploading...';
     submitBtn.disabled = true;
+    submitBtn.classList.add('loading');
+    
+    try {
+        // Submit form via AJAX
+        const response = await fetch('progress_photos.php', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showToast(result.message, 'success');
+            
+            // Redirect after delay
+            setTimeout(() => {
+                if (result.redirect) {
+                    window.location.href = result.redirect;
+                }
+            }, 1500);
+        } else {
+            showToast(result.error || 'Upload failed. Please try again.', 'error');
+            
+            // Reset button state
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('loading');
+        }
+    } catch (error) {
+        console.error('Upload error:', error);
+        showToast('An error occurred. Please try again.', 'error');
+        
+        // Reset button state
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('loading');
+    }
 });
 
 // Reset form state when page loads
