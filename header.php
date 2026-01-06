@@ -96,7 +96,6 @@ require_once 'config.php';
             background: var(--background);
             color: var(--text);
             line-height: 1.6;
-            overflow-x: hidden;
         }
 
         /* Premium Background */
@@ -225,7 +224,7 @@ require_once 'config.php';
             box-shadow: 0 8px 20px rgba(26, 35, 126, 0.15);
         }
 
-        /* Bottom Navigation Bar - Fixed version */
+        /* Bottom Navigation Bar */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -236,11 +235,9 @@ require_once 'config.php';
             -webkit-backdrop-filter: blur(15px);
             border-top: 1px solid var(--glass-border);
             padding: 0.75rem 1rem;
-            z-index: 1000;
+            z-index: 100;
             box-shadow: 0 -5px 20px rgba(26, 35, 126, 0.1);
             display: none;
-            transform: translateZ(0); /* Force hardware acceleration */
-            -webkit-transform: translateZ(0);
         }
 
         .bottom-nav-container {
@@ -285,7 +282,7 @@ require_once 'config.php';
             text-align: center;
         }
 
-        /* More Menu - Fixed positioning */
+        /* More Menu */
         .more-menu {
             position: fixed;
             bottom: 70px;
@@ -296,12 +293,11 @@ require_once 'config.php';
             border-radius: var(--radius);
             padding: 1rem;
             box-shadow: var(--shadow-lg);
-            z-index: 1001;
+            z-index: 101;
             display: none;
             flex-direction: column;
             gap: 0.5rem;
             min-width: 150px;
-            transform: translateZ(0); /* Force hardware acceleration */
         }
 
         .more-menu.active {
@@ -345,7 +341,7 @@ require_once 'config.php';
             max-width: 1200px;
             margin: 0 auto;
             padding: 2rem;
-            min-height: calc(100vh - 140px); /* Account for header and bottom nav */
+            min-height: calc(100vh - 80px);
             padding-bottom: 80px; /* Space for bottom nav */
         }
 
@@ -470,19 +466,7 @@ require_once 'config.php';
 
             .main-content {
                 padding: 1rem;
-                padding-bottom: 80px; /* Space for bottom nav */
-                min-height: calc(100vh - 60px);
-            }
-            
-            /* Force bottom positioning for mobile browsers */
-            @supports (-webkit-touch-callout: none) {
-                .bottom-nav {
-                    position: -webkit-sticky;
-                    position: sticky;
-                    bottom: 0;
-                    left: 0;
-                    width: 100%;
-                }
+                padding-bottom: 80px;
             }
         }
 
@@ -490,6 +474,32 @@ require_once 'config.php';
             .bottom-nav {
                 display: none;
             }
+        }
+
+        /* Add these styles to your CSS file */
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #fff; /* Adjust as needed */
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        /* Add padding to main content to prevent overlap */
+        main {
+            padding-bottom: 70px; /* Adjust based on footer height */
+        }
+
+        /* More menu positioning */
+        .more-menu {
+            position: fixed;
+            bottom: 70px; /* Height of bottom nav */
+            right: 10px;
+            z-index: 1001;
+            /* Rest of your existing styles */
         }
     </style>
 </head>
@@ -529,145 +539,3 @@ require_once 'config.php';
     </header>
 
     <main class="main-content">
-
-    <!-- YOUR PAGE CONTENT GOES HERE - DON'T FORGET TO CLOSE MAIN TAG -->
-
-    <!-- Bottom Navigation (Mobile Only) -->
-    <nav class="bottom-nav" id="bottomNav">
-        <div class="bottom-nav-container">
-            <a href="dashboard.php" class="nav-item" id="navDashboard">
-                <i class="fas fa-home nav-icon"></i>
-                <span class="nav-label">Dashboard</span>
-            </a>
-            <a href="devotion_today.php" class="nav-item" id="navDevotion">
-                <i class="fas fa-bible nav-icon"></i>
-                <span class="nav-label">Devotion</span>
-            </a>
-            <a href="workout_day.php" class="nav-item" id="navWorkout">
-                <i class="fas fa-dumbbell nav-icon"></i>
-                <span class="nav-label">Workout</span>
-            </a>
-            <a href="steps_calendar.php" class="nav-item" id="navSteps">
-                <i class="fas fa-walking nav-icon"></i>
-                <span class="nav-label">Steps</span>
-            </a>
-            <a href="#" class="nav-item" id="navMore">
-                <i class="fas fa-ellipsis-h nav-icon"></i>
-                <span class="nav-label">More</span>
-            </a>
-        </div>
-    </nav>
-
-    <!-- More Menu -->
-    <div class="more-menu" id="moreMenu">
-        <a href="profile.php" class="more-item">
-            <i class="fas fa-user more-icon"></i>
-            <span>Profile</span>
-        </a>
-        <?php if (isAdmin()): ?>
-        <a href="admin/index.php" class="more-item">
-            <i class="fas fa-crown more-icon"></i>
-            <span>Admin</span>
-        </a>
-        <?php endif; ?>
-        <a href="logout.php" class="more-item" onclick="return confirm('Are you sure you want to log out?')">
-            <i class="fas fa-sign-out-alt more-icon"></i>
-            <span>Logout</span>
-        </a>
-    </div>
-
-    <!-- JavaScript -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // More Menu functionality
-            const moreBtn = document.getElementById('navMore');
-            const moreMenu = document.getElementById('moreMenu');
-            
-            if (moreBtn && moreMenu) {
-                moreBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    moreMenu.classList.toggle('active');
-                });
-                
-                // Close menu when clicking outside
-                document.addEventListener('click', function(e) {
-                    if (!moreBtn.contains(e.target) && !moreMenu.contains(e.target)) {
-                        moreMenu.classList.remove('active');
-                    }
-                });
-                
-                // Close menu when clicking a menu item
-                const menuItems = moreMenu.querySelectorAll('.more-item');
-                menuItems.forEach(item => {
-                    item.addEventListener('click', function() {
-                        moreMenu.classList.remove('active');
-                    });
-                });
-            }
-            
-            // Highlight active page in bottom nav
-            const currentPage = window.location.pathname.split('/').pop();
-            const navItems = {
-                'dashboard.php': 'navDashboard',
-                'devotion_today.php': 'navDevotion',
-                'workout_day.php': 'navWorkout',
-                'steps_calendar.php': 'navSteps',
-                'profile.php': 'navMore'
-            };
-            
-            if (navItems[currentPage]) {
-                const activeNav = document.getElementById(navItems[currentPage]);
-                if (activeNav) {
-                    activeNav.classList.add('active');
-                }
-            }
-            
-            // Create particles for background
-            createParticles();
-        });
-        
-        function createParticles() {
-            const container = document.getElementById('particles-container');
-            if (!container) return;
-            
-            // Clear existing particles
-            container.innerHTML = '';
-            
-            const particleCount = window.innerWidth < 768 ? 15 : 30;
-            
-            for (let i = 0; i < particleCount; i++) {
-                const particle = document.createElement('div');
-                particle.classList.add('particle');
-                
-                // Random size between 2-6px
-                const size = Math.random() * 4 + 2;
-                particle.style.width = `${size}px`;
-                particle.style.height = `${size}px`;
-                
-                // Random position
-                particle.style.left = `${Math.random() * 100}%`;
-                
-                // Random color opacity
-                const opacity = Math.random() * 0.3 + 0.1;
-                particle.style.opacity = opacity;
-                particle.style.background = `rgba(26, 35, 126, ${opacity})`;
-                
-                // Random animation delay and duration
-                const delay = Math.random() * 20;
-                const duration = Math.random() * 10 + 20;
-                particle.style.animationDelay = `${delay}s`;
-                particle.style.animationDuration = `${duration}s`;
-                
-                container.appendChild(particle);
-            }
-        }
-        
-        // Recreate particles on window resize
-        let resizeTimeout;
-        window.addEventListener('resize', function() {
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(createParticles, 250);
-        });
-    </script>
-</body>
-</html>
