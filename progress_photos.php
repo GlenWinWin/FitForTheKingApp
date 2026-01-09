@@ -546,6 +546,16 @@ if ($already_uploaded) {
     animation: spin 1s ease-in-out infinite;
 }
 
+/* FontAwesome spin animation */
+.fa-spinner.fa-spin {
+    animation: fa-spin 1s infinite linear;
+}
+
+@keyframes fa-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
 /* Shake animation for errors */
 @keyframes shake {
     0%, 100% { transform: translateX(0); }
@@ -802,7 +812,7 @@ async function handleProgressPhotoUpload(input, photoType) {
 
     // Show upload progress
     uploadProgress.style.display = 'block';
-    uploadBtn.innerHTML = '<i class="fas fa-spinner loading-spinner"></i> Processing...';
+    uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
 
     try {
         // Validate file type
@@ -933,74 +943,87 @@ function showToast(message, type = 'success') {
 document.getElementById('progressPhotosForm').addEventListener('submit', async function(e) {
     e.preventDefault(); // Prevent default form submission
     
-    const fileInputs = [
-        document.getElementById('front_photo'),
-        document.getElementById('side_photo'), 
-        document.getElementById('back_photo')
-    ];
+    console.log('Form submission started');
+    console.log('Has existing photos:', <?php echo $today_photos ? 'true' : 'false'; ?>);
     
     const submitBtn = document.getElementById('submitBtn');
     const form = this;
     const formData = new FormData(form);
     
-    // Check if at least one file is selected or if we have existing photos
-    let hasValidFiles = false;
-    for (const input of fileInputs) {
-        if (input.files.length > 0) {
-            const uploadBtn = document.getElementById(input.name + 'UploadBtn');
-            if (uploadBtn.innerHTML.includes('fa-check')) {
-                hasValidFiles = true;
-                break;
-            }
+    // Show loading state
+    const originalContent = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+    submitBtn.disabled = true;
+    submitBtn.classList.add('loading');
+    
+    // Check if we have at least one photo (either new or existing)
+    let hasFiles = false;
+    const fileInputs = ['front_photo', 'side_photo', 'back_photo'];
+    
+    for (const inputName of fileInputs) {
+        const input = document.getElementById(inputName);
+        if (input && input.files.length > 0) {
+            hasFiles = true;
+            break;
         }
     }
     
     // If no files are selected but we have existing photos, allow submission
     const hasExistingPhotos = <?php echo $today_photos ? 'true' : 'false'; ?>;
     
-    if (!hasValidFiles && !hasExistingPhotos) {
+    if (!hasFiles && !hasExistingPhotos) {
         showToast('Please upload at least one progress photo before saving.', 'error');
+        submitBtn.innerHTML = originalContent;
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('loading');
         return false;
     }
-    
-    // Show loading state
-    const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<i class="fas fa-spinner loading-spinner"></i> Uploading...';
-    submitBtn.disabled = true;
-    submitBtn.classList.add('loading');
     
     try {
         // Submit form via AJAX
         const response = await fetch('progress_photos.php', {
             method: 'POST',
-            body: formData
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
         });
         
-        const result = await response.json();
-        
-        if (result.success) {
-            showToast(result.message, 'success');
+        // Check if response is JSON
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+            const result = await response.json();
             
-            // Redirect after delay
-            setTimeout(() => {
-                if (result.redirect) {
-                    window.location.href = result.redirect;
-                }
-            }, 1500);
+            if (result.success) {
+                showToast(result.message, 'success');
+                
+                // Update button to show success
+                submitBtn.innerHTML = '<i class="fas fa-check"></i> Uploaded!';
+                submitBtn.style.background = '#4CAF50';
+                
+                // Redirect after delay
+                setTimeout(() => {
+                    if (result.redirect) {
+                        window.location.href = result.redirect;
+                    }
+                }, 1500);
+            } else {
+                showToast(result.error || 'Upload failed. Please try again.', 'error');
+                submitBtn.innerHTML = originalContent;
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('loading');
+            }
         } else {
-            showToast(result.error || 'Upload failed. Please try again.', 'error');
-            
-            // Reset button state
-            submitBtn.innerHTML = originalText;
-            submitBtn.disabled = false;
-            submitBtn.classList.remove('loading');
+            // Handle non-JSON response (fallback to regular form submission)
+            console.log('Non-JSON response received, falling back to regular form submission');
+            form.submit();
         }
     } catch (error) {
         console.error('Upload error:', error);
         showToast('An error occurred. Please try again.', 'error');
         
         // Reset button state
-        submitBtn.innerHTML = originalText;
+        submitBtn.innerHTML = originalContent;
         submitBtn.disabled = false;
         submitBtn.classList.remove('loading');
     }
