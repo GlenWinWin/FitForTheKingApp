@@ -109,13 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && (isset($_FILES['front_photo']) || i
             
             // Return JSON response for AJAX
             if (!empty($message) || !empty($error)) {
-                header('Content-Type: application/json');
-                echo json_encode([
-                    'success' => empty($error),
-                    'message' => $message,
-                    'error' => $error,
-                    'redirect' => empty($error) ? 'progress_photos_history.php?message=' . urlencode($message) : null
-                ]);
+                echo "<script>window.location.href = 'progress_photos_history.php?message=" . urlencode($message)."';</script>";
                 exit();
             }
         } else {
