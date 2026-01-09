@@ -96,6 +96,8 @@ require_once 'config.php';
             background: var(--background);
             color: var(--text);
             line-height: 1.6;
+            display: flex;
+            flex-direction: column;
         }
 
         /* Premium Background */
@@ -238,7 +240,9 @@ require_once 'config.php';
             z-index: 100;
             box-shadow: 0 -5px 20px rgba(26, 35, 126, 0.1);
             display: none;
+            flex-shrink: 0; /* Prevents the nav from shrinking */
         }
+
 
         .bottom-nav-container {
             display: flex;
@@ -341,7 +345,8 @@ require_once 'config.php';
             max-width: 1200px;
             margin: 0 auto;
             padding: 2rem;
-            min-height: calc(100vh - 80px);
+            flex: 1 0 auto; /* This makes it grow and take available space */
+            width: 100%;
             padding-bottom: 80px; /* Space for bottom nav */
         }
 
@@ -490,7 +495,7 @@ require_once 'config.php';
 
         /* Add padding to main content to prevent overlap */
         main {
-            padding-bottom: 70px; /* Adjust based on footer height */
+            flex: 1 0 auto; /* Ensure main element also flexes */
         }
 
         /* More menu positioning */
