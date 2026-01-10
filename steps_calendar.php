@@ -13,7 +13,6 @@ $success_message = $_GET['message'] ?? '';
 
 // Check for selected date from URL or form submission
 $selected_date = isset($_GET['selected_date']) ? $_GET['selected_date'] : (isset($_POST['entry_date']) ? $_POST['entry_date'] : '');
-$is_selected_today = ($selected_date == date('Y-m-d'));
 
 // Get steps for the current month
 $start_date = date('Y-m-01', strtotime($current_month));
@@ -119,8 +118,7 @@ $next_month = date('Y-m', strtotime($current_month . ' +1 month'));
                 <?php for ($day = 1; $day <= $days_in_month; $day++): 
                     $current_date = date('Y-m-d', strtotime($current_month . '-' . str_pad($day, 2, '0', STR_PAD_LEFT)));
                     $steps = $steps_by_date[$current_date] ?? 0;
-                    $is_today = $current_date == date('Y-m-d');
-                    $is_selected = !$is_today && $current_date == $selected_date;
+                    $is_selected = $current_date == $selected_date;
                     $is_weekend = in_array(date('w', strtotime($current_date)), [0, 6]);
                     $steps_class = '';
                     
@@ -131,7 +129,6 @@ $next_month = date('Y-m', strtotime($current_month . ' +1 month'));
                     }
                 ?>
                     <div class="calendar-cell 
-                        <?php echo $is_today ? 'today' : ''; ?>
                         <?php echo $is_selected ? 'selected' : ''; ?>
                         <?php echo $is_weekend ? 'weekend' : ''; ?>
                         <?php echo $steps_class; ?>"
@@ -144,9 +141,6 @@ $next_month = date('Y-m', strtotime($current_month . ' +1 month'));
                             <div class="steps-count"><?php echo number_format($steps); ?></div>
                         <?php else: ?>
                             <div class="no-steps">-</div>
-                        <?php endif; ?>
-                        <?php if ($is_today): ?>
-                            <div class="today-ring"></div>
                         <?php endif; ?>
                     </div>
                 <?php endfor; ?>
@@ -439,7 +433,7 @@ $next_month = date('Y-m', strtotime($current_month . ' +1 month'));
     gap: 0.5rem;
 }
 
-/* Calendar Cell Styles - RESTORED ORIGINAL DESIGN */
+/* Calendar Cell Styles - SIMPLE DESIGN */
 .calendar-cell {
     aspect-ratio: 1;
     min-height: 50px;
@@ -465,17 +459,7 @@ $next_month = date('Y-m', strtotime($current_month . ' +1 month'));
     cursor: default;
 }
 
-/* TODAY STYLE - Always green background for today's date */
-.calendar-cell.today {
-    background: #4CAF50;
-    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-    color: white;
-    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
-    transform: scale(1.05);
-    border: none;
-}
-
-/* SELECTED DATE STYLE - Only for non-today dates */
+/* SELECTED DATE STYLE - Primary color for selected dates */
 .calendar-cell.selected {
     background: #2196F3;
     background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
@@ -494,32 +478,26 @@ $next_month = date('Y-m', strtotime($current_month . ' +1 month'));
     background: rgba(255, 255, 255, 0.9);
 }
 
-.calendar-cell.today:active {
-    background: #4CAF50;
-    transform: scale(0.98);
-}
-
 .calendar-cell.selected:active {
     background: #2196F3;
     transform: scale(0.98);
 }
 
-/* Day Number - LARGER and at top */
+/* Day Number */
 .day-number {
-    font-weight: 700;
+    font-weight: 600;
     font-size: 0.875rem;
     margin-bottom: 1px;
     color: var(--text);
     line-height: 1;
 }
 
-.calendar-cell.today .day-number,
 .calendar-cell.selected .day-number {
     color: white !important;
-    font-weight: 800;
+    font-weight: 700;
 }
 
-/* Steps Count - SMALLER and below day number */
+/* Steps Count */
 .steps-count {
     color: var(--primary);
     font-size: 0.65rem;
@@ -528,7 +506,6 @@ $next_month = date('Y-m', strtotime($current_month . ' +1 month'));
     line-height: 1;
 }
 
-.calendar-cell.today .steps-count,
 .calendar-cell.selected .steps-count {
     color: rgba(255, 255, 255, 0.9) !important;
 }
@@ -541,12 +518,11 @@ $next_month = date('Y-m', strtotime($current_month . ' +1 month'));
     line-height: 1;
 }
 
-.calendar-cell.today .no-steps,
 .calendar-cell.selected .no-steps {
     color: rgba(255, 255, 255, 0.7) !important;
 }
 
-/* Steps color coding - Keep the original colors */
+/* Steps color coding */
 .calendar-cell.steps-low .steps-count {
     color: #ff6b6b !important;
 }
@@ -559,23 +535,11 @@ $next_month = date('Y-m', strtotime($current_month . ' +1 month'));
     color: #4caf50 !important;
 }
 
-/* Override step colors for today/selected */
-.calendar-cell.today.steps-low .steps-count,
-.calendar-cell.today.steps-medium .steps-count,
-.calendar-cell.today.steps-high .steps-count,
+/* Override step colors for selected dates */
 .calendar-cell.selected.steps-low .steps-count,
 .calendar-cell.selected.steps-medium .steps-count,
 .calendar-cell.selected.steps-high .steps-count {
     color: rgba(255, 255, 255, 0.9) !important;
-}
-
-.today-ring {
-    position: absolute;
-    top: 4px;
-    width: 4px;
-    height: 4px;
-    background: white;
-    border-radius: 50%;
 }
 
 /* Native Quick Add Card */
@@ -1029,13 +993,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const calendarCells = document.querySelectorAll('.calendar-cell:not(.empty)');
     let selectedCell = null;
     
-    // Find and highlight initially selected cell (from PHP) - but not if it's today
+    // Find and highlight initially selected cell (from PHP)
     const initialSelectedDate = "<?php echo $selected_date; ?>";
-    const today = new Date().toISOString().split('T')[0];
     
-    if (initialSelectedDate && initialSelectedDate !== today) {
+    if (initialSelectedDate) {
         const initialSelectedCell = document.querySelector(`.calendar-cell[data-date="${initialSelectedDate}"]`);
-        if (initialSelectedCell && !initialSelectedCell.classList.contains('today')) {
+        if (initialSelectedCell) {
             selectedCell = initialSelectedCell;
             selectedCell.classList.add('selected');
         }
@@ -1044,7 +1007,7 @@ document.addEventListener('DOMContentLoaded', function() {
     calendarCells.forEach(cell => {
         // Touch feedback
         cell.addEventListener('touchstart', function() {
-            if (!this.classList.contains('empty') && !this.classList.contains('today')) {
+            if (!this.classList.contains('empty')) {
                 this.style.transform = 'scale(0.95)';
             }
         }, { passive: true });
@@ -1061,21 +1024,17 @@ document.addEventListener('DOMContentLoaded', function() {
         cell.addEventListener('click', function() {
             const date = this.getAttribute('data-date');
             const steps = this.getAttribute('data-steps');
-            const isToday = this.classList.contains('today');
             
-            // Only allow selection of non-today dates
-            if (!isToday) {
-                // Remove selected class from previously selected cell
-                if (selectedCell && selectedCell !== this) {
-                    selectedCell.classList.remove('selected');
-                }
-                
-                // Add selected class to current cell
-                this.classList.add('selected');
-                selectedCell = this;
+            // Remove selected class from previously selected cell
+            if (selectedCell && selectedCell !== this) {
+                selectedCell.classList.remove('selected');
             }
             
-            // Update form fields regardless of selection
+            // Add selected class to current cell
+            this.classList.add('selected');
+            selectedCell = this;
+            
+            // Update form fields
             const dateInput = document.getElementById('native_entry_date');
             const stepsInput = document.getElementById('native_steps_count');
             
@@ -1137,27 +1096,16 @@ document.addEventListener('DOMContentLoaded', function() {
             const selectedDate = this.value;
             const cells = document.querySelectorAll('.calendar-cell:not(.empty)');
             
-            // Remove selected class from all non-today cells
-            cells.forEach(cell => {
-                if (!cell.classList.contains('today')) {
-                    cell.classList.remove('selected');
-                }
-            });
+            // Remove selected class from all cells
+            cells.forEach(cell => cell.classList.remove('selected'));
             
-            // Add selected class to matching date cell if it's not today
+            // Add selected class to matching date cell
             const matchingCell = document.querySelector(`.calendar-cell[data-date="${selectedDate}"]`);
-            if (matchingCell && !matchingCell.classList.contains('today')) {
+            if (matchingCell) {
                 matchingCell.classList.add('selected');
                 selectedCell = matchingCell;
                 
                 // Update URL
-                const url = new URL(window.location);
-                url.searchParams.set('selected_date', selectedDate);
-                window.history.replaceState({}, '', url);
-            } else if (matchingCell && matchingCell.classList.contains('today')) {
-                // If selecting today, clear the selected cell
-                selectedCell = null;
-                // Update URL with today's date
                 const url = new URL(window.location);
                 url.searchParams.set('selected_date', selectedDate);
                 window.history.replaceState({}, '', url);
