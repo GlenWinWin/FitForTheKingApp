@@ -58,6 +58,14 @@ $recent_photos_query = "SELECT * FROM progress_photos
 $stmt = $db->prepare($recent_photos_query);
 $stmt->execute([$user_id]);
 $recent_photos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Get weekly steps
+$week_start = date('Y-m-d', strtotime('sunday this week'));
+$week_steps_query = "SELECT SUM(steps_count) as total_steps FROM steps 
+                    WHERE user_id = ? AND entry_date >= ?";
+$stmt = $db->prepare($week_steps_query);
+$stmt->execute([$user_id, $week_start]);
+$week_steps = $stmt->fetch(PDO::FETCH_ASSOC)['total_steps'] ?? 0;
 ?>
 
 <style>
@@ -572,8 +580,8 @@ $recent_photos = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
         <div class="progress-stats">
             <div class="progress-stat">
-                <div class="progress-stat-value"><?php echo $today_steps ? number_format($today_steps['steps_count']) : '0'; ?></div>
-                <div class="progress-stat-label">Steps Today</div>
+                <div class="progress-stat-value"><?php echo number_format($week_steps); ?></div>
+                <div class="progress-stat-label">Weekly Steps</div>
             </div>
             
             <div class="progress-stat">
