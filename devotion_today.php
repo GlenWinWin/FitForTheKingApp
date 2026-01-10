@@ -38,8 +38,8 @@ $current_sunday_str = $current_sunday->format('Y-m-d');
 $interval = $creation_sunday->diff($current_sunday);
 $week_offset = floor($interval->days / 7) + 1; // Start from week 1
 
-// Calculate devotion day: week 1 = days 1-7, week 2 = days 8-14, etc.
-$devotion_day = $week_offset; // Use week number as devotion day
+// Use week number as devotion day
+$devotion_day = $week_offset;
 
 // If beyond 52 weeks (1 year), loop back to week 1 (or show week 52)
 if ($week_offset > 52) {
@@ -71,11 +71,31 @@ if (!$devotion) {
     $devotion = $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
-// Check if already completed this week - IMPORTANT: Check by week (Sunday date)
-$completion_query = "SELECT id FROM devotional_reads WHERE user_id = ? AND WEEK(date_read, 0) = WEEK(CURDATE(), 0) AND YEAR(date_read) = YEAR(CURDATE())";
+// ========== FIXED COMPLETION CHECK ==========
+// Check if already completed THIS SPECIFIC DEVOTION for THIS WEEK
+// We need to check if the user has read this devotion during this week period
+$completion_query = "SELECT dr.id 
+                     FROM devotional_reads dr 
+                     WHERE dr.user_id = ? 
+                     AND dr.devotion_id = ?
+                     AND dr.date_read >= ? 
+                     AND dr.date_read <= ?";
 $stmt = $db->prepare($completion_query);
-$stmt->execute([$user_id]);
-$completed = $stmt->fetch(PDO::FETCH_ASSOC);
+
+// Calculate date range for this week (Sunday to Saturday)
+$week_start_date = $current_sunday->format('Y-m-d');
+$week_end_date = clone $current_sunday;
+$week_end_date->modify('+6 days');
+$week_end_date_str = $week_end_date->format('Y-m-d');
+
+// Execute the query with the correct parameters
+if ($devotion) {
+    $stmt->execute([$user_id, $devotion['id'], $week_start_date, $week_end_date_str]);
+    $completed = $stmt->fetch(PDO::FETCH_ASSOC);
+} else {
+    $completed = false;
+}
+// ========== END FIX ==========
 
 // Handle form submission
 if ($_POST && isset($_POST['mark_completed'])) {
