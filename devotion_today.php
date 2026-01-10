@@ -7,8 +7,8 @@ requireLogin();
 
 $user_id = $_SESSION['user_id'];
 
-// DEBUG: Check if POST is working
-error_log("POST data: " . print_r($_POST, true));
+// Initialize completed as false
+$completed = false;
 
 // Get user's creation date to calculate week offset
 $user_query = "SELECT created_at FROM users WHERE id = ?";
@@ -22,43 +22,36 @@ $today = new DateTime('today');
 
 // Get the Sunday of the creation week
 $creation_sunday = clone $created_at;
-// If creation day is not Sunday, get the previous Sunday
-if ($creation_sunday->format('w') != 0) { // 0 = Sunday
+if ($creation_sunday->format('w') != 0) {
     $creation_sunday->modify('last sunday');
 }
 $creation_sunday->setTime(0, 0, 0);
 
 // Get the current week's Sunday (start of the week)
 $current_sunday = clone $today;
-// If today is not Sunday, get the most recent Sunday
-if ($current_sunday->format('w') != 0) { // 0 = Sunday
+if ($current_sunday->format('w') != 0) {
     $current_sunday->modify('last sunday');
 }
 $current_sunday->setTime(0, 0, 0);
-$current_sunday_str = $current_sunday->format('Y-m-d');
 
-// Calculate week offset based on Sundays
+// Calculate week offset
 $interval = $creation_sunday->diff($current_sunday);
-$week_offset = floor($interval->days / 7) + 1; // Start from week 1
-
-// Use week number as devotion day
+$week_offset = floor($interval->days / 7) + 1;
 $devotion_day = $week_offset;
 
-// If beyond 52 weeks (1 year), loop back to week 1 (or show week 52)
 if ($week_offset > 52) {
-    $week_offset = 52; // or $week_offset = (($week_offset - 1) % 52) + 1; to loop continuously
+    $week_offset = 52;
     $devotion_day = $week_offset;
 }
 
-// Get this week's devotion using devotion_day (which now represents week number)
+// Get this week's devotion
 $devotion_query = "SELECT * FROM devotions WHERE devotion_day = ?";
 $stmt = $db->prepare($devotion_query);
 $stmt->execute([$devotion_day]);
 $devotion = $stmt->fetch(PDO::FETCH_ASSOC);
 
-// Handle case where devotion for calculated week doesn't exist
+// Handle missing devotion
 if (!$devotion) {
-    // If no devotion found, find the closest available one
     $max_day_query = "SELECT MAX(devotion_day) as max_day FROM devotions";
     $stmt = $db->prepare($max_day_query);
     $stmt->execute();
@@ -68,97 +61,105 @@ if (!$devotion) {
         $devotion_day = $max_day;
     }
     
-    // Try again with the adjusted devotion day
     $stmt = $db->prepare($devotion_query);
     $stmt->execute([$devotion_day]);
     $devotion = $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
-// ========== FIXED COMPLETION CHECK ==========
-// Check if already completed THIS SPECIFIC DEVOTION for THIS WEEK
-$completion_query = "SELECT dr.id 
-                     FROM devotional_reads dr 
-                     WHERE dr.user_id = ? 
-                     AND dr.devotion_id = ?
-                     AND DATE(dr.date_read) >= ? 
-                     AND DATE(dr.date_read) <= ?";
-$stmt = $db->prepare($completion_query);
-
-// Calculate date range for this week (Sunday to Saturday)
+// ========== SIMPLIFIED COMPLETION CHECK ==========
+// First, let's check if this user has ANY completion record for this devotion in the current week
+// We need the week's date range
 $week_start_date = $current_sunday->format('Y-m-d');
 $week_end_date = clone $current_sunday;
 $week_end_date->modify('+6 days');
 $week_end_date_str = $week_end_date->format('Y-m-d');
 
-// DEBUG: Log the values being checked
-error_log("User ID: $user_id");
-error_log("Devotion ID: " . ($devotion ? $devotion['id'] : 'NULL'));
-error_log("Week start: $week_start_date");
-error_log("Week end: $week_end_date_str");
-
-// Execute the query with the correct parameters
 if ($devotion) {
+    // SIMPLE CHECK: Has user read this specific devotion this week?
+    $completion_query = "SELECT id FROM devotional_reads 
+                        WHERE user_id = ? 
+                        AND devotion_id = ? 
+                        AND DATE(date_read) BETWEEN ? AND ?";
+    $stmt = $db->prepare($completion_query);
     $stmt->execute([$user_id, $devotion['id'], $week_start_date, $week_end_date_str]);
-    $completed = $stmt->fetch(PDO::FETCH_ASSOC);
+    $completed_result = $stmt->fetch(PDO::FETCH_ASSOC);
     
-    // DEBUG: Log completion check result
-    error_log("Completion check result: " . print_r($completed, true));
-} else {
-    $completed = false;
-}
-// ========== END FIX ==========
-
-// ========== FIXED FORM SUBMISSION HANDLING ==========
-// Handle form submission - MOVE THIS BEFORE ANY OUTPUT
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['mark_completed'])) {
-    error_log("Form submitted!");
-    
-    if (!$completed && $devotion) {
-        error_log("Attempting to save devotion read...");
-        
-        $insert_query = "INSERT INTO devotional_reads (user_id, devotion_id, date_read) VALUES (?, ?, CURDATE())";
-        $stmt = $db->prepare($insert_query);
-        
-        // DEBUG: Check the insert query
-        error_log("Insert query: $insert_query");
-        error_log("Values: user_id=$user_id, devotion_id=" . $devotion['id']);
-        
-        try {
-            $result = $stmt->execute([$user_id, $devotion['id']]);
-            $insert_id = $db->lastInsertId();
-            
-            error_log("Insert result: " . ($result ? "Success" : "Failed"));
-            error_log("Last insert ID: $insert_id");
-            
-            if ($result) {
-                $completed = true;
-                // Force page refresh to show updated status
-                header("Location: devotion_today.php");
-                exit();
-            }
-        } catch (PDOException $e) {
-            error_log("Database error: " . $e->getMessage());
-        }
-    } else {
-        error_log("Cannot save: Already completed or no devotion found");
-        error_log("Completed: " . ($completed ? "Yes" : "No"));
-        error_log("Devotion: " . ($devotion ? "Exists" : "NULL"));
+    if ($completed_result) {
+        $completed = true;
     }
 }
-// ========== END FORM SUBMISSION FIX ==========
+// ========== END COMPLETION CHECK ==========
 
-// If no devotion found for this week, show a message
+// ========== HANDLE FORM SUBMISSION ==========
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['mark_completed'])) {
+    // Check if not already completed and devotion exists
+    if (!$completed && $devotion) {
+        // First, check if there's already an entry for today (prevent duplicates)
+        $check_today_query = "SELECT id FROM devotional_reads 
+                             WHERE user_id = ? 
+                             AND devotion_id = ? 
+                             AND DATE(date_read) = CURDATE()";
+        $stmt = $db->prepare($check_today_query);
+        $stmt->execute([$user_id, $devotion['id']]);
+        $already_today = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$already_today) {
+            // Insert the completion record
+            $insert_query = "INSERT INTO devotional_reads (user_id, devotion_id, date_read) 
+                            VALUES (?, ?, CURDATE())";
+            $stmt = $db->prepare($insert_query);
+            
+            try {
+                $success = $stmt->execute([$user_id, $devotion['id']]);
+                
+                if ($success) {
+                    // Update completion status
+                    $completed = true;
+                    
+                    // Refresh the page to show updated status
+                    echo "<script>
+                        setTimeout(function() {
+                            window.location.href = 'devotion_today.php';
+                        }, 100);
+                    </script>";
+                    // Continue rendering to show the JavaScript
+                }
+            } catch (PDOException $e) {
+                // Log error but don't show to user
+                error_log("Devotion completion error: " . $e->getMessage());
+                echo "<div class='alert alert-danger'>There was an error saving your completion. Please try again.</div>";
+            }
+        } else {
+            // Already completed today
+            $completed = true;
+        }
+    }
+}
+// ========== END FORM SUBMISSION ==========
+
+// If no devotion found
 if (!$devotion) {
     echo "<div class='alert alert-info'>No devotion found for this week. Please check back next week.</div>";
     require_once 'footer.php';
     exit();
 }
 
-// Get the date range for this week (Sunday to Saturday)
+// Get the date range for display
 $week_start = clone $current_sunday;
 $week_end = clone $current_sunday;
-$week_end->modify('+6 days'); // Sunday + 6 days = Saturday
+$week_end->modify('+6 days');
 ?>
+
+<!-- DEBUG INFO - Remove in production -->
+<div style="background: #f0f0f0; padding: 10px; margin: 10px; border-radius: 5px; display: none;">
+    <strong>Debug Info:</strong><br>
+    User ID: <?php echo $user_id; ?><br>
+    Devotion ID: <?php echo $devotion['id']; ?><br>
+    Week Offset: <?php echo $week_offset; ?><br>
+    Week Start: <?php echo $week_start_date; ?><br>
+    Week End: <?php echo $week_end_date_str; ?><br>
+    Completed: <?php echo $completed ? 'Yes' : 'No'; ?><br>
+</div>
 
 <style>
     /* Native App Base Styles - Clean Design with Cards */
@@ -756,7 +757,7 @@ $week_end->modify('+6 days'); // Sunday + 6 days = Saturday
         </div>
     </div>
 
-    <!-- Scripture Card - Larger for Weekly Meditation -->
+    <!-- Scripture Card -->
     <div class="content-card scripture-card">
         <div class="scripture-header">
             <div class="scripture-icon">
@@ -838,8 +839,9 @@ $week_end->modify('+6 days'); // Sunday + 6 days = Saturday
                 You can mark it complete anytime this week after reflecting on it.
             </p>
             
-            <form method="POST" style="margin: 0;">
-                <button type="submit" name="mark_completed" class="btn-primary">
+            <form method="POST" action="" style="margin: 0;">
+                <input type="hidden" name="mark_completed" value="1">
+                <button type="submit" name="submit" class="btn-primary">
                     <i class="fas fa-check-circle"></i> Commit to This Week's Meditation
                 </button>
             </form>
@@ -862,24 +864,20 @@ $week_end->modify('+6 days'); // Sunday + 6 days = Saturday
 </div>
 
 <script>
-    // Add some debugging JavaScript
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('Devotion page loaded');
-        
-        const form = document.querySelector('form');
-        if (form) {
-            form.addEventListener('submit', function(e) {
-                console.log('Form submitted');
-                const button = this.querySelector('button[type="submit"]');
-                if (button) {
-                    console.log('Button found, disabling...');
-                    const originalText = button.innerHTML;
-                    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-                    button.disabled = true;
-                }
-            });
-        }
-    });
+document.addEventListener('DOMContentLoaded', function() {
+    // Add form submission handling
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const button = this.querySelector('button[type="submit"]');
+            if (button) {
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+                button.disabled = true;
+                button.style.opacity = '0.7';
+            }
+        });
+    }
+});
 </script>
 
 <?php require_once 'footer.php'; ?>
