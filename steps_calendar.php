@@ -11,6 +11,10 @@ $current_month = isset($_GET['month']) ? $_GET['month'] : date('Y-m');
 // Check for success message
 $success_message = $_GET['message'] ?? '';
 
+// Check for selected date from URL or form submission
+$selected_date = isset($_GET['selected_date']) ? $_GET['selected_date'] : (isset($_POST['entry_date']) ? $_POST['entry_date'] : '');
+$is_selected_today = ($selected_date == date('Y-m-d'));
+
 // Get steps for the current month
 $start_date = date('Y-m-01', strtotime($current_month));
 $end_date = date('Y-m-t', strtotime($current_month));
@@ -116,6 +120,7 @@ $next_month = date('Y-m', strtotime($current_month . ' +1 month'));
                     $current_date = date('Y-m-d', strtotime($current_month . '-' . str_pad($day, 2, '0', STR_PAD_LEFT)));
                     $steps = $steps_by_date[$current_date] ?? 0;
                     $is_today = $current_date == date('Y-m-d');
+                    $is_selected = $current_date == $selected_date;
                     $is_weekend = in_array(date('w', strtotime($current_date)), [0, 6]);
                     $steps_class = '';
                     
@@ -127,6 +132,7 @@ $next_month = date('Y-m', strtotime($current_month . ' +1 month'));
                 ?>
                     <div class="calendar-cell 
                         <?php echo $is_today ? 'today' : ''; ?>
+                        <?php echo $is_selected ? 'selected' : ''; ?>
                         <?php echo $is_weekend ? 'weekend' : ''; ?>
                         <?php echo $steps_class; ?>"
                         data-date="<?php echo $current_date; ?>"
@@ -154,6 +160,7 @@ $next_month = date('Y-m', strtotime($current_month . ' +1 month'));
             </div>
             
             <form action="steps_add.php" method="POST" class="native-steps-form">
+                <input type="hidden" name="redirect_to" value="steps_calendar.php?month=<?php echo $current_month; ?>">
                 <div class="form-row-native">
                     <div class="form-field-native">
                         <label for="native_entry_date" class="form-label-native">Date</label>
@@ -161,7 +168,7 @@ $next_month = date('Y-m', strtotime($current_month . ' +1 month'));
                             <input type="date" 
                                    id="native_entry_date" 
                                    name="entry_date" 
-                                   value="<?php echo date('Y-m-d'); ?>" 
+                                   value="<?php echo $selected_date ?: date('Y-m-d'); ?>" 
                                    required 
                                    class="form-input-native"
                                    max="<?php echo date('Y-m-d'); ?>">
@@ -177,6 +184,7 @@ $next_month = date('Y-m', strtotime($current_month . ' +1 month'));
                                    min="1" 
                                    max="100000" 
                                    placeholder="Enter steps" 
+                                   value="<?php echo isset($steps_by_date[$selected_date]) ? $steps_by_date[$selected_date] : ''; ?>"
                                    required 
                                    class="form-input-native">
                         </div>
@@ -463,6 +471,20 @@ $next_month = date('Y-m', strtotime($current_month . ' +1 month'));
     border: none;
 }
 
+/* SELECTED DATE STYLES - Using primary color */
+.calendar-cell.selected {
+    background: var(--gradient-primary);
+    color: white;
+    box-shadow: 0 4px 12px rgba(var(--primary-rgb, 76, 175, 80), 0.3);
+    transform: scale(1.05);
+    border: none;
+}
+
+/* If selected date is also today, use a special style */
+.calendar-cell.selected.today {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--primary) 100%);
+}
+
 .calendar-cell.weekend {
     background: rgba(var(--accent-rgb), 0.05);
 }
@@ -477,13 +499,19 @@ $next_month = date('Y-m', strtotime($current_month . ' +1 month'));
     transform: scale(0.98);
 }
 
+.calendar-cell.selected:active {
+    background: var(--gradient-primary);
+    transform: scale(0.98);
+}
+
 .day-number {
     font-weight: 600;
     font-size: 0.875rem;
     margin-bottom: 0.125rem;
 }
 
-.calendar-cell.today .day-number {
+.calendar-cell.today .day-number,
+.calendar-cell.selected .day-number {
     color: white;
     font-weight: 700;
 }
@@ -496,10 +524,18 @@ $next_month = date('Y-m', strtotime($current_month . ' +1 month'));
     line-height: 1;
 }
 
+.calendar-cell.selected .steps-count {
+    color: rgba(255, 255, 255, 0.9);
+}
+
 .no-steps {
     color: var(--text-light);
     font-size: 0.75rem;
     opacity: 0.5;
+}
+
+.calendar-cell.selected .no-steps {
+    color: rgba(255, 255, 255, 0.7);
 }
 
 /* Steps color coding - Using EXACT existing colors */
@@ -515,8 +551,9 @@ $next_month = date('Y-m', strtotime($current_month . ' +1 month'));
     color: #4caf50;
 }
 
-.calendar-cell.today .steps-count {
-    color: white;
+.calendar-cell.today .steps-count,
+.calendar-cell.selected .steps-count {
+    color: rgba(255, 255, 255, 0.9);
 }
 
 .today-ring {
@@ -976,6 +1013,18 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Calendar cell interactions
     const calendarCells = document.querySelectorAll('.calendar-cell:not(.empty)');
+    let selectedCell = null;
+    
+    // Find and highlight initially selected cell (from PHP)
+    const initialSelectedDate = "<?php echo $selected_date; ?>";
+    if (initialSelectedDate) {
+        const initialSelectedCell = document.querySelector(`.calendar-cell[data-date="${initialSelectedDate}"]`);
+        if (initialSelectedCell) {
+            selectedCell = initialSelectedCell;
+            selectedCell.classList.add('selected');
+        }
+    }
+    
     calendarCells.forEach(cell => {
         // Touch feedback
         cell.addEventListener('touchstart', function() {
@@ -992,11 +1041,21 @@ document.addEventListener('DOMContentLoaded', function() {
             this.style.transform = '';
         }, { passive: true });
         
-        // Click to populate form
+        // Click to select date and populate form
         cell.addEventListener('click', function() {
             const date = this.getAttribute('data-date');
             const steps = this.getAttribute('data-steps');
             
+            // Remove selected class from previously selected cell
+            if (selectedCell && selectedCell !== this) {
+                selectedCell.classList.remove('selected');
+            }
+            
+            // Add selected class to current cell
+            this.classList.add('selected');
+            selectedCell = this;
+            
+            // Update form fields
             const dateInput = document.getElementById('native_entry_date');
             const stepsInput = document.getElementById('native_steps_count');
             
@@ -1010,6 +1069,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     stepsInput.value = '';
                     stepsInput.focus();
                 }
+                
+                // Update URL to reflect selected date (without page reload)
+                const url = new URL(window.location);
+                url.searchParams.set('selected_date', date);
+                window.history.replaceState({}, '', url);
                 
                 // Scroll to form
                 const form = document.querySelector('.native-quick-add-card');
@@ -1047,6 +1111,27 @@ document.addEventListener('DOMContentLoaded', function() {
     if (dateInput) {
         const today = new Date().toISOString().split('T')[0];
         dateInput.max = today;
+        
+        // When date changes in form, update selected calendar cell
+        dateInput.addEventListener('change', function() {
+            const selectedDate = this.value;
+            const cells = document.querySelectorAll('.calendar-cell:not(.empty)');
+            
+            // Remove selected class from all cells
+            cells.forEach(cell => cell.classList.remove('selected'));
+            
+            // Add selected class to matching date cell
+            const matchingCell = document.querySelector(`.calendar-cell[data-date="${selectedDate}"]`);
+            if (matchingCell) {
+                matchingCell.classList.add('selected');
+                selectedCell = matchingCell;
+                
+                // Update URL
+                const url = new URL(window.location);
+                url.searchParams.set('selected_date', selectedDate);
+                window.history.replaceState({}, '', url);
+            }
+        });
     }
     
     // Steps input validation
