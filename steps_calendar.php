@@ -81,7 +81,7 @@ $next_month = date('Y-m', strtotime($current_month . ' +1 month'));
     <main class="native-app-content">
         <!-- Month Navigation -->
         <div class="native-month-navigation">
-            <a href="steps_calendar.php?month=<?php echo $prev_month; ?>" class="nav-btn prev-month" aria-label="Previous month">
+            <a href="steps_calendar.php?month=<?php echo $prev_month; ?>&selected_date=<?php echo $selected_date; ?>" class="nav-btn prev-month" aria-label="Previous month">
                 <i class="fas fa-chevron-left"></i>
             </a>
             
@@ -90,7 +90,7 @@ $next_month = date('Y-m', strtotime($current_month . ' +1 month'));
                 <div class="month-stats"><?php echo number_format($summary['total_steps'] ?? 0); ?> steps</div>
             </div>
             
-            <a href="steps_calendar.php?month=<?php echo $next_month; ?>" class="nav-btn next-month" aria-label="Next month">
+            <a href="steps_calendar.php?month=<?php echo $next_month; ?>&selected_date=<?php echo $selected_date; ?>" class="nav-btn next-month" aria-label="Next month">
                 <i class="fas fa-chevron-right"></i>
             </a>
         </div>
@@ -120,7 +120,7 @@ $next_month = date('Y-m', strtotime($current_month . ' +1 month'));
                     $current_date = date('Y-m-d', strtotime($current_month . '-' . str_pad($day, 2, '0', STR_PAD_LEFT)));
                     $steps = $steps_by_date[$current_date] ?? 0;
                     $is_today = $current_date == date('Y-m-d');
-                    $is_selected = $current_date == $selected_date;
+                    $is_selected = !$is_today && $current_date == $selected_date; // Only mark as selected if it's not today
                     $is_weekend = in_array(date('w', strtotime($current_date)), [0, 6]);
                     $steps_class = '';
                     
@@ -160,7 +160,7 @@ $next_month = date('Y-m', strtotime($current_month . ' +1 month'));
             </div>
             
             <form action="steps_add.php" method="POST" class="native-steps-form">
-                <input type="hidden" name="redirect_to" value="steps_calendar.php?month=<?php echo $current_month; ?>">
+                <input type="hidden" name="redirect_to" value="steps_calendar.php?month=<?php echo $current_month; ?>&selected_date=<?php echo $selected_date; ?>">
                 <div class="form-row-native">
                     <div class="form-field-native">
                         <label for="native_entry_date" class="form-label-native">Date</label>
@@ -463,6 +463,7 @@ $next_month = date('Y-m', strtotime($current_month . ' +1 month'));
     cursor: default;
 }
 
+/* TODAY STYLE - Always green background for today's date */
 .calendar-cell.today {
     background: var(--gradient-accent);
     color: white;
@@ -471,18 +472,13 @@ $next_month = date('Y-m', strtotime($current_month . ' +1 month'));
     border: none;
 }
 
-/* SELECTED DATE STYLES - Using primary color */
+/* SELECTED DATE STYLE - Only for non-today dates */
 .calendar-cell.selected {
     background: var(--gradient-primary);
     color: white;
     box-shadow: 0 4px 12px rgba(var(--primary-rgb, 76, 175, 80), 0.3);
     transform: scale(1.05);
     border: none;
-}
-
-/* If selected date is also today, use a special style */
-.calendar-cell.selected.today {
-    background: linear-gradient(135deg, var(--accent) 0%, var(--primary) 100%);
 }
 
 .calendar-cell.weekend {
@@ -1015,11 +1011,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const calendarCells = document.querySelectorAll('.calendar-cell:not(.empty)');
     let selectedCell = null;
     
-    // Find and highlight initially selected cell (from PHP)
+    // Find and highlight initially selected cell (from PHP) - but not if it's today
     const initialSelectedDate = "<?php echo $selected_date; ?>";
-    if (initialSelectedDate) {
+    const today = new Date().toISOString().split('T')[0];
+    
+    if (initialSelectedDate && initialSelectedDate !== today) {
         const initialSelectedCell = document.querySelector(`.calendar-cell[data-date="${initialSelectedDate}"]`);
-        if (initialSelectedCell) {
+        if (initialSelectedCell && !initialSelectedCell.classList.contains('today')) {
             selectedCell = initialSelectedCell;
             selectedCell.classList.add('selected');
         }
@@ -1028,7 +1026,7 @@ document.addEventListener('DOMContentLoaded', function() {
     calendarCells.forEach(cell => {
         // Touch feedback
         cell.addEventListener('touchstart', function() {
-            if (!this.classList.contains('empty')) {
+            if (!this.classList.contains('empty') && !this.classList.contains('today')) {
                 this.style.transform = 'scale(0.95)';
             }
         }, { passive: true });
@@ -1045,17 +1043,21 @@ document.addEventListener('DOMContentLoaded', function() {
         cell.addEventListener('click', function() {
             const date = this.getAttribute('data-date');
             const steps = this.getAttribute('data-steps');
+            const isToday = this.classList.contains('today');
             
-            // Remove selected class from previously selected cell
-            if (selectedCell && selectedCell !== this) {
-                selectedCell.classList.remove('selected');
+            // Only allow selection of non-today dates
+            if (!isToday) {
+                // Remove selected class from previously selected cell
+                if (selectedCell && selectedCell !== this) {
+                    selectedCell.classList.remove('selected');
+                }
+                
+                // Add selected class to current cell
+                this.classList.add('selected');
+                selectedCell = this;
             }
             
-            // Add selected class to current cell
-            this.classList.add('selected');
-            selectedCell = this;
-            
-            // Update form fields
+            // Update form fields regardless of selection
             const dateInput = document.getElementById('native_entry_date');
             const stepsInput = document.getElementById('native_steps_count');
             
@@ -1117,16 +1119,27 @@ document.addEventListener('DOMContentLoaded', function() {
             const selectedDate = this.value;
             const cells = document.querySelectorAll('.calendar-cell:not(.empty)');
             
-            // Remove selected class from all cells
-            cells.forEach(cell => cell.classList.remove('selected'));
+            // Remove selected class from all non-today cells
+            cells.forEach(cell => {
+                if (!cell.classList.contains('today')) {
+                    cell.classList.remove('selected');
+                }
+            });
             
-            // Add selected class to matching date cell
+            // Add selected class to matching date cell if it's not today
             const matchingCell = document.querySelector(`.calendar-cell[data-date="${selectedDate}"]`);
-            if (matchingCell) {
+            if (matchingCell && !matchingCell.classList.contains('today')) {
                 matchingCell.classList.add('selected');
                 selectedCell = matchingCell;
                 
                 // Update URL
+                const url = new URL(window.location);
+                url.searchParams.set('selected_date', selectedDate);
+                window.history.replaceState({}, '', url);
+            } else if (matchingCell && matchingCell.classList.contains('today')) {
+                // If selecting today, clear the selected cell
+                selectedCell = null;
+                // Update URL with today's date
                 const url = new URL(window.location);
                 url.searchParams.set('selected_date', selectedDate);
                 window.history.replaceState({}, '', url);
