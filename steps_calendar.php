@@ -109,6 +109,7 @@ $next_month = date('Y-m', strtotime($current_month . ' +1 month'));
             </div>
             
             <!-- Calendar grid -->
+            <!-- Calendar grid -->
             <div class="calendar-grid-native">
                 <!-- Empty cells for days before the first day of month -->
                 <?php for ($i = 0; $i < $first_day; $i++): ?>
@@ -120,7 +121,7 @@ $next_month = date('Y-m', strtotime($current_month . ' +1 month'));
                     $current_date = date('Y-m-d', strtotime($current_month . '-' . str_pad($day, 2, '0', STR_PAD_LEFT)));
                     $steps = $steps_by_date[$current_date] ?? 0;
                     $is_today = $current_date == date('Y-m-d');
-                    $is_selected = !$is_today && $current_date == $selected_date; // Only mark as selected if it's not today
+                    $is_selected = !$is_today && $current_date == $selected_date;
                     $is_weekend = in_array(date('w', strtotime($current_date)), [0, 6]);
                     $steps_class = '';
                     
@@ -139,12 +140,18 @@ $next_month = date('Y-m', strtotime($current_month . ' +1 month'));
                         data-steps="<?php echo $steps; ?>"
                         role="button"
                         tabindex="0">
+                        
+                        <!-- DAY NUMBER - This should always show -->
                         <div class="day-number"><?php echo $day; ?></div>
+                        
+                        <!-- STEPS COUNT - Only show if there are steps -->
                         <?php if ($steps > 0): ?>
                             <div class="steps-count"><?php echo number_format($steps); ?></div>
                         <?php else: ?>
                             <div class="no-steps">-</div>
                         <?php endif; ?>
+                        
+                        <!-- TODAY INDICATOR -->
                         <?php if ($is_today): ?>
                             <div class="today-ring"></div>
                         <?php endif; ?>
@@ -440,6 +447,7 @@ $next_month = date('Y-m', strtotime($current_month . ' +1 month'));
 }
 
 /* Calendar cell base styles */
+/* Calendar cell layout */
 .calendar-cell {
     aspect-ratio: 1;
     min-height: 50px;
@@ -448,7 +456,8 @@ $next_month = date('Y-m', strtotime($current_month . ' +1 month'));
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start; /* Changed from center to flex-start */
+    padding-top: 6px; /* Add some padding at top */
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     border: 1px solid rgba(255, 255, 255, 0.3);
@@ -457,107 +466,75 @@ $next_month = date('Y-m', strtotime($current_month . ' +1 month'));
     cursor: pointer;
 }
 
-.calendar-cell.empty {
-    background: transparent;
-    border: 1px dashed var(--glass-border);
-    backdrop-filter: none;
-    cursor: default;
-}
-
-/* TODAY STYLE - Must come BEFORE weekend and selected styles */
-.calendar-cell.today {
-    background: var(--gradient-accent);
-    color: white;
-    box-shadow: 0 4px 12px rgba(var(--accent-rgb), 0.3);
-    transform: scale(1.05);
-    border: none;
-}
-
-/* SELECTED DATE STYLE - Only for non-today dates */
-.calendar-cell.selected {
-    background: var(--gradient-primary);
-    color: white;
-    box-shadow: 0 4px 12px rgba(var(--primary-rgb, 76, 175, 80), 0.3);
-    transform: scale(1.05);
-    border: none;
-}
-
-.calendar-cell.weekend {
-    background: rgba(var(--accent-rgb), 0.05);
-}
-
 /* Day number styling */
 .day-number {
     font-weight: 600;
     font-size: 0.875rem;
-    margin-bottom: 0.125rem;
-    color: var(--text); /* Default color for regular days */
+    margin-bottom: 2px; /* Small margin before steps count */
+    color: var(--text);
+    line-height: 1;
 }
 
-/* Today and selected dates should have white text */
+/* Steps count styling */
+.steps-count {
+    color: var(--primary);
+    font-size: 0.65rem; /* Smaller font for steps */
+    font-weight: 600;
+    text-align: center;
+    line-height: 1;
+    margin-top: 1px;
+}
+
+/* No steps indicator */
+.no-steps {
+    color: var(--text-light);
+    font-size: 0.65rem;
+    opacity: 0.5;
+    line-height: 1;
+    margin-top: 1px;
+}
+
+/* Today and selected dates styling */
+.calendar-cell.today {
+    background: #4CAF50; /* Solid green for today */
+    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+    transform: scale(1.05);
+    border: none;
+}
+
 .calendar-cell.today .day-number,
 .calendar-cell.selected .day-number {
     color: white !important;
     font-weight: 700;
 }
 
-/* Steps count styling */
-.steps-count {
-    color: var(--primary);
-    font-size: 0.75rem;
-    font-weight: 600;
-    text-align: center;
-    line-height: 1;
-}
-
-/* Today and selected dates should have light steps count */
 .calendar-cell.today .steps-count,
-.calendar-cell.selected .steps-count {
-    color: rgba(255, 255, 255, 0.9) !important;
-}
-
-/* No steps indicator */
-.no-steps {
-    color: var(--text-light);
-    font-size: 0.75rem;
-    opacity: 0.5;
-}
-
 .calendar-cell.today .no-steps,
+.calendar-cell.selected .steps-count,
 .calendar-cell.selected .no-steps {
-    color: rgba(255, 255, 255, 0.7) !important;
-}
-
-/* Steps color coding - Override for today/selected */
-.calendar-cell.steps-low .steps-count {
-    color: #ff6b6b;
-}
-
-.calendar-cell.steps-medium .steps-count {
-    color: #ffa726;
-}
-
-.calendar-cell.steps-high .steps-count {
-    color: #4caf50;
-}
-
-/* Today and selected dates override the steps color coding */
-.calendar-cell.today.steps-low .steps-count,
-.calendar-cell.today.steps-medium .steps-count,
-.calendar-cell.today.steps-high .steps-count,
-.calendar-cell.selected.steps-low .steps-count,
-.calendar-cell.selected.steps-medium .steps-count,
-.calendar-cell.selected.steps-high .steps-count {
     color: rgba(255, 255, 255, 0.9) !important;
 }
 
+/* Today ring indicator */
 .today-ring {
     position: absolute;
-    top: 4px;
+    top: 3px;
     width: 4px;
     height: 4px;
     background: white;
     border-radius: 50%;
+}
+
+/* Selected date styling */
+.calendar-cell.selected {
+    background: #2196F3; /* Solid blue for selected */
+    background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+    transform: scale(1.05);
+    border: none;
 }
 
 /* Native Quick Add Card */
