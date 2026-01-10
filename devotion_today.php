@@ -7,6 +7,9 @@ requireLogin();
 
 $user_id = $_SESSION['user_id'];
 
+// DEBUG: Check if POST is working
+error_log("POST data: " . print_r($_POST, true));
+
 // Get user's creation date to calculate week offset
 $user_query = "SELECT created_at FROM users WHERE id = ?";
 $stmt = $db->prepare($user_query);
@@ -73,13 +76,12 @@ if (!$devotion) {
 
 // ========== FIXED COMPLETION CHECK ==========
 // Check if already completed THIS SPECIFIC DEVOTION for THIS WEEK
-// We need to check if the user has read this devotion during this week period
 $completion_query = "SELECT dr.id 
                      FROM devotional_reads dr 
                      WHERE dr.user_id = ? 
                      AND dr.devotion_id = ?
-                     AND dr.date_read >= ? 
-                     AND dr.date_read <= ?";
+                     AND DATE(dr.date_read) >= ? 
+                     AND DATE(dr.date_read) <= ?";
 $stmt = $db->prepare($completion_query);
 
 // Calculate date range for this week (Sunday to Saturday)
@@ -88,26 +90,62 @@ $week_end_date = clone $current_sunday;
 $week_end_date->modify('+6 days');
 $week_end_date_str = $week_end_date->format('Y-m-d');
 
+// DEBUG: Log the values being checked
+error_log("User ID: $user_id");
+error_log("Devotion ID: " . ($devotion ? $devotion['id'] : 'NULL'));
+error_log("Week start: $week_start_date");
+error_log("Week end: $week_end_date_str");
+
 // Execute the query with the correct parameters
 if ($devotion) {
     $stmt->execute([$user_id, $devotion['id'], $week_start_date, $week_end_date_str]);
     $completed = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    // DEBUG: Log completion check result
+    error_log("Completion check result: " . print_r($completed, true));
 } else {
     $completed = false;
 }
 // ========== END FIX ==========
 
-// Handle form submission
-if ($_POST && isset($_POST['mark_completed'])) {
+// ========== FIXED FORM SUBMISSION HANDLING ==========
+// Handle form submission - MOVE THIS BEFORE ANY OUTPUT
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['mark_completed'])) {
+    error_log("Form submitted!");
+    
     if (!$completed && $devotion) {
+        error_log("Attempting to save devotion read...");
+        
         $insert_query = "INSERT INTO devotional_reads (user_id, devotion_id, date_read) VALUES (?, ?, CURDATE())";
         $stmt = $db->prepare($insert_query);
-        $stmt->execute([$user_id, $devotion['id']]);
-        $completed = true;
-        echo "<script>window.location.href = 'devotion_today.php';</script>";
-        exit();
+        
+        // DEBUG: Check the insert query
+        error_log("Insert query: $insert_query");
+        error_log("Values: user_id=$user_id, devotion_id=" . $devotion['id']);
+        
+        try {
+            $result = $stmt->execute([$user_id, $devotion['id']]);
+            $insert_id = $db->lastInsertId();
+            
+            error_log("Insert result: " . ($result ? "Success" : "Failed"));
+            error_log("Last insert ID: $insert_id");
+            
+            if ($result) {
+                $completed = true;
+                // Force page refresh to show updated status
+                header("Location: devotion_today.php");
+                exit();
+            }
+        } catch (PDOException $e) {
+            error_log("Database error: " . $e->getMessage());
+        }
+    } else {
+        error_log("Cannot save: Already completed or no devotion found");
+        error_log("Completed: " . ($completed ? "Yes" : "No"));
+        error_log("Devotion: " . ($devotion ? "Exists" : "NULL"));
     }
 }
+// ========== END FORM SUBMISSION FIX ==========
 
 // If no devotion found for this week, show a message
 if (!$devotion) {
@@ -824,70 +862,22 @@ $week_end->modify('+6 days'); // Sunday + 6 days = Saturday
 </div>
 
 <script>
-    // Native-like interactions
+    // Add some debugging JavaScript
     document.addEventListener('DOMContentLoaded', function() {
-        // Button feedback for devotion page buttons
-        const buttons = document.querySelectorAll('.btn-primary, .btn-outline');
+        console.log('Devotion page loaded');
         
-        buttons.forEach(btn => {
-            btn.addEventListener('touchstart', function() {
-                this.style.opacity = '0.9';
-                this.style.transform = 'scale(0.99)';
-            }, { passive: true });
-            
-            btn.addEventListener('touchend', function() {
-                this.style.opacity = '1';
-                this.style.transform = 'scale(1)';
-            }, { passive: true });
-            
-            btn.addEventListener('touchcancel', function() {
-                this.style.opacity = '1';
-                this.style.transform = 'scale(1)';
-            }, { passive: true });
-        });
-        
-        // Prevent double-tap zoom
-        let lastTouchEnd = 0;
-        document.addEventListener('touchend', function(event) {
-            const now = Date.now();
-            if (now - lastTouchEnd <= 300) {
-                event.preventDefault();
-            }
-            lastTouchEnd = now;
-        }, { passive: false });
-        
-        // Form submission feedback for THIS page
         const form = document.querySelector('form');
         if (form) {
             form.addEventListener('submit', function(e) {
+                console.log('Form submitted');
                 const button = this.querySelector('button[type="submit"]');
                 if (button) {
+                    console.log('Button found, disabling...');
                     const originalText = button.innerHTML;
                     button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
                     button.disabled = true;
-                    
-                    // Restore button after 2 seconds if still disabled
-                    setTimeout(() => {
-                        if (button.disabled) {
-                            button.innerHTML = originalText;
-                            button.disabled = false;
-                        }
-                    }, 2000);
                 }
             });
-        }
-        
-        // Add haptic feedback simulation
-        function simulateHaptic() {
-            if (navigator.vibrate) {
-                navigator.vibrate(10);
-            }
-        }
-        
-        // Add haptic to primary button
-        const primaryButton = document.querySelector('.btn-primary');
-        if (primaryButton) {
-            primaryButton.addEventListener('touchstart', simulateHaptic, { passive: true });
         }
     });
 </script>
