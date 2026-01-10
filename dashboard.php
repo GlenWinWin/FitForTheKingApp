@@ -59,13 +59,22 @@ $stmt = $db->prepare($recent_photos_query);
 $stmt->execute([$user_id]);
 $recent_photos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Get weekly steps
-$week_start = date('Y-m-d', strtotime('sunday this week'));
+// Get weekly steps (Sunday to Saturday) - FIXED VERSION
+$current_day = date('w'); // 0 = Sunday, 6 = Saturday
+$sunday_offset = $current_day; // Days since Sunday
+$week_start = date('Y-m-d', strtotime('-' . $sunday_offset . ' days'));
+$week_end = date('Y-m-d', strtotime('+' . (6 - $sunday_offset) . ' days'));
 $week_steps_query = "SELECT SUM(steps_count) as total_steps FROM steps 
-                    WHERE user_id = ? AND entry_date >= ?";
+                    WHERE user_id = ? AND entry_date BETWEEN ? AND ?";
 $stmt = $db->prepare($week_steps_query);
-$stmt->execute([$user_id, $week_start]);
-$week_steps = $stmt->fetch(PDO::FETCH_ASSOC)['total_steps'] ?? 0;
+$stmt->execute([$user_id, $week_start, $week_end]);
+$week_steps_result = $stmt->fetch(PDO::FETCH_ASSOC);
+$week_steps = $week_steps_result['total_steps'] ?? 0;
+
+// Debug output (you can remove this after testing)
+// echo "Week Start: $week_start<br>";
+// echo "Week End: $week_end<br>";
+// echo "Weekly Steps: $week_steps<br>";
 ?>
 
 <style>
