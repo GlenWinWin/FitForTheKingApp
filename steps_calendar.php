@@ -109,7 +109,6 @@ $next_month = date('Y-m', strtotime($current_month . ' +1 month'));
             </div>
             
             <!-- Calendar grid -->
-            <!-- Calendar grid -->
             <div class="calendar-grid-native">
                 <!-- Empty cells for days before the first day of month -->
                 <?php for ($i = 0; $i < $first_day; $i++): ?>
@@ -140,18 +139,12 @@ $next_month = date('Y-m', strtotime($current_month . ' +1 month'));
                         data-steps="<?php echo $steps; ?>"
                         role="button"
                         tabindex="0">
-                        
-                        <!-- DAY NUMBER - This should always show -->
                         <div class="day-number"><?php echo $day; ?></div>
-                        
-                        <!-- STEPS COUNT - Only show if there are steps -->
                         <?php if ($steps > 0): ?>
                             <div class="steps-count"><?php echo number_format($steps); ?></div>
                         <?php else: ?>
                             <div class="no-steps">-</div>
                         <?php endif; ?>
-                        
-                        <!-- TODAY INDICATOR -->
                         <?php if ($is_today): ?>
                             <div class="today-ring"></div>
                         <?php endif; ?>
@@ -446,8 +439,7 @@ $next_month = date('Y-m', strtotime($current_month . ' +1 month'));
     gap: 0.5rem;
 }
 
-/* Calendar cell base styles */
-/* Calendar cell layout */
+/* Calendar Cell Styles - RESTORED ORIGINAL DESIGN */
 .calendar-cell {
     aspect-ratio: 1;
     min-height: 50px;
@@ -456,47 +448,26 @@ $next_month = date('Y-m', strtotime($current_month . ' +1 month'));
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-start; /* Changed from center to flex-start */
-    padding-top: 6px; /* Add some padding at top */
+    justify-content: center;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     border: 1px solid rgba(255, 255, 255, 0.3);
     backdrop-filter: blur(10px);
     -webkit-tap-highlight-color: transparent;
     cursor: pointer;
+    padding: 2px;
 }
 
-/* Day number styling */
-.day-number {
-    font-weight: 600;
-    font-size: 0.875rem;
-    margin-bottom: 2px; /* Small margin before steps count */
-    color: var(--text);
-    line-height: 1;
+.calendar-cell.empty {
+    background: transparent;
+    border: 1px dashed var(--glass-border);
+    backdrop-filter: none;
+    cursor: default;
 }
 
-/* Steps count styling */
-.steps-count {
-    color: var(--primary);
-    font-size: 0.65rem; /* Smaller font for steps */
-    font-weight: 600;
-    text-align: center;
-    line-height: 1;
-    margin-top: 1px;
-}
-
-/* No steps indicator */
-.no-steps {
-    color: var(--text-light);
-    font-size: 0.65rem;
-    opacity: 0.5;
-    line-height: 1;
-    margin-top: 1px;
-}
-
-/* Today and selected dates styling */
+/* TODAY STYLE - Always green background for today's date */
 .calendar-cell.today {
-    background: #4CAF50; /* Solid green for today */
+    background: #4CAF50;
     background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
     color: white;
     box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
@@ -504,37 +475,107 @@ $next_month = date('Y-m', strtotime($current_month . ' +1 month'));
     border: none;
 }
 
-.calendar-cell.today .day-number,
-.calendar-cell.selected .day-number {
-    color: white !important;
-    font-weight: 700;
-}
-
-.calendar-cell.today .steps-count,
-.calendar-cell.today .no-steps,
-.calendar-cell.selected .steps-count,
-.calendar-cell.selected .no-steps {
-    color: rgba(255, 255, 255, 0.9) !important;
-}
-
-/* Today ring indicator */
-.today-ring {
-    position: absolute;
-    top: 3px;
-    width: 4px;
-    height: 4px;
-    background: white;
-    border-radius: 50%;
-}
-
-/* Selected date styling */
+/* SELECTED DATE STYLE - Only for non-today dates */
 .calendar-cell.selected {
-    background: #2196F3; /* Solid blue for selected */
+    background: #2196F3;
     background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
     color: white;
     box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
     transform: scale(1.05);
     border: none;
+}
+
+.calendar-cell.weekend {
+    background: rgba(var(--accent-rgb), 0.05);
+}
+
+.calendar-cell:active:not(.empty) {
+    transform: scale(0.95);
+    background: rgba(255, 255, 255, 0.9);
+}
+
+.calendar-cell.today:active {
+    background: #4CAF50;
+    transform: scale(0.98);
+}
+
+.calendar-cell.selected:active {
+    background: #2196F3;
+    transform: scale(0.98);
+}
+
+/* Day Number - LARGER and at top */
+.day-number {
+    font-weight: 700;
+    font-size: 0.875rem;
+    margin-bottom: 1px;
+    color: var(--text);
+    line-height: 1;
+}
+
+.calendar-cell.today .day-number,
+.calendar-cell.selected .day-number {
+    color: white !important;
+    font-weight: 800;
+}
+
+/* Steps Count - SMALLER and below day number */
+.steps-count {
+    color: var(--primary);
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-align: center;
+    line-height: 1;
+}
+
+.calendar-cell.today .steps-count,
+.calendar-cell.selected .steps-count {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* No Steps */
+.no-steps {
+    color: var(--text-light);
+    font-size: 0.65rem;
+    opacity: 0.5;
+    line-height: 1;
+}
+
+.calendar-cell.today .no-steps,
+.calendar-cell.selected .no-steps {
+    color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Steps color coding - Keep the original colors */
+.calendar-cell.steps-low .steps-count {
+    color: #ff6b6b !important;
+}
+
+.calendar-cell.steps-medium .steps-count {
+    color: #ffa726 !important;
+}
+
+.calendar-cell.steps-high .steps-count {
+    color: #4caf50 !important;
+}
+
+/* Override step colors for today/selected */
+.calendar-cell.today.steps-low .steps-count,
+.calendar-cell.today.steps-medium .steps-count,
+.calendar-cell.today.steps-high .steps-count,
+.calendar-cell.selected.steps-low .steps-count,
+.calendar-cell.selected.steps-medium .steps-count,
+.calendar-cell.selected.steps-high .steps-count {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.today-ring {
+    position: absolute;
+    top: 4px;
+    width: 4px;
+    height: 4px;
+    background: white;
+    border-radius: 50%;
 }
 
 /* Native Quick Add Card */
@@ -765,6 +806,7 @@ $next_month = date('Y-m', strtotime($current_month . ' +1 month'));
     .calendar-cell {
         min-height: 44px;
         border-radius: 10px;
+        padding: 1px;
     }
     
     .day-number {
@@ -772,7 +814,7 @@ $next_month = date('Y-m', strtotime($current_month . ' +1 month'));
     }
     
     .steps-count, .no-steps {
-        font-size: 0.6875rem;
+        font-size: 0.6rem;
     }
     
     .native-quick-add-card {
@@ -854,7 +896,7 @@ $next_month = date('Y-m', strtotime($current_month . ' +1 month'));
     }
     
     .steps-count, .no-steps {
-        font-size: 0.625rem;
+        font-size: 0.55rem;
     }
     
     .native-message-toast {
@@ -878,7 +920,7 @@ $next_month = date('Y-m', strtotime($current_month . ' +1 month'));
     }
     
     .steps-count, .no-steps {
-        font-size: 0.5625rem;
+        font-size: 0.5rem;
     }
     
     .native-app-content {
