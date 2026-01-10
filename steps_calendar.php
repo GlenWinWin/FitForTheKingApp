@@ -439,6 +439,7 @@ $next_month = date('Y-m', strtotime($current_month . ' +1 month'));
     gap: 0.5rem;
 }
 
+/* Calendar cell base styles */
 .calendar-cell {
     aspect-ratio: 1;
     min-height: 50px;
@@ -463,7 +464,7 @@ $next_month = date('Y-m', strtotime($current_month . ' +1 month'));
     cursor: default;
 }
 
-/* TODAY STYLE - Always green background for today's date */
+/* TODAY STYLE - Must come BEFORE weekend and selected styles */
 .calendar-cell.today {
     background: var(--gradient-accent);
     color: white;
@@ -485,33 +486,22 @@ $next_month = date('Y-m', strtotime($current_month . ' +1 month'));
     background: rgba(var(--accent-rgb), 0.05);
 }
 
-.calendar-cell:active:not(.empty) {
-    transform: scale(0.95);
-    background: rgba(255, 255, 255, 0.9);
-}
-
-.calendar-cell.today:active {
-    background: var(--gradient-accent);
-    transform: scale(0.98);
-}
-
-.calendar-cell.selected:active {
-    background: var(--gradient-primary);
-    transform: scale(0.98);
-}
-
+/* Day number styling */
 .day-number {
     font-weight: 600;
     font-size: 0.875rem;
     margin-bottom: 0.125rem;
+    color: var(--text); /* Default color for regular days */
 }
 
+/* Today and selected dates should have white text */
 .calendar-cell.today .day-number,
 .calendar-cell.selected .day-number {
-    color: white;
+    color: white !important;
     font-weight: 700;
 }
 
+/* Steps count styling */
 .steps-count {
     color: var(--primary);
     font-size: 0.75rem;
@@ -520,21 +510,25 @@ $next_month = date('Y-m', strtotime($current_month . ' +1 month'));
     line-height: 1;
 }
 
+/* Today and selected dates should have light steps count */
+.calendar-cell.today .steps-count,
 .calendar-cell.selected .steps-count {
-    color: rgba(255, 255, 255, 0.9);
+    color: rgba(255, 255, 255, 0.9) !important;
 }
 
+/* No steps indicator */
 .no-steps {
     color: var(--text-light);
     font-size: 0.75rem;
     opacity: 0.5;
 }
 
+.calendar-cell.today .no-steps,
 .calendar-cell.selected .no-steps {
-    color: rgba(255, 255, 255, 0.7);
+    color: rgba(255, 255, 255, 0.7) !important;
 }
 
-/* Steps color coding - Using EXACT existing colors */
+/* Steps color coding - Override for today/selected */
 .calendar-cell.steps-low .steps-count {
     color: #ff6b6b;
 }
@@ -547,9 +541,14 @@ $next_month = date('Y-m', strtotime($current_month . ' +1 month'));
     color: #4caf50;
 }
 
-.calendar-cell.today .steps-count,
-.calendar-cell.selected .steps-count {
-    color: rgba(255, 255, 255, 0.9);
+/* Today and selected dates override the steps color coding */
+.calendar-cell.today.steps-low .steps-count,
+.calendar-cell.today.steps-medium .steps-count,
+.calendar-cell.today.steps-high .steps-count,
+.calendar-cell.selected.steps-low .steps-count,
+.calendar-cell.selected.steps-medium .steps-count,
+.calendar-cell.selected.steps-high .steps-count {
+    color: rgba(255, 255, 255, 0.9) !important;
 }
 
 .today-ring {
