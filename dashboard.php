@@ -58,28 +58,6 @@ $recent_photos_query = "SELECT * FROM progress_photos
 $stmt = $db->prepare($recent_photos_query);
 $stmt->execute([$user_id]);
 $recent_photos = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-// Get weekly stats for progress
-$week_start = date('Y-m-d', strtotime('sunday this week'));
-$week_steps_query = "SELECT SUM(steps_count) as total_steps FROM steps 
-                    WHERE user_id = ? AND entry_date >= ?";
-$stmt = $db->prepare($week_steps_query);
-$stmt->execute([$user_id, $week_start]);
-$week_steps = $stmt->fetch(PDO::FETCH_ASSOC)['total_steps'] ?? 0;
-
-// Get workout count for the week
-$week_workouts_query = "SELECT COUNT(*) as workout_count FROM workout_logs 
-                       WHERE user_id = ? AND DATE(completed_at) >= ?";
-$stmt = $db->prepare($week_workouts_query);
-$stmt->execute([$user_id, $week_start]);
-$week_workouts = $stmt->fetch(PDO::FETCH_ASSOC)['workout_count'] ?? 0;
-
-// Get devotion count for the week
-$week_devotions_query = "SELECT COUNT(*) as devotion_count FROM devotional_reads 
-                        WHERE user_id = ? AND date_read >= ?";
-$stmt = $db->prepare($week_devotions_query);
-$stmt->execute([$user_id, $week_start]);
-$week_devotions = $stmt->fetch(PDO::FETCH_ASSOC)['devotion_count'] ?? 0;
 ?>
 
 <style>
@@ -312,12 +290,12 @@ $week_devotions = $stmt->fetch(PDO::FETCH_ASSOC)['devotion_count'] ?? 0;
         color: var(--light-text);
     }
     
-    /* Native Weekly Progress */
-    .weekly-progress {
+    /* Native Progress Section */
+    .progress-section {
         padding: 0 1rem 2rem;
     }
     
-    .weekly-title {
+    .progress-title {
         font-size: 1.125rem;
         font-weight: 700;
         margin-bottom: 1rem;
@@ -327,13 +305,13 @@ $week_devotions = $stmt->fetch(PDO::FETCH_ASSOC)['devotion_count'] ?? 0;
         gap: 0.5rem;
     }
     
-    .weekly-stats {
+    .progress-stats {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         gap: 0.75rem;
     }
     
-    .weekly-stat {
+    .progress-stat {
         background: var(--glass-bg);
         border: 1px solid var(--glass-border);
         border-radius: 16px;
@@ -341,7 +319,7 @@ $week_devotions = $stmt->fetch(PDO::FETCH_ASSOC)['devotion_count'] ?? 0;
         text-align: center;
     }
     
-    .weekly-stat-value {
+    .progress-stat-value {
         font-size: 1.5rem;
         font-weight: 700;
         margin-bottom: 0.25rem;
@@ -351,7 +329,7 @@ $week_devotions = $stmt->fetch(PDO::FETCH_ASSOC)['devotion_count'] ?? 0;
         color: transparent;
     }
     
-    .weekly-stat-label {
+    .progress-stat-label {
         font-size: 0.75rem;
         color: var(--light-text);
         font-weight: 500;
@@ -410,7 +388,7 @@ $week_devotions = $stmt->fetch(PDO::FETCH_ASSOC)['devotion_count'] ?? 0;
     }
     
     @media (max-width: 360px) {
-        .weekly-stats {
+        .progress-stats {
             grid-template-columns: 1fr;
         }
         
@@ -422,7 +400,7 @@ $week_devotions = $stmt->fetch(PDO::FETCH_ASSOC)['devotion_count'] ?? 0;
     /* Dark mode adjustments */
     @media (prefers-color-scheme: dark) {
         .stat-card,
-        .weekly-stat,
+        .progress-stat,
         .native-card {
             background: rgba(255, 255, 255, 0.05);
             border-color: rgba(255, 255, 255, 0.1);
@@ -585,27 +563,27 @@ $week_devotions = $stmt->fetch(PDO::FETCH_ASSOC)['devotion_count'] ?? 0;
     </div>
     <?php endif; ?>
 
-    <!-- Weekly Progress -->
-    <div class="weekly-progress">
-        <div class="weekly-title">
+    <!-- Progress Section -->
+    <div class="progress-section">
+        <div class="progress-title">
             <i class="fas fa-chart-line"></i>
-            Weekly Progress
+            Progress
         </div>
         
-        <div class="weekly-stats">
-            <div class="weekly-stat">
-                <div class="weekly-stat-value"><?php echo number_format($week_steps); ?></div>
-                <div class="weekly-stat-label">Weekly Steps</div>
+        <div class="progress-stats">
+            <div class="progress-stat">
+                <div class="progress-stat-value"><?php echo $today_steps ? number_format($today_steps['steps_count']) : '0'; ?></div>
+                <div class="progress-stat-label">Steps Today</div>
             </div>
             
-            <div class="weekly-stat">
-                <div class="weekly-stat-value"><?php echo $week_workouts; ?></div>
-                <div class="weekly-stat-label">Workouts</div>
+            <div class="progress-stat">
+                <div class="progress-stat-value"><?php echo $workout_completed ? '1' : '0'; ?></div>
+                <div class="progress-stat-label">Workouts</div>
             </div>
             
-            <div class="weekly-stat">
-                <div class="weekly-stat-value"><?php echo $week_devotions; ?></div>
-                <div class="weekly-stat-label">Devotions</div>
+            <div class="progress-stat">
+                <div class="progress-stat-value"><?php echo $devotion_completed ? '1' : '0'; ?></div>
+                <div class="progress-stat-label">Devotions</div>
             </div>
         </div>
     </div>
