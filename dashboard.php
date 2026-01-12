@@ -507,14 +507,14 @@ $week_steps = $week_steps_result['total_steps'] ?? 0;
             <div class="stat-content">
                 <div class="stat-row">
                     <div class="stat-value">
-                        <?php echo $today_steps ? number_format($today_steps['steps_count']) : '0'; ?>
+                        <?php echo number_format($week_steps); ?>
                     </div>
                     <div class="status-badge <?php echo ($today_steps && $today_steps['steps_count'] > 0) ? 'status-complete' : 'status-pending'; ?>">
                         <i class="fas <?php echo ($today_steps && $today_steps['steps_count'] > 0) ? 'fa-check' : 'fa-shoe-prints'; ?>"></i>
                         <?php echo ($today_steps && $today_steps['steps_count'] > 0) ? 'Active' : 'Move'; ?>
                     </div>
                 </div>
-                <div class="stat-label">Today's Steps</div>
+                <div class="stat-label">Weekly Steps</div>
             </div>
         </div>
     </div>
