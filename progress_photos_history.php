@@ -52,55 +52,31 @@ $dates = array_column($photos, 'photo_date');
 
     <!-- Main Content -->
     <main class="mobile-main-content">
-        <!-- Always show comparison section -->
+        <!-- Comparison Section - Simplified -->
         <div class="mobile-card comparison-section">
-            <div class="card-header-icon">
-                <i class="fas fa-exchange-alt"></i>
-            </div>
-            <h2 class="mobile-card-title">Compare Progress</h2>
-            <p class="mobile-card-subtitle">Select two dates to see your transformation</p>
-            
-            <!-- Date Selection exactly like your reference -->
-            <div class="date-selection-reference">
-                <div class="date-item-reference">
-                    <div class="date-label-reference">Start date</div>
-                    <div class="date-value-reference" onclick="openDatePicker('start')">
-                        <span id="startDateValue" class="<?php echo empty($dates) ? 'empty' : ''; ?>">
-                            <?php echo !empty($dates[1]) ? date('F j, Y', strtotime($dates[1])) : 'Select date'; ?>
-                        </span>
+            <!-- Date Selection -->
+            <div class="date-selection-simple">
+                <div class="date-item" onclick="openDatePicker('start')">
+                    <div class="date-label">Start date</div>
+                    <div class="date-value" id="startDateValue">
+                        <span><?php echo !empty($dates[1]) ? date('F j, Y', strtotime($dates[1])) : 'Select date'; ?></span>
                         <i class="fas fa-chevron-down"></i>
                     </div>
                 </div>
                 
-                <div class="date-item-reference">
-                    <div class="date-label-reference">End date</div>
-                    <div class="date-value-reference" onclick="openDatePicker('end')">
-                        <span id="endDateValue" class="<?php echo empty($dates) ? 'empty' : ''; ?>">
-                            <?php echo !empty($dates[0]) ? date('F j, Y', strtotime($dates[0])) : 'Select date'; ?>
-                        </span>
+                <div class="date-item" onclick="openDatePicker('end')">
+                    <div class="date-label">End date</div>
+                    <div class="date-value" id="endDateValue">
+                        <span><?php echo !empty($dates[0]) ? date('F j, Y', strtotime($dates[0])) : 'Select date'; ?></span>
                         <i class="fas fa-chevron-down"></i>
                     </div>
                 </div>
             </div>
             
-            <!-- Preview Section - Photos will appear here -->
-            <div class="preview-section-reference">
-                <h3 class="preview-title">Preview Result</h3>
-                
-                <!-- Initially show placeholder -->
-                <div id="photosPlaceholder" class="photos-placeholder-reference">
-                    <div class="placeholder-icon">
-                        <i class="fas fa-images"></i>
-                    </div>
-                    <div class="placeholder-text">
-                        <p>Your before & after photos will appear here</p>
-                        <p class="placeholder-subtext">Start by selecting two dates above</p>
-                    </div>
-                </div>
-                
-                <!-- Photos comparison will be shown here -->
-                <div id="photosComparison" class="photos-comparison" style="display: none;">
-                    <!-- View tabs for front/side/back -->
+            <!-- Comparison Photos Section -->
+            <div id="comparisonContainer">
+                <?php if (count($dates) >= 2): ?>
+                    <!-- Show comparison by default if we have 2+ dates -->
                     <div class="comparison-view-tabs">
                         <button class="comparison-tab-button active" data-view="front">
                             <i class="fas fa-user"></i>
@@ -116,94 +92,123 @@ $dates = array_column($photos, 'photo_date');
                         </button>
                     </div>
                     
-                    <!-- Comparison dates -->
-                    <div class="comparison-dates">
-                        <div class="comparison-date-item">
-                            <span id="comparisonStartDate">November 28, 2025</span>
-                        </div>
-                        <div class="comparison-date-item">
-                            <span id="comparisonEndDate">January 9, 2026</span>
-                        </div>
-                    </div>
-                    
-                    <!-- Photos container -->
-                    <div class="comparison-photos-container">
-                        <!-- Front View (Default) -->
-                        <div class="comparison-view active" data-view="front">
-                            <div class="comparison-photo-column">
+                    <!-- Front View (Default) -->
+                    <div class="comparison-view active" data-view="front">
+                        <div class="comparison-row">
+                            <div class="comparison-column">
+                                <div class="photo-date" id="comparisonStartDate">
+                                    <?php echo !empty($dates[1]) ? date('F j, Y', strtotime($dates[1])) : 'Select date'; ?>
+                                </div>
                                 <div class="photo-wrapper">
-                                    <img id="startFrontPhoto" src="https://via.placeholder.com/300x400/1a237e/ffffff?text=Start+Front+View" 
+                                    <img id="startFrontPhoto" 
+                                         src="<?php echo !empty($photos[1]['front_photo']) ? $photos[1]['front_photo'] : 'https://via.placeholder.com/300x400/1a237e/ffffff?text=Front+View'; ?>" 
                                          alt="Start Front View" 
                                          class="comparison-photo">
                                 </div>
                             </div>
-                            <div class="comparison-photo-column">
+                            <div class="comparison-column">
+                                <div class="photo-date" id="comparisonEndDate">
+                                    <?php echo !empty($dates[0]) ? date('F j, Y', strtotime($dates[0])) : 'Select date'; ?>
+                                </div>
                                 <div class="photo-wrapper">
-                                    <img id="endFrontPhoto" src="https://via.placeholder.com/300x400/1a237e/ffffff?text=End+Front+View" 
+                                    <img id="endFrontPhoto" 
+                                         src="<?php echo !empty($photos[0]['front_photo']) ? $photos[0]['front_photo'] : 'https://via.placeholder.com/300x400/1a237e/ffffff?text=Front+View'; ?>" 
                                          alt="End Front View" 
                                          class="comparison-photo">
                                 </div>
                             </div>
                         </div>
-                        
-                        <!-- Side View -->
-                        <div class="comparison-view" data-view="side">
-                            <div class="comparison-photo-column">
+                    </div>
+                    
+                    <!-- Side View -->
+                    <div class="comparison-view" data-view="side">
+                        <div class="comparison-row">
+                            <div class="comparison-column">
+                                <div class="photo-date">
+                                    <?php echo !empty($dates[1]) ? date('F j, Y', strtotime($dates[1])) : 'Select date'; ?>
+                                </div>
                                 <div class="photo-wrapper">
-                                    <img id="startSidePhoto" src="https://via.placeholder.com/300x400/1a237e/ffffff?text=Start+Side+View" 
+                                    <img id="startSidePhoto" 
+                                         src="<?php echo !empty($photos[1]['side_photo']) ? $photos[1]['side_photo'] : 'https://via.placeholder.com/300x400/1a237e/ffffff?text=Side+View'; ?>" 
                                          alt="Start Side View" 
                                          class="comparison-photo">
                                 </div>
                             </div>
-                            <div class="comparison-photo-column">
+                            <div class="comparison-column">
+                                <div class="photo-date">
+                                    <?php echo !empty($dates[0]) ? date('F j, Y', strtotime($dates[0])) : 'Select date'; ?>
+                                </div>
                                 <div class="photo-wrapper">
-                                    <img id="endSidePhoto" src="https://via.placeholder.com/300x400/1a237e/ffffff?text=End+Side+View" 
+                                    <img id="endSidePhoto" 
+                                         src="<?php echo !empty($photos[0]['side_photo']) ? $photos[0]['side_photo'] : 'https://via.placeholder.com/300x400/1a237e/ffffff?text=Side+View'; ?>" 
                                          alt="End Side View" 
                                          class="comparison-photo">
                                 </div>
                             </div>
                         </div>
-                        
-                        <!-- Back View -->
-                        <div class="comparison-view" data-view="back">
-                            <div class="comparison-photo-column">
+                    </div>
+                    
+                    <!-- Back View -->
+                    <div class="comparison-view" data-view="back">
+                        <div class="comparison-row">
+                            <div class="comparison-column">
+                                <div class="photo-date">
+                                    <?php echo !empty($dates[1]) ? date('F j, Y', strtotime($dates[1])) : 'Select date'; ?>
+                                </div>
                                 <div class="photo-wrapper">
-                                    <img id="startBackPhoto" src="https://via.placeholder.com/300x400/1a237e/ffffff?text=Start+Back+View" 
+                                    <img id="startBackPhoto" 
+                                         src="<?php echo !empty($photos[1]['back_photo']) ? $photos[1]['back_photo'] : 'https://via.placeholder.com/300x400/1a237e/ffffff?text=Back+View'; ?>" 
                                          alt="Start Back View" 
                                          class="comparison-photo">
                                 </div>
                             </div>
-                            <div class="comparison-photo-column">
+                            <div class="comparison-column">
+                                <div class="photo-date">
+                                    <?php echo !empty($dates[0]) ? date('F j, Y', strtotime($dates[0])) : 'Select date'; ?>
+                                </div>
                                 <div class="photo-wrapper">
-                                    <img id="endBackPhoto" src="https://via.placeholder.com/300x400/1a237e/ffffff?text=End+Back+View" 
+                                    <img id="endBackPhoto" 
+                                         src="<?php echo !empty($photos[0]['back_photo']) ? $photos[0]['back_photo'] : 'https://via.placeholder.com/300x400/1a237e/ffffff?text=Back+View'; ?>" 
                                          alt="End Back View" 
                                          class="comparison-photo">
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-            
-            <!-- Action Buttons -->
-            <div class="action-buttons-reference">
-                <button class="reference-btn primary" id="compareNowBtn">
-                    <span>Compare Now</span>
-                </button>
-                <button class="reference-btn secondary" id="resetBtn">
-                    <span>Reset</span>
-                </button>
+                    
+                    <!-- Action Buttons -->
+                    <div class="action-buttons-simple">
+                        <button class="simple-btn primary" id="compareNowBtn">
+                            <span>Compare Now</span>
+                        </button>
+                        <button class="simple-btn secondary" id="resetBtn">
+                            <span>Reset</span>
+                        </button>
+                    </div>
+                <?php else: ?>
+                    <!-- Empty state -->
+                    <div class="empty-comparison">
+                        <div class="empty-icon">
+                            <i class="fas fa-exchange-alt"></i>
+                        </div>
+                        <h3>No Photos to Compare</h3>
+                        <p>Add at least 2 progress photos to start comparing</p>
+                        <a href="progress_photos.php" class="simple-btn primary">
+                            <i class="fas fa-camera"></i>
+                            <span>Add Photos</span>
+                        </a>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
 
-        <!-- Only show photo history if there are photos -->
+        <!-- Photo History Section -->
         <?php if ($photos): ?>
         <div class="mobile-card photos-section">
-            <div class="card-header-icon">
-                <i class="fas fa-history"></i>
+            <div class="section-header">
+                <h2 class="section-title">Photo History</h2>
+                <p class="section-subtitle">Track your transformation journey</p>
             </div>
-            <h2 class="mobile-card-title">Photo History</h2>
-            <p class="mobile-card-subtitle">Track your transformation journey</p>
             
             <div class="mobile-view-tabs">
                 <button class="view-tab-button active" data-view="front">
@@ -231,20 +236,12 @@ $dates = array_column($photos, 'photo_date');
                                 <span class="today-badge">Today</span>
                             <?php endif; ?>
                         </div>
-                        <div class="days-ago">
-                            <i class="fas fa-clock"></i>
-                            <span><?php echo floor((time() - strtotime($photo['photo_date'])) / (60 * 60 * 24)); ?> days ago</span>
-                        </div>
                     </div>
                     
                     <div class="photo-view-container">
                         <?php foreach (['front', 'side', 'back'] as $view): ?>
                         <div class="photo-view-pane <?php echo $view === 'front' ? 'active' : ''; ?>" data-view="<?php echo $view; ?>">
                             <div class="photo-view">
-                                <div class="view-label">
-                                    <i class="fas fa-<?php echo $view === 'front' ? 'user' : ($view === 'side' ? 'user-friends' : 'user-circle'); ?>"></i>
-                                    <?php echo ucfirst($view); ?> View
-                                </div>
                                 <div class="photo-container">
                                     <img src="<?php echo $photo[$view . '_photo'] ?: 'https://via.placeholder.com/300x350/1a237e/ffffff?text=' . ucfirst($view) . '+View'; ?>" 
                                          alt="<?php echo ucfirst($view); ?> View" 
@@ -326,7 +323,7 @@ $dates = array_column($photos, 'photo_date');
     </div>
 </div>
 
-<!-- Photo Modal (Original) -->
+<!-- Photo Modal -->
 <div id="photoModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -460,62 +457,32 @@ $dates = array_column($photos, 'photo_date');
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
 
-.card-header-icon {
-    width: 48px;
-    height: 48px;
-    background: var(--accent);
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 18px;
-    margin-bottom: 16px;
-}
-
-.mobile-card-title {
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--text);
-    margin: 0 0 8px 0;
-    text-align: center;
-}
-
-.mobile-card-subtitle {
-    font-size: 14px;
-    color: var(--light-text);
-    margin: 0 0 24px 0;
-    text-align: center;
-    line-height: 1.4;
-}
-
-/* Date Selection - like reference image */
-.date-selection-reference {
+/* Simplified Date Selection */
+.date-selection-simple {
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    margin-bottom: 24px;
-    padding: 0 8px;
+    gap: 12px;
+    margin-bottom: 20px;
 }
 
-.date-item-reference {
+.date-item {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 4px;
 }
 
-.date-label-reference {
-    font-size: 14px;
+.date-label {
+    font-size: 13px;
     color: var(--light-text);
     font-weight: 500;
     padding-left: 4px;
 }
 
-.date-value-reference {
+.date-value {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 14px 16px;
+    padding: 12px 16px;
     background: var(--bg-color);
     border: 1px solid var(--border);
     border-radius: 10px;
@@ -524,76 +491,23 @@ $dates = array_column($photos, 'photo_date');
     min-height: 44px;
 }
 
-.date-value-reference:active {
+.date-value:active {
     background: rgba(var(--accent-rgb), 0.05);
     border-color: var(--accent);
 }
 
-.date-value-reference span {
+.date-value span {
     font-size: 15px;
     font-weight: 500;
     color: var(--text);
 }
 
-.date-value-reference span.empty {
-    color: var(--light-text);
-}
-
-.date-value-reference i {
+.date-value i {
     color: var(--light-text);
     font-size: 14px;
 }
 
-/* Preview Section - like reference image */
-.preview-section-reference {
-    background: var(--bg-color);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 24px;
-}
-
-.preview-title {
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--text);
-    margin: 0 0 20px 0;
-    text-align: center;
-}
-
-/* Photos Placeholder */
-.photos-placeholder-reference {
-    text-align: center;
-    padding: 40px 20px;
-}
-
-.placeholder-icon {
-    font-size: 48px;
-    color: var(--light-text);
-    margin-bottom: 16px;
-    opacity: 0.5;
-}
-
-.placeholder-text {
-    color: var(--light-text);
-}
-
-.placeholder-text p {
-    margin: 0;
-    font-size: 14px;
-}
-
-.placeholder-subtext {
-    font-size: 13px !important;
-    margin-top: 4px !important;
-    opacity: 0.8;
-}
-
-/* Photos Comparison */
-.photos-comparison {
-    animation: fadeIn 0.3s ease;
-}
-
+/* Comparison View Tabs */
 .comparison-view-tabs {
     display: flex;
     background: var(--bg-color);
@@ -631,29 +545,7 @@ $dates = array_column($photos, 'photo_date');
     background: rgba(var(--accent-rgb), 0.1);
 }
 
-.comparison-dates {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-    margin-bottom: 20px;
-}
-
-.comparison-date-item {
-    flex: 1;
-    text-align: center;
-    padding: 12px;
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--text);
-}
-
-.comparison-photos-container {
-    position: relative;
-}
-
+/* Comparison Views */
 .comparison-view {
     display: none;
 }
@@ -663,14 +555,36 @@ $dates = array_column($photos, 'photo_date');
     animation: fadeIn 0.3s ease;
 }
 
-.comparison-photo-column {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
-.comparison-photo-column:first-child {
+/* Comparison Layout */
+.comparison-row {
+    display: flex;
+    gap: 12px;
     margin-bottom: 20px;
+}
+
+.comparison-column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.photo-date {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    text-align: center;
+    padding: 8px 12px;
+    background: var(--bg-color);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    width: 100%;
 }
 
 .photo-wrapper {
@@ -692,14 +606,14 @@ $dates = array_column($photos, 'photo_date');
     transform: scale(0.98);
 }
 
-/* Action Buttons - like reference image */
-.action-buttons-reference {
+/* Action Buttons */
+.action-buttons-simple {
     display: flex;
     gap: 12px;
     margin-top: 20px;
 }
 
-.reference-btn {
+.simple-btn {
     flex: 1;
     height: 44px;
     border-radius: 10px;
@@ -709,32 +623,278 @@ $dates = array_column($photos, 'photo_date');
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 8px;
     cursor: pointer;
     transition: all 0.2s ease;
     min-height: 44px;
+    text-decoration: none;
 }
 
-.reference-btn:active {
+.simple-btn:active {
     transform: scale(0.98);
 }
 
-.reference-btn.primary {
+.simple-btn.primary {
     background: var(--accent);
     color: white;
     border: none;
 }
 
-.reference-btn.primary:active {
+.simple-btn.primary:active {
     opacity: 0.9;
 }
 
-.reference-btn.secondary {
+.simple-btn.secondary {
     background: transparent;
     color: var(--accent);
     border: 1.5px solid var(--accent);
 }
 
-.reference-btn.secondary:active {
+.simple-btn.secondary:active {
+    background: rgba(var(--accent-rgb), 0.1);
+}
+
+/* Empty Comparison State */
+.empty-comparison {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.empty-comparison .empty-icon {
+    font-size: 64px;
+    color: var(--light-text);
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+.empty-comparison h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 8px;
+}
+
+.empty-comparison p {
+    font-size: 14px;
+    color: var(--light-text);
+    margin-bottom: 24px;
+}
+
+/* Section Header */
+.section-header {
+    margin-bottom: 20px;
+}
+
+.section-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 4px 0;
+}
+
+.section-subtitle {
+    font-size: 14px;
+    color: var(--light-text);
+    margin: 0;
+}
+
+/* Mobile View Tabs */
+.mobile-view-tabs {
+    display: flex;
+    background: var(--bg-color);
+    border-radius: 12px;
+    padding: 4px;
+    border: 1px solid var(--border);
+    margin-bottom: 20px;
+}
+
+.view-tab-button {
+    flex: 1;
+    height: 44px;
+    border: none;
+    background: transparent;
+    color: var(--light-text);
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-height: 44px;
+}
+
+.view-tab-button.active {
+    background: var(--card-bg);
+    color: var(--accent);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.view-tab-button:active {
+    background: rgba(var(--accent-rgb), 0.1);
+}
+
+/* Photos Timeline */
+.photos-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.timeline-card {
+    background: var(--bg-color);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
+}
+
+.timeline-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.date-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.date-text {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.today-badge {
+    background: var(--accent);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+/* Photo View Container */
+.photo-view-container {
+    position: relative;
+    min-height: 300px;
+}
+
+.photo-view-pane {
+    display: none;
+}
+
+.photo-view-pane.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+.photo-view {
+    text-align: center;
+}
+
+.photo-container {
+    width: 100%;
+    max-width: 280px;
+    margin: 0 auto;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.progress-photo {
+    width: 100%;
+    height: auto;
+    display: block;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.progress-photo:active {
+    transform: scale(0.98);
+}
+
+/* Photo Notes */
+.photo-notes {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+}
+
+.notes-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text);
+    font-weight: 600;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.notes-content {
+    color: var(--light-text);
+    font-size: 14px;
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* Bottom Navigation */
+.mobile-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--card-bg);
+    border-top: 1px solid var(--border);
+    padding: 8px 16px;
+    display: flex;
+    justify-content: space-around;
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+    min-height: 44px;
+    justify-content: center;
+}
+
+.nav-item i {
+    font-size: 20px;
+    color: var(--light-text);
+    margin-bottom: 4px;
+    transition: color 0.2s ease;
+}
+
+.nav-item span {
+    font-size: 11px;
+    color: var(--light-text);
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.nav-item.active i,
+.nav-item.active span {
+    color: var(--accent);
+}
+
+.nav-item:active {
     background: rgba(var(--accent-rgb), 0.1);
 }
 
@@ -860,231 +1020,7 @@ $dates = array_column($photos, 'photo_date');
     opacity: 0.8;
 }
 
-/* Mobile View Tabs */
-.mobile-view-tabs {
-    display: flex;
-    background: var(--bg-color);
-    border-radius: 12px;
-    padding: 4px;
-    border: 1px solid var(--border);
-    margin-bottom: 20px;
-}
-
-.view-tab-button {
-    flex: 1;
-    height: 44px;
-    border: none;
-    background: transparent;
-    color: var(--light-text);
-    font-size: 14px;
-    font-weight: 500;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    min-height: 44px;
-}
-
-.view-tab-button.active {
-    background: var(--card-bg);
-    color: var(--accent);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.view-tab-button:active {
-    background: rgba(var(--accent-rgb), 0.1);
-}
-
-/* Photos Timeline */
-.photos-timeline {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-.timeline-card {
-    background: var(--bg-color);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 16px;
-}
-
-.timeline-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.date-info {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--text);
-}
-
-.date-text {
-    font-size: 15px;
-    font-weight: 600;
-}
-
-.today-badge {
-    background: var(--accent);
-    color: white;
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 11px;
-    font-weight: 600;
-}
-
-.days-ago {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 13px;
-    color: var(--light-text);
-}
-
-/* Photo View Container */
-.photo-view-container {
-    position: relative;
-    min-height: 300px;
-}
-
-.photo-view-pane {
-    display: none;
-}
-
-.photo-view-pane.active {
-    display: block;
-    animation: fadeIn 0.3s ease;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-.photo-view {
-    text-align: center;
-}
-
-.view-label {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    color: var(--accent);
-    font-weight: 600;
-    margin-bottom: 16px;
-    font-size: 14px;
-}
-
-.photo-container {
-    width: 100%;
-    max-width: 280px;
-    margin: 0 auto;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-.progress-photo {
-    width: 100%;
-    height: auto;
-    display: block;
-    cursor: pointer;
-    transition: transform 0.2s ease;
-}
-
-.progress-photo:active {
-    transform: scale(0.98);
-}
-
-/* Photo Notes */
-.photo-notes {
-    margin-top: 16px;
-    padding-top: 16px;
-    border-top: 1px solid var(--border);
-}
-
-.notes-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--text);
-    font-weight: 600;
-    margin-bottom: 8px;
-    font-size: 14px;
-}
-
-.notes-content {
-    color: var(--light-text);
-    font-size: 14px;
-    line-height: 1.5;
-    margin: 0;
-}
-
-/* Bottom Navigation */
-.mobile-bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: var(--card-bg);
-    border-top: 1px solid var(--border);
-    padding: 8px 16px;
-    display: flex;
-    justify-content: space-around;
-    z-index: 1000;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-}
-
-.nav-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-decoration: none;
-    padding: 8px 12px;
-    border-radius: 12px;
-    transition: all 0.2s ease;
-    min-height: 44px;
-    justify-content: center;
-}
-
-.nav-item i {
-    font-size: 20px;
-    color: var(--light-text);
-    margin-bottom: 4px;
-    transition: color 0.2s ease;
-}
-
-.nav-item span {
-    font-size: 11px;
-    color: var(--light-text);
-    font-weight: 500;
-    transition: color 0.2s ease;
-}
-
-.nav-item.active i,
-.nav-item.active span {
-    color: var(--accent);
-}
-
-.nav-item:active {
-    background: rgba(var(--accent-rgb), 0.1);
-}
-
-/* Modal (Keep Original) */
+/* Modal */
 .modal {
     display: none;
     position: fixed;
@@ -1174,15 +1110,8 @@ $dates = array_column($photos, 'photo_date');
         padding: 16px;
     }
     
-    .mobile-card-title {
-        font-size: 16px;
-    }
-    
-    .mobile-card-subtitle {
-        font-size: 13px;
-    }
-    
-    .comparison-view-tabs {
+    .comparison-view-tabs,
+    .mobile-view-tabs {
         flex-wrap: wrap;
     }
     
@@ -1193,19 +1122,24 @@ $dates = array_column($photos, 'photo_date');
         padding: 6px 4px;
     }
     
-    .action-buttons-reference {
-        flex-direction: column;
-    }
-    
-    .mobile-view-tabs {
-        flex-wrap: wrap;
-    }
-    
     .view-tab-button {
         flex: 1 0 calc(33.333% - 8px);
         min-width: 0;
         font-size: 12px;
         padding: 8px 4px;
+    }
+    
+    .action-buttons-simple {
+        flex-direction: column;
+    }
+    
+    .comparison-row {
+        flex-direction: column;
+        gap: 16px;
+    }
+    
+    .comparison-column {
+        width: 100%;
     }
     
     .photo-container {
@@ -1224,41 +1158,17 @@ $dates = array_column($photos, 'photo_date');
     .nav-item span {
         font-size: 10px;
     }
-    
-    .modal-content {
-        margin: 5% auto;
-        width: 95%;
-    }
-    
-    .modal-body {
-        padding: 1rem;
-    }
-    
-    .modal-header {
-        padding: 1rem;
-    }
-    
-    .modal-header h3 {
-        font-size: 1.1rem;
-    }
-}
-
-/* Prevent zoom */
-@media (max-width: 480px) {
-    input, select, textarea {
-        font-size: 16px !important;
-    }
 }
 
 /* Touch feedback */
 @media (hover: none) and (pointer: coarse) {
-    .reference-btn,
+    .simple-btn,
     .comparison-tab-button,
     .view-tab-button,
     .nav-item,
     .mobile-back-btn,
     .mobile-add-btn,
-    .date-value-reference,
+    .date-value,
     .available-date {
         min-height: 44px;
     }
@@ -1269,20 +1179,20 @@ $dates = array_column($photos, 'photo_date');
     }
     
     /* Remove hover effects */
-    .reference-btn:hover,
+    .simple-btn:hover,
     .comparison-tab-button:hover,
     .view-tab-button:hover,
     .nav-item:hover,
-    .date-value-reference:hover,
+    .date-value:hover,
     .available-date:hover {
         transform: none;
     }
     
-    .reference-btn:active,
+    .simple-btn:active,
     .comparison-tab-button:active,
     .view-tab-button:active,
     .nav-item:active,
-    .date-value-reference:active,
+    .date-value:active,
     .available-date:active {
         transform: scale(0.98);
     }
@@ -1370,21 +1280,29 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (currentDateType === 'start') {
                 selectedStartDate = date;
-                document.getElementById('startDateValue').textContent = dateText;
-                document.getElementById('startDateValue').classList.remove('empty');
+                document.getElementById('startDateValue').innerHTML = `<span>${dateText}</span><i class="fas fa-chevron-down"></i>`;
+                
+                // Update comparison start date
+                document.querySelectorAll('#comparisonStartDate, .comparison-view .photo-date:first-child').forEach(el => {
+                    el.textContent = dateText;
+                });
             } else {
                 selectedEndDate = date;
-                document.getElementById('endDateValue').textContent = dateText;
-                document.getElementById('endDateValue').classList.remove('empty');
+                document.getElementById('endDateValue').innerHTML = `<span>${dateText}</span><i class="fas fa-chevron-down"></i>`;
+                
+                // Update comparison end date
+                document.querySelectorAll('#comparisonEndDate, .comparison-view .photo-date:nth-child(2)').forEach(el => {
+                    el.textContent = dateText;
+                });
             }
             
             // Close modal
             document.getElementById('datePickerModal').style.display = 'none';
             document.body.style.overflow = 'auto';
             
-            // Update comparison preview if both dates are selected
+            // Update photos if both dates are selected
             if (selectedStartDate && selectedEndDate) {
-                updateComparisonPreview();
+                updateComparisonPhotos();
             }
         });
     });
@@ -1403,11 +1321,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            // Update comparison preview
-            updateComparisonPreview();
-            
-            // Show success message
-            showToast('Comparison loaded successfully!', 'success');
+            updateComparisonPhotos();
+            showToast('Comparison updated!', 'success');
         });
     }
     
@@ -1415,36 +1330,38 @@ document.addEventListener('DOMContentLoaded', function() {
     const resetBtn = document.getElementById('resetBtn');
     if (resetBtn) {
         resetBtn.addEventListener('click', function() {
-            // Reset date selection
-            selectedStartDate = null;
-            selectedEndDate = null;
+            // Reset to default dates
+            const defaultStartDate = <?php echo !empty($dates[1]) ? "'{$dates[1]}'" : 'null'; ?>;
+            const defaultEndDate = <?php echo !empty($dates[0]) ? "'{$dates[0]}'" : 'null'; ?>;
             
-            document.getElementById('startDateValue').textContent = 'Select date';
-            document.getElementById('startDateValue').classList.add('empty');
-            document.getElementById('endDateValue').textContent = 'Select date';
-            document.getElementById('endDateValue').classList.add('empty');
-            
-            // Hide photos comparison and show placeholder
-            document.getElementById('photosComparison').style.display = 'none';
-            document.getElementById('photosPlaceholder').style.display = 'block';
-            
-            showToast('Comparison reset', 'info');
+            if (defaultStartDate && defaultEndDate) {
+                selectedStartDate = defaultStartDate;
+                selectedEndDate = defaultEndDate;
+                
+                const startText = new Date(defaultStartDate).toLocaleDateString('en-US', { 
+                    month: 'long', 
+                    day: 'numeric',
+                    year: 'numeric'
+                });
+                const endText = new Date(defaultEndDate).toLocaleDateString('en-US', { 
+                    month: 'long', 
+                    day: 'numeric',
+                    year: 'numeric'
+                });
+                
+                document.getElementById('startDateValue').innerHTML = `<span>${startText}</span><i class="fas fa-chevron-down"></i>`;
+                document.getElementById('endDateValue').innerHTML = `<span>${endText}</span><i class="fas fa-chevron-down"></i>`;
+                
+                updateComparisonPhotos();
+                showToast('Comparison reset to default dates', 'info');
+            } else {
+                showToast('No dates available to reset to', 'error');
+            }
         });
     }
     
-    // Function to update comparison preview
-    function updateComparisonPreview() {
-        // Hide placeholder and show comparison
-        document.getElementById('photosPlaceholder').style.display = 'none';
-        document.getElementById('photosComparison').style.display = 'block';
-        
-        // Update comparison dates
-        const startDateText = document.getElementById('startDateValue').textContent;
-        const endDateText = document.getElementById('endDateValue').textContent;
-        
-        document.getElementById('comparisonStartDate').textContent = startDateText;
-        document.getElementById('comparisonEndDate').textContent = endDateText;
-        
+    // Update comparison photos
+    function updateComparisonPhotos() {
         // Find the selected photos
         const startPhoto = allPhotos.find(photo => photo.photo_date === selectedStartDate);
         const endPhoto = allPhotos.find(photo => photo.photo_date === selectedEndDate);
@@ -1457,23 +1374,20 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (startPhoto && startPhoto[view + '_photo']) {
                 startImg.src = startPhoto[view + '_photo'];
-                startImg.alt = `Start ${view} View - ${startDateText}`;
+                startImg.alt = `Start ${view} View`;
             } else {
                 startImg.src = `https://via.placeholder.com/300x400/1a237e/ffffff?text=Start+${capitalizeFirst(view)}+View`;
-                startImg.alt = `Start ${view} View - No photo available`;
+                startImg.alt = `Start ${view} View`;
             }
             
             if (endPhoto && endPhoto[view + '_photo']) {
                 endImg.src = endPhoto[view + '_photo'];
-                endImg.alt = `End ${view} View - ${endDateText}`;
+                endImg.alt = `End ${view} View`;
             } else {
                 endImg.src = `https://via.placeholder.com/300x400/1a237e/ffffff?text=End+${capitalizeFirst(view)}+View`;
-                endImg.alt = `End ${view} View - No photo available`;
+                endImg.alt = `End ${view} View`;
             }
         });
-        
-        // Scroll to comparison
-        document.getElementById('photosComparison').scrollIntoView({ behavior: 'smooth' });
     }
     
     // Helper function to capitalize first letter
@@ -1529,7 +1443,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Photo click handlers (for both timeline and comparison photos)
+    // Photo click handlers
     document.addEventListener('click', function(e) {
         if (e.target.classList.contains('progress-photo') || e.target.classList.contains('comparison-photo')) {
             const src = e.target.src;
@@ -1574,7 +1488,7 @@ document.addEventListener('DOMContentLoaded', function() {
         toast.className = 'toast-notification';
         toast.innerHTML = `
             <div class="toast-content ${type}">
-                <i class="fas fa-${type === 'success' ? 'check-circle' : 'info-circle'}"></i>
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
                 <span>${message}</span>
             </div>
         `;
@@ -1594,7 +1508,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const toastContent = toast.querySelector('.toast-content');
         toastContent.style.cssText = `
-            background: ${type === 'success' ? 'rgba(76, 175, 80, 0.95)' : 'rgba(33, 150, 243, 0.95)'};
+            background: ${type === 'success' ? 'rgba(76, 175, 80, 0.95)' : 
+                         type === 'error' ? 'rgba(244, 67, 54, 0.95)' : 
+                         'rgba(33, 150, 243, 0.95)'};
             color: white;
             padding: 12px 20px;
             border-radius: 12px;
@@ -1637,7 +1553,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Add haptic to interactive elements
-    const interactiveElements = document.querySelectorAll('.reference-btn, .comparison-tab-button, .view-tab-button, .nav-item, .mobile-back-btn, .mobile-add-btn, .date-value-reference, .available-date');
+    const interactiveElements = document.querySelectorAll('.simple-btn, .comparison-tab-button, .view-tab-button, .nav-item, .mobile-back-btn, .mobile-add-btn, .date-value, .available-date');
     interactiveElements.forEach(el => {
         el.addEventListener('touchstart', hapticFeedback);
     });
