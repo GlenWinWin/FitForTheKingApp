@@ -108,7 +108,7 @@ if (!empty($exercise_ids)) {
         background: #f8f9fa;
     }
 
-    /* Simplified Header */
+    /* Scrollable Header */
     .workout-header {
         background: white;
         padding: 1rem var(--mobile-padding);
@@ -117,6 +117,29 @@ if (!empty($exercise_ids)) {
         top: 0;
         z-index: 100;
         box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        max-height: 150px;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+        scrollbar-color: #c5c5c5 #f0f0f0;
+    }
+
+    .workout-header::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .workout-header::-webkit-scrollbar-track {
+        background: #f0f0f0;
+        border-radius: 3px;
+    }
+
+    .workout-header::-webkit-scrollbar-thumb {
+        background: #c5c5c5;
+        border-radius: 3px;
+    }
+
+    .workout-header::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
     }
 
     .workout-title {
@@ -125,6 +148,8 @@ if (!empty($exercise_ids)) {
         color: #1a237e;
         margin-bottom: 0.25rem;
         line-height: 1.2;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
     }
 
     .workout-subtitle {
@@ -132,6 +157,8 @@ if (!empty($exercise_ids)) {
         color: #666;
         margin-bottom: 0.75rem;
         line-height: 1.3;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
     }
 
     .workout-meta {
@@ -141,6 +168,14 @@ if (!empty($exercise_ids)) {
         overflow-x: auto;
         padding: 0.5rem 0;
         -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        margin-top: 0.5rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid #f0f0f0;
+    }
+
+    .workout-meta::-webkit-scrollbar {
+        display: none;
     }
 
     .meta-item {
@@ -153,6 +188,23 @@ if (!empty($exercise_ids)) {
         padding: 0.3rem 0.5rem;
         background: #f5f5f5;
         border-radius: 20px;
+        flex-shrink: 0;
+    }
+
+    /* Scroll Indicator for long content */
+    .scroll-indicator {
+        text-align: center;
+        font-size: 0.7rem;
+        color: #999;
+        margin-top: 0.5rem;
+        opacity: 0.7;
+        animation: fadeInOut 2s infinite;
+        display: none;
+    }
+
+    @keyframes fadeInOut {
+        0%, 100% { opacity: 0.5; }
+        50% { opacity: 1; }
     }
 
     /* Days Navigation - Mobile Optimized */
@@ -161,8 +213,9 @@ if (!empty($exercise_ids)) {
         padding: 0.75rem var(--mobile-padding);
         border-bottom: 1px solid #e0e0e0;
         position: sticky;
-        top: 125px;
+        top: 0; /* Will be updated by JavaScript */
         z-index: 90;
+        transition: top 0.3s ease;
     }
 
     .days-navigation {
@@ -389,6 +442,11 @@ if (!empty($exercise_ids)) {
         font-weight: 700;
         color: #1a237e;
         margin: 0;
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     .close-modal {
@@ -403,6 +461,8 @@ if (!empty($exercise_ids)) {
         align-items: center;
         justify-content: center;
         border-radius: 50%;
+        flex-shrink: 0;
+        margin-left: 0.5rem;
     }
 
     .close-modal:hover {
@@ -944,8 +1004,8 @@ if (!empty($exercise_ids)) {
 </style>
 
 <div class="workout-container">
-    <!-- Plan Overview -->
-    <div class="workout-header">
+    <!-- Scrollable Plan Overview -->
+    <div class="workout-header" id="workoutHeader">
         <h1 class="workout-title"><?php echo htmlspecialchars($user_plan['name']); ?></h1>
         <div class="workout-subtitle"><?php echo htmlspecialchars($user_plan['description']); ?></div>
 
@@ -971,10 +1031,15 @@ if (!empty($exercise_ids)) {
                 <span>Current: Day <?php echo $current_day_index; ?></span>
             </div>
         </div>
+        
+        <!-- Scroll indicator (shown only when content is scrollable) -->
+        <div class="scroll-indicator" id="scrollIndicator">
+            <i class="fas fa-chevron-down"></i> Scroll for more
+        </div>
     </div>
 
     <!-- Days Navigation -->
-    <div class="days-navigation-container">
+    <div class="days-navigation-container" id="daysNavContainer">
         <div class="days-navigation">
             <?php foreach ($all_days as $day): ?>
             <div class="day-tab <?php echo $day['day_order'] == $current_day_index ? 'active current' : ''; ?>" 
@@ -1278,6 +1343,12 @@ if (!empty($exercise_ids)) {
         // Initialize completedSets for current day
         initializeCompletedSets();
         
+        // Setup scrollable header
+        setupScrollableHeader();
+        
+        // Setup sticky days navigation
+        setupStickyDaysNav();
+        
         // Day navigation
         document.querySelectorAll('.day-tab').forEach(tab => {
             tab.addEventListener('click', function() {
@@ -1355,6 +1426,60 @@ if (!empty($exercise_ids)) {
             }
         });
     });
+
+    // Setup scrollable header
+    function setupScrollableHeader() {
+        const header = document.getElementById('workoutHeader');
+        const scrollIndicator = document.getElementById('scrollIndicator');
+        
+        // Check if content is scrollable
+        const checkScrollable = () => {
+            if (header.scrollHeight > header.clientHeight) {
+                scrollIndicator.style.display = 'block';
+            } else {
+                scrollIndicator.style.display = 'none';
+            }
+        };
+        
+        // Initial check
+        setTimeout(checkScrollable, 100);
+        
+        // Check on resize
+        window.addEventListener('resize', checkScrollable);
+        
+        // Hide indicator when user starts scrolling
+        header.addEventListener('scroll', function() {
+            scrollIndicator.style.opacity = '0';
+            setTimeout(() => {
+                scrollIndicator.style.display = 'none';
+            }, 300);
+        });
+    }
+
+    // Setup sticky days navigation
+    function setupStickyDaysNav() {
+        const header = document.getElementById('workoutHeader');
+        const daysNavContainer = document.getElementById('daysNavContainer');
+        
+        // Calculate initial position
+        const updateDaysNavPosition = () => {
+            const headerHeight = header.offsetHeight;
+            daysNavContainer.style.top = headerHeight + 'px';
+        };
+        
+        // Initial calculation
+        updateDaysNavPosition();
+        
+        // Update on resize
+        window.addEventListener('resize', updateDaysNavPosition);
+        
+        // Update when header content changes
+        new MutationObserver(updateDaysNavPosition).observe(header, {
+            childList: true,
+            subtree: true,
+            characterData: true
+        });
+    }
 
     // Initialize completedSets for current day
     function initializeCompletedSets() {
