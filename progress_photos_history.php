@@ -53,7 +53,7 @@ $dates = array_column($photos, 'photo_date');
     <!-- Main Content -->
     <main class="mobile-main-content">
         <?php if ($photos): ?>
-            <!-- Comparison Section -->
+            <!-- Only show comparison section if there are at least 2 dates -->
             <?php if (count($dates) >= 2): ?>
             <div class="mobile-card comparison-section">
                 <div class="card-header-icon">
@@ -62,65 +62,76 @@ $dates = array_column($photos, 'photo_date');
                 <h2 class="mobile-card-title">Compare Progress</h2>
                 <p class="mobile-card-subtitle">Select two dates to see your transformation</p>
                 
-                <!-- Simple date selection like screenshot -->
-                <div class="simple-date-selection">
-                    <div class="date-option">
-                        <div class="date-circle selected"></div>
-                        <span class="date-text"><?php echo !empty($dates[0]) ? date('F j, Y', strtotime($dates[0])) : 'January 9, 2026'; ?></span>
+                <!-- Date Selection exactly like screenshot -->
+                <div class="date-selection-screenshot">
+                    <?php 
+                    // Show first two dates by default
+                    for ($i = 0; $i < 2; $i++):
+                        if (isset($dates[$i])):
+                    ?>
+                    <div class="date-item <?php echo $i === 0 ? 'selected' : ''; ?>" data-date="<?php echo $dates[$i]; ?>">
+                        <div class="date-dot"></div>
+                        <span class="date-label"><?php echo date('F j, Y', strtotime($dates[$i])); ?></span>
                     </div>
-                    
-                    <div class="date-option">
-                        <div class="date-circle"></div>
-                        <span class="date-text"><?php echo !empty($dates[1]) ? date('F j, Y', strtotime($dates[1])) : 'January 15, 2026'; ?></span>
+                    <?php 
+                        else:
+                    ?>
+                    <div class="date-item <?php echo $i === 0 ? 'selected' : ''; ?>">
+                        <div class="date-dot"></div>
+                        <span class="date-label">Select date</span>
                     </div>
+                    <?php 
+                        endif;
+                    endfor; 
+                    ?>
                 </div>
                 
-                <!-- Preview Result Section like screenshot -->
-                <div class="preview-section">
+                <!-- Divider -->
+                <div class="divider"></div>
+                
+                <!-- Preview Result Section exactly like screenshot -->
+                <div class="preview-result-screenshot">
                     <h3>Preview Result</h3>
                     
-                    <div class="preview-dates">
-                        <div class="preview-date">
-                            <div class="preview-date-label">
-                                <i class="fas fa-calendar"></i>
-                                <span class="preview-date-text"><?php echo !empty($dates[0]) ? date('F j, Y', strtotime($dates[0])) : 'January 9, 2026'; ?></span>
-                            </div>
+                    <div class="preview-dates-screenshot">
+                        <div class="preview-date-item">
+                            <span class="preview-date-label" id="previewDate1">
+                                <?php echo isset($dates[0]) ? date('F j, Y', strtotime($dates[0])) : 'Select date'; ?>
+                            </span>
                         </div>
-                        
-                        <div class="preview-date">
-                            <div class="preview-date-label">
-                                <i class="fas fa-calendar"></i>
-                                <span class="preview-date-text"><?php echo !empty($dates[1]) ? date('F j, Y', strtotime($dates[1])) : 'January 15, 2026'; ?></span>
-                            </div>
+                        <div class="preview-date-item">
+                            <span class="preview-date-label" id="previewDate2">
+                                <?php echo isset($dates[1]) ? date('F j, Y', strtotime($dates[1])) : 'Select date'; ?>
+                            </span>
                         </div>
                     </div>
                     
-                    <!-- Stats Section like screenshot -->
-                    <div class="preview-stats">
+                    <!-- Stats exactly like screenshot -->
+                    <div class="stats-screenshot">
                         <div class="stat-row">
-                            <div class="stat-label">Weight:</div>
-                            <div class="stat-value">-1.2 kg</div>
+                            <span class="stat-label">Weight:</span>
+                            <span class="stat-value" id="weightStat">- kg</span>
                         </div>
                         <div class="stat-row">
-                            <div class="stat-label">Fasting:</div>
-                            <div class="stat-value">5 days</div>
+                            <span class="stat-label">Fasting:</span>
+                            <span class="stat-value" id="fastingStat">0 days</span>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Action Buttons like screenshot -->
-                <div class="simple-action-buttons">
-                    <button class="mobile-btn primary">
+                <!-- Action Buttons exactly like screenshot -->
+                <div class="action-buttons-screenshot">
+                    <button class="screenshot-btn primary" id="compareNowBtn">
                         <span>Compare Now</span>
                     </button>
-                    <button class="mobile-btn outline">
+                    <button class="screenshot-btn secondary" id="resetBtn">
                         <span>Reset</span>
                     </button>
                 </div>
             </div>
             <?php endif; ?>
 
-            <!-- Photos Timeline -->
+            <!-- Photos Timeline (Always show if there are photos) -->
             <div class="mobile-card photos-section">
                 <div class="card-header-icon">
                     <i class="fas fa-history"></i>
@@ -128,6 +139,8 @@ $dates = array_column($photos, 'photo_date');
                 <h2 class="mobile-card-title">Photo History</h2>
                 <p class="mobile-card-subtitle">Track your transformation journey</p>
                 
+                <!-- Only show view tabs if there are multiple photos -->
+                <?php if (count($photos) > 0): ?>
                 <div class="mobile-view-tabs">
                     <button class="view-tab-button active" data-view="front">
                         <i class="fas fa-user"></i>
@@ -192,9 +205,19 @@ $dates = array_column($photos, 'photo_date');
                     </div>
                     <?php endforeach; ?>
                 </div>
+                <?php else: ?>
+                <div class="empty-state-inline">
+                    <div class="empty-icon-inline">
+                        <i class="fas fa-images"></i>
+                    </div>
+                    <h4>No Photos Yet</h4>
+                    <p>Add your first progress photos to start tracking</p>
+                </div>
+                <?php endif; ?>
             </div>
+            
         <?php else: ?>
-            <!-- Empty State -->
+            <!-- Empty State - Show when there are NO photos at all -->
             <div class="mobile-card empty-state">
                 <div class="empty-icon">
                     <i class="fas fa-camera"></i>
@@ -388,80 +411,90 @@ $dates = array_column($photos, 'photo_date');
     font-weight: 600;
     color: var(--text);
     margin: 0 0 8px 0;
+    text-align: center;
 }
 
 .mobile-card-subtitle {
     font-size: 14px;
     color: var(--light-text);
-    margin: 0 0 20px 0;
+    margin: 0 0 24px 0;
     text-align: center;
+    line-height: 1.4;
 }
 
-/* Simple Date Selection (New for screenshot style) */
-.simple-date-selection {
+/* EXACT SCREENSHOT STYLES */
+
+/* Date Selection - like screenshot */
+.date-selection-screenshot {
     display: flex;
     flex-direction: column;
     gap: 12px;
     margin-bottom: 24px;
+    padding: 0 8px;
 }
 
-.date-option {
+.date-item {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 16px;
+    padding: 14px 16px;
     background: var(--bg-color);
     border: 1px solid var(--border);
-    border-radius: 12px;
+    border-radius: 10px;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
-.date-option:hover {
+.date-item.selected {
     border-color: var(--accent);
+    background: rgba(var(--accent-rgb), 0.05);
 }
 
-.date-circle {
-    width: 20px;
-    height: 20px;
+.date-dot {
+    width: 16px;
+    height: 16px;
     border-radius: 50%;
     border: 2px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
+    position: relative;
 }
 
-.date-circle.selected {
+.date-item.selected .date-dot {
     border-color: var(--accent);
     background: var(--accent);
 }
 
-.date-circle.selected::after {
+.date-item.selected .date-dot::after {
     content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     width: 8px;
     height: 8px;
     background: white;
     border-radius: 50%;
 }
 
-.date-text {
+.date-label {
     font-size: 15px;
     font-weight: 500;
     color: var(--text);
     flex: 1;
 }
 
-/* Preview Section (New for screenshot style) */
-.preview-section {
-    background: var(--bg-color);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 20px;
+/* Divider */
+.divider {
+    height: 1px;
+    background: var(--border);
+    margin: 20px 0;
+}
+
+/* Preview Result Section - like screenshot */
+.preview-result-screenshot {
     margin-bottom: 24px;
 }
 
-.preview-section h3 {
+.preview-result-screenshot h3 {
     font-size: 16px;
     font-weight: 600;
     color: var(--text);
@@ -469,44 +502,34 @@ $dates = array_column($photos, 'photo_date');
     text-align: center;
 }
 
-.preview-dates {
+.preview-dates-screenshot {
     display: flex;
     flex-direction: column;
     gap: 12px;
     margin-bottom: 20px;
 }
 
-.preview-date {
+.preview-date-item {
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
 .preview-date-label {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 16px;
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    width: 100%;
-    max-width: 280px;
-}
-
-.preview-date-label i {
-    color: var(--accent);
-    font-size: 14px;
-}
-
-.preview-date-text {
     font-size: 14px;
     font-weight: 500;
     color: var(--text);
+    padding: 12px 16px;
+    background: var(--bg-color);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    width: 100%;
+    text-align: center;
+    max-width: 280px;
 }
 
-/* Preview Stats (New for screenshot style) */
-.preview-stats {
+/* Stats Section - like screenshot */
+.stats-screenshot {
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -528,21 +551,22 @@ $dates = array_column($photos, 'photo_date');
 }
 
 .stat-value {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 600;
     color: var(--accent);
 }
 
-/* Simple Action Buttons (New for screenshot style) */
-.simple-action-buttons {
+/* Action Buttons - like screenshot */
+.action-buttons-screenshot {
     display: flex;
     gap: 12px;
+    margin-top: 20px;
 }
 
-.simple-action-buttons .mobile-btn {
+.screenshot-btn {
     flex: 1;
     height: 44px;
-    border-radius: 12px;
+    border-radius: 10px;
     border: none;
     font-size: 15px;
     font-weight: 600;
@@ -554,27 +578,27 @@ $dates = array_column($photos, 'photo_date');
     min-height: 44px;
 }
 
-.simple-action-buttons .mobile-btn:active {
+.screenshot-btn:active {
     transform: scale(0.98);
 }
 
-.simple-action-buttons .mobile-btn.primary {
+.screenshot-btn.primary {
     background: var(--accent);
     color: white;
     border: none;
 }
 
-.simple-action-buttons .mobile-btn.primary:active {
+.screenshot-btn.primary:active {
     opacity: 0.9;
 }
 
-.simple-action-buttons .mobile-btn.outline {
+.screenshot-btn.secondary {
     background: transparent;
     color: var(--accent);
     border: 1.5px solid var(--accent);
 }
 
-.simple-action-buttons .mobile-btn.outline:active {
+.screenshot-btn.secondary:active {
     background: rgba(var(--accent-rgb), 0.1);
 }
 
@@ -751,6 +775,32 @@ $dates = array_column($photos, 'photo_date');
     margin: 0;
 }
 
+/* Empty State Inline */
+.empty-state-inline {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.empty-icon-inline {
+    font-size: 48px;
+    color: var(--light-text);
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+.empty-state-inline h4 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 8px;
+}
+
+.empty-state-inline p {
+    font-size: 14px;
+    color: var(--light-text);
+    margin-bottom: 0;
+}
+
 /* Bottom Navigation */
 .mobile-bottom-nav {
     position: fixed;
@@ -802,7 +852,7 @@ $dates = array_column($photos, 'photo_date');
     background: rgba(var(--accent-rgb), 0.1);
 }
 
-/* Empty State */
+/* Empty State (Full) */
 .empty-state {
     text-align: center;
     padding: 40px 20px;
@@ -931,6 +981,15 @@ $dates = array_column($photos, 'photo_date');
         font-size: 13px;
     }
     
+    .date-label,
+    .preview-date-label {
+        font-size: 14px;
+    }
+    
+    .action-buttons-screenshot {
+        flex-direction: column;
+    }
+    
     .mobile-view-tabs {
         flex-wrap: wrap;
     }
@@ -975,18 +1034,10 @@ $dates = array_column($photos, 'photo_date');
     .modal-header h3 {
         font-size: 1.1rem;
     }
-    
-    .simple-action-buttons {
-        flex-direction: column;
-    }
 }
 
 /* Prevent zoom */
 @media (max-width: 480px) {
-    .mobile-select {
-        font-size: 16px;
-    }
-    
     input, select, textarea {
         font-size: 16px !important;
     }
@@ -994,11 +1045,12 @@ $dates = array_column($photos, 'photo_date');
 
 /* Touch feedback */
 @media (hover: none) and (pointer: coarse) {
-    .mobile-btn,
+    .screenshot-btn,
     .view-tab-button,
     .nav-item,
     .mobile-back-btn,
-    .mobile-add-btn {
+    .mobile-add-btn,
+    .date-item {
         min-height: 44px;
     }
     
@@ -1007,15 +1059,17 @@ $dates = array_column($photos, 'photo_date');
     }
     
     /* Remove hover effects */
-    .mobile-btn:hover,
+    .screenshot-btn:hover,
     .view-tab-button:hover,
-    .nav-item:hover {
+    .nav-item:hover,
+    .date-item:hover {
         transform: none;
     }
     
-    .mobile-btn:active,
+    .screenshot-btn:active,
     .view-tab-button:active,
-    .nav-item:active {
+    .nav-item:active,
+    .date-item:active {
         transform: scale(0.98);
     }
 }
@@ -1060,95 +1114,122 @@ document.addEventListener('dblclick', function(e) {
 
 // Mobile Native Functionality
 document.addEventListener('DOMContentLoaded', function() {
-    // View tabs for photo timeline
-    const timelineTabs = document.querySelectorAll('.mobile-view-tabs .view-tab-button');
-    const photoPanes = document.querySelectorAll('.photo-view-pane');
-    
-    timelineTabs.forEach(tab => {
-        tab.addEventListener('click', function(e) {
-            e.preventDefault();
-            const view = this.dataset.view;
-            const container = this.closest('.mobile-card');
+    // Date selection for comparison (screenshot style)
+    const dateItems = document.querySelectorAll('.date-item');
+    dateItems.forEach(item => {
+        item.addEventListener('click', function() {
+            // Don't select if it says "Select date"
+            if (this.querySelector('.date-label').textContent === 'Select date') {
+                return;
+            }
             
-            // Update active tab in this container
-            container.querySelectorAll('.view-tab-button').forEach(t => {
-                t.classList.remove('active');
-            });
-            this.classList.add('active');
-            
-            // Update photo views in this timeline card
-            container.querySelectorAll('.photo-view-pane').forEach(pane => {
-                pane.classList.remove('active');
-                if (pane.dataset.view === view) {
-                    pane.classList.add('active');
-                }
-            });
-        });
-    });
-    
-    // Date selection for comparison
-    const dateOptions = document.querySelectorAll('.date-option');
-    dateOptions.forEach(option => {
-        option.addEventListener('click', function() {
             // Remove selected from all
-            document.querySelectorAll('.date-circle').forEach(circle => {
-                circle.classList.remove('selected');
+            dateItems.forEach(item => {
+                item.classList.remove('selected');
             });
             
             // Add selected to clicked
-            this.querySelector('.date-circle').classList.add('selected');
+            this.classList.add('selected');
             
-            // Update preview if two dates are selected
-            const selectedDates = document.querySelectorAll('.date-circle.selected');
-            if (selectedDates.length === 2) {
-                // Here you would update the preview with actual comparison data
-                // For now, just show the dates are selected
-                console.log('Two dates selected for comparison');
-            }
+            // Update preview with selected date
+            updatePreview();
         });
     });
     
     // Compare Now button
-    const compareBtn = document.querySelector('.simple-action-buttons .mobile-btn.primary');
+    const compareBtn = document.getElementById('compareNowBtn');
     if (compareBtn) {
         compareBtn.addEventListener('click', function() {
-            const selectedDates = document.querySelectorAll('.date-circle.selected');
-            if (selectedDates.length < 2) {
-                alert('Please select two dates to compare');
+            const selectedDates = document.querySelectorAll('.date-item.selected');
+            const dateLabels = Array.from(selectedDates).map(item => 
+                item.querySelector('.date-label').textContent
+            );
+            
+            // Filter out "Select date" entries
+            const validDates = dateLabels.filter(label => label !== 'Select date');
+            
+            if (validDates.length < 2) {
+                alert('Please select two valid dates to compare');
                 return;
             }
             
-            // Get selected dates
-            const dateTexts = [];
-            dateOptions.forEach((option, index) => {
-                if (option.querySelector('.date-circle.selected')) {
-                    dateTexts.push(option.querySelector('.date-text').textContent);
-                }
-            });
-            
-            // Show comparison (you would redirect to actual comparison page)
-            alert(`Comparing: ${dateTexts[0]} vs ${dateTexts[1]}\n\nRedirecting to comparison view...`);
-            // window.location.href = `compare.php?date1=${dateTexts[0]}&date2=${dateTexts[1]}`;
+            // Show comparison (simulate for now)
+            alert(`Comparing dates:\n${validDates[0]} vs ${validDates[1]}`);
+            // In real app: window.location.href = `compare.php?date1=${validDates[0]}&date2=${validDates[1]}`;
         });
     }
     
     // Reset button
-    const resetBtn = document.querySelector('.simple-action-buttons .mobile-btn.outline');
+    const resetBtn = document.getElementById('resetBtn');
     if (resetBtn) {
         resetBtn.addEventListener('click', function() {
-            // Reset date selection (select first two by default)
-            document.querySelectorAll('.date-circle').forEach((circle, index) => {
-                circle.classList.remove('selected');
-                if (index < 2) {
-                    circle.classList.add('selected');
+            // Reset to default selection (first two dates)
+            dateItems.forEach((item, index) => {
+                const label = item.querySelector('.date-label');
+                // Only select if it's not "Select date"
+                if (label.textContent !== 'Select date' && index < 2) {
+                    item.classList.add('selected');
+                } else {
+                    item.classList.remove('selected');
                 }
             });
             
-            // Reset to default dates if available
-            const dateOptions = document.querySelectorAll('.date-option');
-            if (dateOptions.length >= 2) {
-                // Already shows first two dates by default
+            // Reset preview
+            updatePreview();
+        });
+    }
+    
+    // Function to update preview based on selected dates
+    function updatePreview() {
+        const selectedItems = document.querySelectorAll('.date-item.selected');
+        const selectedDates = Array.from(selectedItems).map(item => 
+            item.querySelector('.date-label').textContent
+        );
+        
+        // Update preview dates
+        const previewDate1 = document.getElementById('previewDate1');
+        const previewDate2 = document.getElementById('previewDate2');
+        const weightStat = document.getElementById('weightStat');
+        const fastingStat = document.getElementById('fastingStat');
+        
+        if (selectedDates.length >= 2) {
+            previewDate1.textContent = selectedDates[0];
+            previewDate2.textContent = selectedDates[1];
+            
+            // Update stats based on selection (in real app, fetch from server)
+            if (selectedDates[0] !== 'Select date' && selectedDates[1] !== 'Select date') {
+                weightStat.textContent = '-1.2 kg';
+                fastingStat.textContent = '5 days';
+            } else {
+                weightStat.textContent = '- kg';
+                fastingStat.textContent = '0 days';
             }
+        }
+    }
+    
+    // View tabs for photo timeline
+    const timelineTabs = document.querySelectorAll('.mobile-view-tabs .view-tab-button');
+    if (timelineTabs.length > 0) {
+        timelineTabs.forEach(tab => {
+            tab.addEventListener('click', function(e) {
+                e.preventDefault();
+                const view = this.dataset.view;
+                const container = this.closest('.mobile-card');
+                
+                // Update active tab in this container
+                container.querySelectorAll('.view-tab-button').forEach(t => {
+                    t.classList.remove('active');
+                });
+                this.classList.add('active');
+                
+                // Update photo views in this timeline card
+                container.querySelectorAll('.photo-view-pane').forEach(pane => {
+                    pane.classList.remove('active');
+                    if (pane.dataset.view === view) {
+                        pane.classList.add('active');
+                    }
+                });
+            });
         });
     }
     
@@ -1194,7 +1275,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Add haptic to interactive elements
-    const interactiveElements = document.querySelectorAll('.mobile-btn, .view-tab-button, .nav-item, .mobile-back-btn, .mobile-add-btn, .date-option');
+    const interactiveElements = document.querySelectorAll('.screenshot-btn, .view-tab-button, .nav-item, .mobile-back-btn, .mobile-add-btn, .date-item');
     interactiveElements.forEach(el => {
         el.addEventListener('touchstart', hapticFeedback);
     });
