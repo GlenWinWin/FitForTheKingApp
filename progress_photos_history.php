@@ -52,185 +52,150 @@ $dates = array_column($photos, 'photo_date');
 
     <!-- Main Content -->
     <main class="mobile-main-content">
-        <?php if ($photos): ?>
-            <!-- Only show comparison section if there are at least 2 dates -->
-            <?php if (count($dates) >= 2): ?>
-            <div class="mobile-card comparison-section">
-                <div class="card-header-icon">
-                    <i class="fas fa-exchange-alt"></i>
-                </div>
-                <h2 class="mobile-card-title">Compare Progress</h2>
-                <p class="mobile-card-subtitle">Select two dates to see your transformation</p>
-                
-                <!-- Date Selection exactly like screenshot -->
-                <div class="date-selection-screenshot">
-                    <?php 
-                    // Show first two dates by default
-                    for ($i = 0; $i < 2; $i++):
-                        if (isset($dates[$i])):
-                    ?>
-                    <div class="date-item <?php echo $i === 0 ? 'selected' : ''; ?>" data-date="<?php echo $dates[$i]; ?>">
-                        <div class="date-dot"></div>
-                        <span class="date-label"><?php echo date('F j, Y', strtotime($dates[$i])); ?></span>
-                    </div>
-                    <?php 
-                        else:
-                    ?>
-                    <div class="date-item <?php echo $i === 0 ? 'selected' : ''; ?>">
-                        <div class="date-dot"></div>
-                        <span class="date-label">Select date</span>
-                    </div>
-                    <?php 
-                        endif;
-                    endfor; 
-                    ?>
-                </div>
-                
-                <!-- Divider -->
-                <div class="divider"></div>
-                
-                <!-- Preview Result Section exactly like screenshot -->
-                <div class="preview-result-screenshot">
-                    <h3>Preview Result</h3>
-                    
-                    <div class="preview-dates-screenshot">
-                        <div class="preview-date-item">
-                            <span class="preview-date-label" id="previewDate1">
-                                <?php echo isset($dates[0]) ? date('F j, Y', strtotime($dates[0])) : 'Select date'; ?>
-                            </span>
-                        </div>
-                        <div class="preview-date-item">
-                            <span class="preview-date-label" id="previewDate2">
-                                <?php echo isset($dates[1]) ? date('F j, Y', strtotime($dates[1])) : 'Select date'; ?>
-                            </span>
-                        </div>
-                    </div>
-                    
-                    <!-- Stats exactly like screenshot -->
-                    <div class="stats-screenshot">
-                        <div class="stat-row">
-                            <span class="stat-label">Weight:</span>
-                            <span class="stat-value" id="weightStat">- kg</span>
-                        </div>
-                        <div class="stat-row">
-                            <span class="stat-label">Fasting:</span>
-                            <span class="stat-value" id="fastingStat">0 days</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Action Buttons exactly like screenshot -->
-                <div class="action-buttons-screenshot">
-                    <button class="screenshot-btn primary" id="compareNowBtn">
-                        <span>Compare Now</span>
-                    </button>
-                    <button class="screenshot-btn secondary" id="resetBtn">
-                        <span>Reset</span>
-                    </button>
-                </div>
+        <!-- Always show comparison section -->
+        <div class="mobile-card comparison-section">
+            <div class="card-header-icon">
+                <i class="fas fa-exchange-alt"></i>
             </div>
-            <?php endif; ?>
-
-            <!-- Photos Timeline (Always show if there are photos) -->
-            <div class="mobile-card photos-section">
-                <div class="card-header-icon">
-                    <i class="fas fa-history"></i>
-                </div>
-                <h2 class="mobile-card-title">Photo History</h2>
-                <p class="mobile-card-subtitle">Track your transformation journey</p>
-                
-                <!-- Only show view tabs if there are multiple photos -->
-                <?php if (count($photos) > 0): ?>
-                <div class="mobile-view-tabs">
-                    <button class="view-tab-button active" data-view="front">
-                        <i class="fas fa-user"></i>
-                        <span>Front View</span>
-                    </button>
-                    <button class="view-tab-button" data-view="side">
-                        <i class="fas fa-user-friends"></i>
-                        <span>Side View</span>
-                    </button>
-                    <button class="view-tab-button" data-view="back">
-                        <i class="fas fa-user-circle"></i>
-                        <span>Back View</span>
-                    </button>
+            <h2 class="mobile-card-title">Compare Progress</h2>
+            <p class="mobile-card-subtitle">Select two dates to see your transformation</p>
+            
+            <!-- Date Selection exactly like second screenshot -->
+            <div class="date-selection-screenshot">
+                <div class="date-option" onclick="openDatePicker('start')">
+                    <div class="date-icon">
+                        <i class="fas fa-flag"></i>
+                    </div>
+                    <div class="date-input-wrapper">
+                        <div class="date-input-label">Start date</div>
+                        <div class="date-input-value" id="startDateValue">Choose start date</div>
+                    </div>
+                    <div class="date-arrow">
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
                 </div>
                 
-                <div class="photos-timeline">
-                    <?php foreach ($photos as $photo): ?>
-                    <div class="timeline-card" data-date="<?php echo $photo['photo_date']; ?>">
-                        <div class="timeline-header">
-                            <div class="date-info">
-                                <i class="fas fa-calendar"></i>
-                                <span class="date-text"><?php echo date('F j, Y', strtotime($photo['photo_date'])); ?></span>
-                                <?php if ($photo['photo_date'] == date('Y-m-d')): ?>
-                                    <span class="today-badge">Today</span>
-                                <?php endif; ?>
-                            </div>
-                            <div class="days-ago">
-                                <i class="fas fa-clock"></i>
-                                <span><?php echo floor((time() - strtotime($photo['photo_date'])) / (60 * 60 * 24)); ?> days ago</span>
-                            </div>
-                        </div>
-                        
-                        <div class="photo-view-container">
-                            <?php foreach (['front', 'side', 'back'] as $view): ?>
-                            <div class="photo-view-pane <?php echo $view === 'front' ? 'active' : ''; ?>" data-view="<?php echo $view; ?>">
-                                <div class="photo-view">
-                                    <div class="view-label">
-                                        <i class="fas fa-<?php echo $view === 'front' ? 'user' : ($view === 'side' ? 'user-friends' : 'user-circle'); ?>"></i>
-                                        <?php echo ucfirst($view); ?> View
-                                    </div>
-                                    <div class="photo-container">
-                                        <img src="<?php echo $photo[$view . '_photo'] ?: 'https://via.placeholder.com/300x350/1a237e/ffffff?text=' . ucfirst($view) . '+View'; ?>" 
-                                             alt="<?php echo ucfirst($view); ?> View" 
-                                             class="progress-photo"
-                                             data-date="<?php echo date('F j, Y', strtotime($photo['photo_date'])); ?>"
-                                             data-src="<?php echo $photo[$view . '_photo'] ?: 'https://via.placeholder.com/300x350/1a237e/ffffff?text=' . ucfirst($view) . '+View'; ?>">
-                                    </div>
-                                </div>
-                            </div>
-                            <?php endforeach; ?>
-                        </div>
-                        
-                        <?php if ($photo['notes']): ?>
-                        <div class="photo-notes">
-                            <div class="notes-header">
-                                <i class="fas fa-sticky-note"></i>
-                                <span>Notes</span>
-                            </div>
-                            <p class="notes-content"><?php echo nl2br(htmlspecialchars($photo['notes'])); ?></p>
-                        </div>
-                        <?php endif; ?>
+                <div class="date-option" onclick="openDatePicker('end')">
+                    <div class="date-icon">
+                        <i class="fas fa-bullseye"></i>
                     </div>
-                    <?php endforeach; ?>
-                </div>
-                <?php else: ?>
-                <div class="empty-state-inline">
-                    <div class="empty-icon-inline">
-                        <i class="fas fa-images"></i>
+                    <div class="date-input-wrapper">
+                        <div class="date-input-label">End date</div>
+                        <div class="date-input-value" id="endDateValue">Choose end date</div>
                     </div>
-                    <h4>No Photos Yet</h4>
-                    <p>Add your first progress photos to start tracking</p>
+                    <div class="date-arrow">
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
                 </div>
-                <?php endif; ?>
             </div>
             
-        <?php else: ?>
-            <!-- Empty State - Show when there are NO photos at all -->
-            <div class="mobile-card empty-state">
-                <div class="empty-icon">
-                    <i class="fas fa-camera"></i>
+            <!-- Your before & after photos will appear here -->
+            <div class="photos-placeholder">
+                <div class="placeholder-icon">
+                    <i class="fas fa-images"></i>
                 </div>
-                <h3>No Progress Photos Yet</h3>
-                <p>Start tracking your transformation by uploading your first progress photos!</p>
-                <div class="empty-actions">
-                    <a href="progress_photos.php" class="mobile-btn primary large">
-                        <i class="fas fa-camera"></i>
-                        <span>Add First Photos</span>
-                    </a>
+                <div class="placeholder-text">
+                    <p>Your before & after photos will appear here</p>
+                    <p class="placeholder-subtext">Start by selecting two dates above</p>
                 </div>
             </div>
+            
+            <!-- Action Buttons -->
+            <div class="action-buttons-screenshot">
+                <button class="screenshot-btn primary" id="compareNowBtn">
+                    <span>Compare Now</span>
+                </button>
+                <button class="screenshot-btn secondary" id="resetBtn">
+                    <span>Reset</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Only show photo history if there are photos -->
+        <?php if ($photos): ?>
+        <div class="mobile-card photos-section">
+            <div class="card-header-icon">
+                <i class="fas fa-history"></i>
+            </div>
+            <h2 class="mobile-card-title">Photo History</h2>
+            <p class="mobile-card-subtitle">Track your transformation journey</p>
+            
+            <!-- Only show view tabs if there are multiple photos -->
+            <?php if (count($photos) > 0): ?>
+            <div class="mobile-view-tabs">
+                <button class="view-tab-button active" data-view="front">
+                    <i class="fas fa-user"></i>
+                    <span>Front View</span>
+                </button>
+                <button class="view-tab-button" data-view="side">
+                    <i class="fas fa-user-friends"></i>
+                    <span>Side View</span>
+                </button>
+                <button class="view-tab-button" data-view="back">
+                    <i class="fas fa-user-circle"></i>
+                    <span>Back View</span>
+                </button>
+            </div>
+            
+            <div class="photos-timeline">
+                <?php foreach ($photos as $photo): ?>
+                <div class="timeline-card" data-date="<?php echo $photo['photo_date']; ?>">
+                    <div class="timeline-header">
+                        <div class="date-info">
+                            <i class="fas fa-calendar"></i>
+                            <span class="date-text"><?php echo date('F j, Y', strtotime($photo['photo_date'])); ?></span>
+                            <?php if ($photo['photo_date'] == date('Y-m-d')): ?>
+                                <span class="today-badge">Today</span>
+                            <?php endif; ?>
+                        </div>
+                        <div class="days-ago">
+                            <i class="fas fa-clock"></i>
+                            <span><?php echo floor((time() - strtotime($photo['photo_date'])) / (60 * 60 * 24)); ?> days ago</span>
+                        </div>
+                    </div>
+                    
+                    <div class="photo-view-container">
+                        <?php foreach (['front', 'side', 'back'] as $view): ?>
+                        <div class="photo-view-pane <?php echo $view === 'front' ? 'active' : ''; ?>" data-view="<?php echo $view; ?>">
+                            <div class="photo-view">
+                                <div class="view-label">
+                                    <i class="fas fa-<?php echo $view === 'front' ? 'user' : ($view === 'side' ? 'user-friends' : 'user-circle'); ?>"></i>
+                                    <?php echo ucfirst($view); ?> View
+                                </div>
+                                <div class="photo-container">
+                                    <img src="<?php echo $photo[$view . '_photo'] ?: 'https://via.placeholder.com/300x350/1a237e/ffffff?text=' . ucfirst($view) . '+View'; ?>" 
+                                         alt="<?php echo ucfirst($view); ?> View" 
+                                         class="progress-photo"
+                                         data-date="<?php echo date('F j, Y', strtotime($photo['photo_date'])); ?>"
+                                         data-src="<?php echo $photo[$view . '_photo'] ?: 'https://via.placeholder.com/300x350/1a237e/ffffff?text=' . ucfirst($view) . '+View'; ?>">
+                                </div>
+                            </div>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                    
+                    <?php if ($photo['notes']): ?>
+                    <div class="photo-notes">
+                        <div class="notes-header">
+                            <i class="fas fa-sticky-note"></i>
+                            <span>Notes</span>
+                        </div>
+                        <p class="notes-content"><?php echo nl2br(htmlspecialchars($photo['notes'])); ?></p>
+                    </div>
+                    <?php endif; ?>
+                </div>
+                <?php endforeach; ?>
+            </div>
+            <?php else: ?>
+            <div class="empty-state-inline">
+                <div class="empty-icon-inline">
+                    <i class="fas fa-images"></i>
+                </div>
+                <h4>No Photos Yet</h4>
+                <p>Add your first progress photos to start tracking</p>
+            </div>
+            <?php endif; ?>
+        </div>
         <?php endif; ?>
     </main>
 
@@ -257,6 +222,34 @@ $dates = array_column($photos, 'photo_date');
             <span>Profile</span>
         </a>
     </nav>
+</div>
+
+<!-- Date Picker Modal -->
+<div id="datePickerModal" class="date-picker-modal">
+    <div class="date-picker-content">
+        <div class="date-picker-header">
+            <h3 id="datePickerTitle">Select Date</h3>
+            <span class="close-date-picker">&times;</span>
+        </div>
+        <div class="date-picker-body">
+            <div class="available-dates-list">
+                <?php if ($dates && count($dates) > 0): ?>
+                    <?php foreach ($dates as $date): ?>
+                    <div class="available-date" data-date="<?php echo $date; ?>">
+                        <i class="fas fa-calendar"></i>
+                        <span class="date-text"><?php echo date('F j, Y', strtotime($date)); ?></span>
+                    </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="no-dates-message">
+                        <i class="fas fa-calendar-times"></i>
+                        <p>No dates available</p>
+                        <p class="sub-message">Add photos first</p>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Photo Modal (Original) -->
@@ -424,136 +417,104 @@ $dates = array_column($photos, 'photo_date');
 
 /* EXACT SCREENSHOT STYLES */
 
-/* Date Selection - like screenshot */
+/* Date Selection - like second screenshot */
 .date-selection-screenshot {
     display: flex;
     flex-direction: column;
     gap: 12px;
     margin-bottom: 24px;
-    padding: 0 8px;
 }
 
-.date-item {
+.date-option {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 14px 16px;
+    padding: 16px;
     background: var(--bg-color);
     border: 1px solid var(--border);
-    border-radius: 10px;
+    border-radius: 12px;
     cursor: pointer;
     transition: all 0.2s ease;
+    min-height: 44px;
 }
 
-.date-item.selected {
-    border-color: var(--accent);
+.date-option:active {
     background: rgba(var(--accent-rgb), 0.05);
-}
-
-.date-dot {
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    border: 2px solid var(--border);
-    position: relative;
-}
-
-.date-item.selected .date-dot {
     border-color: var(--accent);
-    background: var(--accent);
 }
 
-.date-item.selected .date-dot::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 8px;
-    height: 8px;
-    background: white;
-    border-radius: 50%;
-}
-
-.date-label {
-    font-size: 15px;
-    font-weight: 500;
-    color: var(--text);
-    flex: 1;
-}
-
-/* Divider */
-.divider {
-    height: 1px;
-    background: var(--border);
-    margin: 20px 0;
-}
-
-/* Preview Result Section - like screenshot */
-.preview-result-screenshot {
-    margin-bottom: 24px;
-}
-
-.preview-result-screenshot h3 {
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--text);
-    margin: 0 0 20px 0;
-    text-align: center;
-}
-
-.preview-dates-screenshot {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-bottom: 20px;
-}
-
-.preview-date-item {
+.date-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #4CAF50, #8BC34A);
     display: flex;
     align-items: center;
     justify-content: center;
+    color: white;
+    font-size: 16px;
 }
 
-.preview-date-label {
-    font-size: 14px;
+.date-option:nth-child(2) .date-icon {
+    background: linear-gradient(135deg, #FF6B6B, #FFA726);
+}
+
+.date-input-wrapper {
+    flex: 1;
+}
+
+.date-input-label {
+    font-size: 13px;
+    color: var(--light-text);
+    margin-bottom: 2px;
+    font-weight: 500;
+}
+
+.date-input-value {
+    font-size: 15px;
     font-weight: 500;
     color: var(--text);
-    padding: 12px 16px;
-    background: var(--bg-color);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    width: 100%;
-    text-align: center;
-    max-width: 280px;
 }
 
-/* Stats Section - like screenshot */
-.stats-screenshot {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    padding-top: 20px;
-    border-top: 1px solid var(--border);
-}
-
-.stat-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 0;
-}
-
-.stat-label {
-    font-size: 14px;
+.date-input-value.empty {
     color: var(--light-text);
-    font-weight: 500;
 }
 
-.stat-value {
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--accent);
+.date-arrow {
+    color: var(--light-text);
+    font-size: 14px;
+}
+
+/* Photos Placeholder */
+.photos-placeholder {
+    text-align: center;
+    padding: 40px 20px;
+    margin-bottom: 24px;
+    background: var(--bg-color);
+    border: 1px dashed var(--border);
+    border-radius: 12px;
+}
+
+.placeholder-icon {
+    font-size: 48px;
+    color: var(--light-text);
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+.placeholder-text {
+    color: var(--light-text);
+}
+
+.placeholder-text p {
+    margin: 0;
+    font-size: 14px;
+}
+
+.placeholder-subtext {
+    font-size: 13px !important;
+    margin-top: 4px !important;
+    opacity: 0.8;
 }
 
 /* Action Buttons - like screenshot */
@@ -600,6 +561,128 @@ $dates = array_column($photos, 'photo_date');
 
 .screenshot-btn.secondary:active {
     background: rgba(var(--accent-rgb), 0.1);
+}
+
+/* Date Picker Modal */
+.date-picker-modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    animation: fadeIn 0.3s ease;
+}
+
+.date-picker-content {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--card-bg);
+    border-radius: 20px 20px 0 0;
+    padding: 20px;
+    max-height: 80vh;
+    overflow-y: auto;
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(100%);
+    }
+    to {
+        transform: translateY(0);
+    }
+}
+
+.date-picker-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+}
+
+.date-picker-header h3 {
+    margin: 0;
+    color: var(--text);
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.close-date-picker {
+    font-size: 24px;
+    color: var(--light-text);
+    cursor: pointer;
+    line-height: 1;
+}
+
+.date-picker-body {
+    padding: 10px 0;
+}
+
+.available-dates-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.available-date {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: var(--bg-color);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.available-date:active {
+    background: rgba(var(--accent-rgb), 0.1);
+    border-color: var(--accent);
+}
+
+.available-date i {
+    color: var(--accent);
+    font-size: 16px;
+    width: 24px;
+}
+
+.available-date .date-text {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+    flex: 1;
+}
+
+.no-dates-message {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.no-dates-message i {
+    font-size: 48px;
+    color: var(--light-text);
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+.no-dates-message p {
+    color: var(--light-text);
+    margin: 0;
+    font-size: 14px;
+}
+
+.no-dates-message .sub-message {
+    font-size: 13px;
+    margin-top: 4px;
+    opacity: 0.8;
 }
 
 /* Mobile View Tabs */
@@ -852,42 +935,11 @@ $dates = array_column($photos, 'photo_date');
     background: rgba(var(--accent-rgb), 0.1);
 }
 
-/* Empty State (Full) */
-.empty-state {
-    text-align: center;
-    padding: 40px 20px;
-}
-
-.empty-icon {
-    font-size: 64px;
-    color: var(--light-text);
-    margin-bottom: 24px;
-    opacity: 0.5;
-}
-
-.empty-state h3 {
-    font-size: 20px;
-    font-weight: 600;
-    color: var(--text);
-    margin-bottom: 12px;
-}
-
-.empty-state p {
-    font-size: 15px;
-    color: var(--light-text);
-    margin-bottom: 32px;
-}
-
-.empty-actions {
-    max-width: 280px;
-    margin: 0 auto;
-}
-
 /* Modal (Keep Original) */
 .modal {
     display: none;
     position: fixed;
-    z-index: 1000;
+    z-index: 2001;
     left: 0;
     top: 0;
     width: 100%;
@@ -981,11 +1033,6 @@ $dates = array_column($photos, 'photo_date');
         font-size: 13px;
     }
     
-    .date-label,
-    .preview-date-label {
-        font-size: 14px;
-    }
-    
     .action-buttons-screenshot {
         flex-direction: column;
     }
@@ -1050,7 +1097,8 @@ $dates = array_column($photos, 'photo_date');
     .nav-item,
     .mobile-back-btn,
     .mobile-add-btn,
-    .date-item {
+    .date-option,
+    .available-date {
         min-height: 44px;
     }
     
@@ -1062,14 +1110,16 @@ $dates = array_column($photos, 'photo_date');
     .screenshot-btn:hover,
     .view-tab-button:hover,
     .nav-item:hover,
-    .date-item:hover {
+    .date-option:hover,
+    .available-date:hover {
         transform: none;
     }
     
     .screenshot-btn:active,
     .view-tab-button:active,
     .nav-item:active,
-    .date-item:active {
+    .date-option:active,
+    .available-date:active {
         transform: scale(0.98);
     }
 }
@@ -1114,25 +1164,61 @@ document.addEventListener('dblclick', function(e) {
 
 // Mobile Native Functionality
 document.addEventListener('DOMContentLoaded', function() {
-    // Date selection for comparison (screenshot style)
-    const dateItems = document.querySelectorAll('.date-item');
-    dateItems.forEach(item => {
-        item.addEventListener('click', function() {
-            // Don't select if it says "Select date"
-            if (this.querySelector('.date-label').textContent === 'Select date') {
-                return;
+    let currentDateType = ''; // 'start' or 'end'
+    let selectedStartDate = null;
+    let selectedEndDate = null;
+    
+    // Open date picker
+    window.openDatePicker = function(type) {
+        currentDateType = type;
+        const modal = document.getElementById('datePickerModal');
+        const title = document.getElementById('datePickerTitle');
+        
+        if (type === 'start') {
+            title.textContent = 'Select Start Date';
+        } else {
+            title.textContent = 'Select End Date';
+        }
+        
+        modal.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+    };
+    
+    // Close date picker
+    document.querySelector('.close-date-picker').addEventListener('click', function() {
+        document.getElementById('datePickerModal').style.display = 'none';
+        document.body.style.overflow = 'auto';
+    });
+    
+    document.getElementById('datePickerModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            this.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+    });
+    
+    // Handle date selection
+    document.querySelectorAll('.available-date').forEach(dateItem => {
+        dateItem.addEventListener('click', function() {
+            const date = this.getAttribute('data-date');
+            const dateText = this.querySelector('.date-text').textContent;
+            
+            if (currentDateType === 'start') {
+                selectedStartDate = date;
+                document.getElementById('startDateValue').textContent = dateText;
+                document.getElementById('startDateValue').classList.remove('empty');
+            } else {
+                selectedEndDate = date;
+                document.getElementById('endDateValue').textContent = dateText;
+                document.getElementById('endDateValue').classList.remove('empty');
             }
             
-            // Remove selected from all
-            dateItems.forEach(item => {
-                item.classList.remove('selected');
-            });
+            // Close modal
+            document.getElementById('datePickerModal').style.display = 'none';
+            document.body.style.overflow = 'auto';
             
-            // Add selected to clicked
-            this.classList.add('selected');
-            
-            // Update preview with selected date
-            updatePreview();
+            // Update photos placeholder if both dates are selected
+            updatePhotosPlaceholder();
         });
     });
     
@@ -1140,22 +1226,19 @@ document.addEventListener('DOMContentLoaded', function() {
     const compareBtn = document.getElementById('compareNowBtn');
     if (compareBtn) {
         compareBtn.addEventListener('click', function() {
-            const selectedDates = document.querySelectorAll('.date-item.selected');
-            const dateLabels = Array.from(selectedDates).map(item => 
-                item.querySelector('.date-label').textContent
-            );
-            
-            // Filter out "Select date" entries
-            const validDates = dateLabels.filter(label => label !== 'Select date');
-            
-            if (validDates.length < 2) {
-                alert('Please select two valid dates to compare');
+            if (!selectedStartDate || !selectedEndDate) {
+                alert('Please select both start and end dates');
                 return;
             }
             
-            // Show comparison (simulate for now)
-            alert(`Comparing dates:\n${validDates[0]} vs ${validDates[1]}`);
-            // In real app: window.location.href = `compare.php?date1=${validDates[0]}&date2=${validDates[1]}`;
+            if (selectedStartDate === selectedEndDate) {
+                alert('Please select different dates');
+                return;
+            }
+            
+            // Here you would redirect to comparison page
+            alert(`Comparing:\nStart: ${selectedStartDate}\nEnd: ${selectedEndDate}`);
+            // window.location.href = `compare.php?start=${selectedStartDate}&end=${selectedEndDate}`;
         });
     }
     
@@ -1163,47 +1246,72 @@ document.addEventListener('DOMContentLoaded', function() {
     const resetBtn = document.getElementById('resetBtn');
     if (resetBtn) {
         resetBtn.addEventListener('click', function() {
-            // Reset to default selection (first two dates)
-            dateItems.forEach((item, index) => {
-                const label = item.querySelector('.date-label');
-                // Only select if it's not "Select date"
-                if (label.textContent !== 'Select date' && index < 2) {
-                    item.classList.add('selected');
-                } else {
-                    item.classList.remove('selected');
-                }
-            });
+            // Reset date selection
+            selectedStartDate = null;
+            selectedEndDate = null;
             
-            // Reset preview
-            updatePreview();
+            document.getElementById('startDateValue').textContent = 'Choose start date';
+            document.getElementById('startDateValue').classList.add('empty');
+            document.getElementById('endDateValue').textContent = 'Choose end date';
+            document.getElementById('endDateValue').classList.add('empty');
+            
+            // Reset photos placeholder
+            updatePhotosPlaceholder();
         });
     }
     
-    // Function to update preview based on selected dates
-    function updatePreview() {
-        const selectedItems = document.querySelectorAll('.date-item.selected');
-        const selectedDates = Array.from(selectedItems).map(item => 
-            item.querySelector('.date-label').textContent
-        );
-        
-        // Update preview dates
-        const previewDate1 = document.getElementById('previewDate1');
-        const previewDate2 = document.getElementById('previewDate2');
-        const weightStat = document.getElementById('weightStat');
-        const fastingStat = document.getElementById('fastingStat');
-        
-        if (selectedDates.length >= 2) {
-            previewDate1.textContent = selectedDates[0];
-            previewDate2.textContent = selectedDates[1];
+    // Function to update photos placeholder
+    function updatePhotosPlaceholder() {
+        const placeholder = document.querySelector('.photos-placeholder');
+        if (selectedStartDate && selectedEndDate) {
+            placeholder.innerHTML = `
+                <div class="placeholder-icon">
+                    <i class="fas fa-spinner fa-spin"></i>
+                </div>
+                <div class="placeholder-text">
+                    <p>Loading comparison...</p>
+                    <p class="placeholder-subtext">January 9, 2026 vs January 15, 2026</p>
+                </div>
+            `;
             
-            // Update stats based on selection (in real app, fetch from server)
-            if (selectedDates[0] !== 'Select date' && selectedDates[1] !== 'Select date') {
-                weightStat.textContent = '-1.2 kg';
-                fastingStat.textContent = '5 days';
-            } else {
-                weightStat.textContent = '- kg';
-                fastingStat.textContent = '0 days';
-            }
+            // After 2 seconds, show the preview like first screenshot
+            setTimeout(() => {
+                placeholder.innerHTML = `
+                    <div class="preview-result-screenshot">
+                        <h3>Preview Result</h3>
+                        
+                        <div class="preview-dates-screenshot">
+                            <div class="preview-date-item">
+                                <span class="preview-date-label">January 9, 2026</span>
+                            </div>
+                            <div class="preview-date-item">
+                                <span class="preview-date-label">January 15, 2016</span>
+                            </div>
+                        </div>
+                        
+                        <div class="stats-screenshot">
+                            <div class="stat-row">
+                                <span class="stat-label">Weight:</span>
+                                <span class="stat-value">-1.2 kg</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">Fasting:</span>
+                                <span class="stat-value">5 days</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }, 2000);
+        } else {
+            placeholder.innerHTML = `
+                <div class="placeholder-icon">
+                    <i class="fas fa-images"></i>
+                </div>
+                <div class="placeholder-text">
+                    <p>Your before & after photos will appear here</p>
+                    <p class="placeholder-subtext">Start by selecting two dates above</p>
+                </div>
+            `;
         }
     }
     
@@ -1261,9 +1369,14 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Escape key
     document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && document.getElementById('photoModal').style.display === 'block') {
-            document.getElementById('photoModal').style.display = 'none';
-            document.body.style.overflow = 'auto';
+        if (e.key === 'Escape') {
+            if (document.getElementById('datePickerModal').style.display === 'block') {
+                document.getElementById('datePickerModal').style.display = 'none';
+                document.body.style.overflow = 'auto';
+            } else if (document.getElementById('photoModal').style.display === 'block') {
+                document.getElementById('photoModal').style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
         }
     });
     
@@ -1275,7 +1388,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Add haptic to interactive elements
-    const interactiveElements = document.querySelectorAll('.screenshot-btn, .view-tab-button, .nav-item, .mobile-back-btn, .mobile-add-btn, .date-item');
+    const interactiveElements = document.querySelectorAll('.screenshot-btn, .view-tab-button, .nav-item, .mobile-back-btn, .mobile-add-btn, .date-option, .available-date');
     interactiveElements.forEach(el => {
         el.addEventListener('touchstart', hapticFeedback);
     });
