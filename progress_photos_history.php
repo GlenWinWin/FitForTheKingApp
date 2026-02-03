@@ -62,6 +62,7 @@ $dates = array_column($photos, 'photo_date');
                         <span><?php echo !empty($dates[1]) ? date('F j, Y', strtotime($dates[1])) : 'Select date'; ?></span>
                         <i class="fas fa-chevron-down"></i>
                     </div>
+                    <input type="hidden" id="startDateHidden" value="<?php echo !empty($dates[1]) ? $dates[1] : ''; ?>">
                 </div>
                 
                 <div class="date-item" onclick="openDatePicker('end')">
@@ -70,6 +71,7 @@ $dates = array_column($photos, 'photo_date');
                         <span><?php echo !empty($dates[0]) ? date('F j, Y', strtotime($dates[0])) : 'Select date'; ?></span>
                         <i class="fas fa-chevron-down"></i>
                     </div>
+                    <input type="hidden" id="endDateHidden" value="<?php echo !empty($dates[0]) ? $dates[0] : ''; ?>">
                 </div>
             </div>
             
@@ -1239,9 +1241,11 @@ document.addEventListener('dblclick', function(e) {
 // Mobile Native Functionality
 document.addEventListener('DOMContentLoaded', function() {
     let currentDateType = ''; // 'start' or 'end'
-    let selectedStartDate = null;
-    let selectedEndDate = null;
     let allPhotos = <?php echo json_encode($photos); ?>;
+    
+    // Initialize with default dates
+    let selectedStartDate = document.getElementById('startDateHidden').value;
+    let selectedEndDate = document.getElementById('endDateHidden').value;
     
     // Open date picker
     window.openDatePicker = function(type) {
@@ -1281,6 +1285,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (currentDateType === 'start') {
                 selectedStartDate = date;
                 document.getElementById('startDateValue').innerHTML = `<span>${dateText}</span><i class="fas fa-chevron-down"></i>`;
+                document.getElementById('startDateHidden').value = date;
                 
                 // Update comparison start date
                 document.querySelectorAll('#comparisonStartDate, .comparison-view .photo-date:first-child').forEach(el => {
@@ -1289,6 +1294,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 selectedEndDate = date;
                 document.getElementById('endDateValue').innerHTML = `<span>${dateText}</span><i class="fas fa-chevron-down"></i>`;
+                document.getElementById('endDateHidden').value = date;
                 
                 // Update comparison end date
                 document.querySelectorAll('#comparisonEndDate, .comparison-view .photo-date:nth-child(2)').forEach(el => {
@@ -1307,19 +1313,28 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Compare Now button
+    // Compare Now button - FIXED: Should work with whatever dates are selected (even defaults)
     const compareBtn = document.getElementById('compareNowBtn');
     if (compareBtn) {
         compareBtn.addEventListener('click', function() {
-            if (!selectedStartDate || !selectedEndDate) {
-                alert('Please select both start and end dates');
+            // Get current dates from hidden inputs
+            const currentStartDate = document.getElementById('startDateHidden').value;
+            const currentEndDate = document.getElementById('endDateHidden').value;
+            
+            // Check if we have valid dates
+            if (!currentStartDate || !currentEndDate) {
+                showToast('Please select both dates', 'error');
                 return;
             }
             
-            if (selectedStartDate === selectedEndDate) {
-                alert('Please select different dates');
+            if (currentStartDate === currentEndDate) {
+                showToast('Please select different dates', 'error');
                 return;
             }
+            
+            // Update the variables
+            selectedStartDate = currentStartDate;
+            selectedEndDate = currentEndDate;
             
             updateComparisonPhotos();
             showToast('Comparison updated!', 'success');
@@ -1330,7 +1345,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const resetBtn = document.getElementById('resetBtn');
     if (resetBtn) {
         resetBtn.addEventListener('click', function() {
-            // Reset to default dates
+            // Reset to default dates from PHP
             const defaultStartDate = <?php echo !empty($dates[1]) ? "'{$dates[1]}'" : 'null'; ?>;
             const defaultEndDate = <?php echo !empty($dates[0]) ? "'{$dates[0]}'" : 'null'; ?>;
             
@@ -1349,8 +1364,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     year: 'numeric'
                 });
                 
+                // Update display
                 document.getElementById('startDateValue').innerHTML = `<span>${startText}</span><i class="fas fa-chevron-down"></i>`;
                 document.getElementById('endDateValue').innerHTML = `<span>${endText}</span><i class="fas fa-chevron-down"></i>`;
+                
+                // Update hidden inputs
+                document.getElementById('startDateHidden').value = defaultStartDate;
+                document.getElementById('endDateHidden').value = defaultEndDate;
+                
+                // Update date displays in comparison
+                document.querySelectorAll('#comparisonStartDate, .comparison-view .photo-date:first-child').forEach(el => {
+                    el.textContent = startText;
+                });
+                document.querySelectorAll('#comparisonEndDate, .comparison-view .photo-date:nth-child(2)').forEach(el => {
+                    el.textContent = endText;
+                });
                 
                 updateComparisonPhotos();
                 showToast('Comparison reset to default dates', 'info');
@@ -1387,6 +1415,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 endImg.src = `https://via.placeholder.com/300x400/1a237e/ffffff?text=End+${capitalizeFirst(view)}+View`;
                 endImg.alt = `End ${view} View`;
             }
+        });
+        
+        // Scroll to comparison section
+        document.querySelector('.comparison-section').scrollIntoView({ 
+            behavior: 'smooth',
+            block: 'start'
         });
     }
     
