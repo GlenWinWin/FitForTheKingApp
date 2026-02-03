@@ -18,56 +18,45 @@ if (!$user_plan) {
     exit();
 }
 
-// Get all days in plan with their exercises
+// Calculate current day in plan
+$selected_at = new DateTime($user_plan['selected_at']);
+$today = new DateTime();
+$days_since_start = $selected_at->diff($today)->days;
+
+// Get all days in plan
 $days_query = 'SELECT * FROM workout_plan_days WHERE plan_id = ? ORDER BY day_order';
 $stmt = $db->prepare($days_query);
 $stmt->execute([$user_plan['id']]);
 $all_days = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 $total_days = count($all_days);
+$current_day_index = ($days_since_start % $total_days) + 1;
 
-// Get selected day from URL or use current day
-if (isset($_GET['day']) && is_numeric($_GET['day']) && $_GET['day'] >= 1 && $_GET['day'] <= $total_days) {
-    $selected_day = intval($_GET['day']);
-} else {
-    // Calculate current day in plan based on start date
-    $selected_at = new DateTime($user_plan['selected_at']);
-    $today = new DateTime();
-    $days_since_start = $selected_at->diff($today)->days;
-    $selected_day = ($days_since_start % $total_days) + 1;
-}
-
-// Get selected day details
-$current_day = null;
-foreach ($all_days as $day) {
-    if ($day['day_order'] == $selected_day) {
-        $current_day = $day;
-        break;
-    }
-}
-
-// Get exercises for ALL days to populate forms
-$all_exercises_by_day = [];
+// Get exercises for ALL days
+$all_exercises = [];
 foreach ($all_days as $day) {
     $exercises_query = "SELECT * FROM workout_exercises 
                        WHERE plan_day_id = ? 
                        ORDER BY id";
     $stmt = $db->prepare($exercises_query);
     $stmt->execute([$day['id']]);
-    $all_exercises_by_day[$day['day_order']] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $exercises = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    $all_exercises[$day['day_order']] = $exercises;
 }
 
-// Get exercises for current day
-$day_exercises = $all_exercises_by_day[$selected_day] ?? [];
-
-// Get last workout data for progressive overload
+// Get last workout data for progressive overload - OPTIMIZED QUERY
 $last_workout_data = [];
-if (!empty($day_exercises)) {
-    $exercise_ids = [];
-    foreach ($day_exercises as $exercise) {
+
+// Get all exercise IDs for this plan
+$exercise_ids = [];
+foreach ($all_exercises as $exercises) {
+    foreach ($exercises as $exercise) {
         $exercise_ids[] = $exercise['id'];
     }
-    
+}
+
+if (!empty($exercise_ids)) {
     $placeholders = str_repeat('?,', count($exercise_ids) - 1) . '?';
     
     $last_workout_query = "
@@ -164,8 +153,8 @@ if (!empty($day_exercises)) {
         border-radius: 20px;
     }
 
-    /* Day Navigation */
-    .day-navigation {
+    /* Days Navigation - Mobile Optimized */
+    .days-navigation-container {
         background: white;
         padding: 0.75rem var(--mobile-padding);
         border-bottom: 1px solid #e0e0e0;
@@ -174,7 +163,7 @@ if (!empty($day_exercises)) {
         z-index: 90;
     }
 
-    .day-tabs {
+    .days-navigation {
         display: flex;
         gap: 0.5rem;
         overflow-x: auto;
@@ -183,7 +172,7 @@ if (!empty($day_exercises)) {
         scrollbar-width: none;
     }
 
-    .day-tabs::-webkit-scrollbar {
+    .days-navigation::-webkit-scrollbar {
         display: none;
     }
 
@@ -214,11 +203,11 @@ if (!empty($day_exercises)) {
         box-shadow: var(--active-shadow);
     }
 
-    .day-tab.current-day {
+    .day-tab.current {
         position: relative;
     }
 
-    .day-tab.current-day::after {
+    .day-tab.current::after {
         content: '';
         position: absolute;
         top: -4px;
@@ -434,7 +423,7 @@ if (!empty($day_exercises)) {
         color: #3f51b5;
     }
 
-    /* Demo Video Section - FIXED YOUTUBE */
+    /* Demo Video Section */
     .demo-section {
         margin-bottom: 1.5rem;
     }
@@ -843,9 +832,37 @@ if (!empty($day_exercises)) {
         50% { transform: translateY(-5px); }
     }
 
-    /* Hidden Form Container */
+    /* Hidden Forms Container */
     .hidden-forms-container {
         display: none;
+    }
+
+    /* Day Content */
+    .day-content {
+        display: none;
+    }
+
+    .day-content.active {
+        display: block;
+    }
+
+    .day-header {
+        background: linear-gradient(135deg, #3f51b5 0%, #1a237e 100%);
+        color: white;
+        padding: 1rem var(--mobile-padding);
+        margin-bottom: 1rem;
+    }
+
+    .day-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .day-subtitle {
+        font-size: 0.85rem;
+        opacity: 0.9;
+        margin-top: 0.25rem;
     }
 
     /* Animation */
@@ -937,123 +954,131 @@ if (!empty($day_exercises)) {
             </div>
             <div class="meta-item">
                 <i class="fas fa-dumbbell"></i>
-                <span><?php echo count($day_exercises); ?> Exercises</span>
+                <span>
+                    <?php
+                    $total_exercises = 0;
+                    foreach ($all_exercises as $exercises) {
+                        $total_exercises += count($exercises);
+                    }
+                    echo $total_exercises;
+                    ?> Exercises
+                </span>
             </div>
             <div class="meta-item">
                 <i class="fas fa-clock"></i>
-                <span>Current: Day <?php echo $selected_day; ?></span>
+                <span>Current: Day <?php echo $current_day_index; ?></span>
             </div>
         </div>
     </div>
 
-    <!-- Day Navigation -->
-    <div class="day-navigation">
-        <div class="day-tabs">
-            <?php 
-            // Calculate current day based on start date
-            $selected_at = new DateTime($user_plan['selected_at']);
-            $today = new DateTime();
-            $days_since_start = $selected_at->diff($today)->days;
-            $calculated_current_day = ($days_since_start % $total_days) + 1;
+    <!-- Days Navigation -->
+    <div class="days-navigation-container">
+        <div class="days-navigation">
+            <?php foreach ($all_days as $day): ?>
+            <div class="day-tab <?php echo $day['day_order'] == $current_day_index ? 'active current' : ''; ?>" 
+                 data-day="<?php echo $day['day_order']; ?>">
+                Day <?php echo $day['day_order']; ?>
+            </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+        <!-- Days Content -->
+        <?php foreach ($all_days as $day): 
+            $day_exercises = $all_exercises[$day['day_order']];
+            $total_exercises_day = count($day_exercises);
+        ?>
+        <div class="day-content <?php echo $day['day_order'] == $current_day_index ? 'active' : ''; ?>" 
+             id="day-<?php echo $day['day_order']; ?>">
             
-            foreach ($all_days as $day): 
-                $is_current_day = ($day['day_order'] == $calculated_current_day);
-            ?>
-                <div class="day-tab <?php echo $day['day_order'] == $selected_day ? 'active' : ''; ?> <?php echo $is_current_day ? 'current-day' : ''; ?>" 
-                     data-day="<?php echo $day['day_order']; ?>"
-                     onclick="changeDay(<?php echo $day['day_order']; ?>)">
-                    Day <?php echo $day['day_order']; ?>
-                </div>
-            <?php endforeach; ?>
-        </div>
-    </div>
-
-    <!-- Current Day Header -->
-    <?php if ($current_day): ?>
-    <div style="background: linear-gradient(135deg, #3f51b5 0%, #1a237e 100%); color: white; padding: 1rem var(--mobile-padding);">
-        <div style="font-size: 0.9rem; opacity: 0.9;">Day <?php echo $selected_day; ?> of <?php echo $total_days; ?></div>
-        <div style="font-size: 1.2rem; font-weight: 700;"><?php echo htmlspecialchars($current_day['title']); ?></div>
-        <?php if ($current_day['description']): ?>
-            <div style="font-size: 0.85rem; opacity: 0.8; margin-top: 0.25rem;"><?php echo htmlspecialchars($current_day['description']); ?></div>
-        <?php endif; ?>
-    </div>
-    <?php endif; ?>
-
-    <!-- Exercise List -->
-    <div class="exercise-list">
-        <?php if (empty($day_exercises)): ?>
-            <div style="text-align: center; padding: 3rem 1rem; color: #666;">
-                <i class="fas fa-dumbbell" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
-                <p>No exercises scheduled for this day.</p>
+            <!-- Day Header -->
+            <div class="day-header">
+                <div class="day-title"><?php echo htmlspecialchars($day['title']); ?></div>
+                <?php if ($day['description']): ?>
+                    <div class="day-subtitle"><?php echo htmlspecialchars($day['description']); ?></div>
+                <?php endif; ?>
             </div>
-        <?php else: ?>
-            <?php foreach ($day_exercises as $index => $exercise): 
-                $last_workout = $last_workout_data[$exercise['id']] ?? [];
-                $last_set = !empty($last_workout) ? end($last_workout) : null;
-                $last_weight = $last_set['weight'] ?? 0;
-                $last_reps = $last_set['reps'] ?? 0;
-                $total_sets = $exercise['default_sets'];
-                
-                // Get muscles
-                $muscles = [];
-                if ($exercise['primary_muscle']) $muscles[] = $exercise['primary_muscle'];
-                if ($exercise['secondary_muscle']) $muscles[] = $exercise['secondary_muscle'];
-                if ($exercise['tertiary_muscle']) $muscles[] = $exercise['tertiary_muscle'];
-                
-                // Extract YouTube video ID
-                $youtube_id = '';
-                if ($exercise['youtube_link']) {
-                    $url = $exercise['youtube_link'];
-                    if (preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/', $url, $matches)) {
-                        $youtube_id = $matches[1];
-                    }
-                }
-            ?>
-                <div class="exercise-item" 
-                     data-exercise-id="<?php echo $exercise['id']; ?>"
-                     data-exercise-index="<?php echo $index; ?>"
-                     onclick="openExerciseModal(<?php echo $index; ?>)">
-                    <div class="exercise-header">
-                        <h3 class="exercise-name"><?php echo htmlspecialchars($exercise['exercise_name']); ?></h3>
-                        <span class="exercise-status"><?php echo $total_sets; ?> sets</span>
+
+            <!-- Exercise List -->
+            <div class="exercise-list" id="exercise-list-<?php echo $day['day_order']; ?>">
+                <?php if (empty($day_exercises)): ?>
+                    <div style="text-align: center; padding: 3rem 1rem; color: #666;">
+                        <i class="fas fa-dumbbell" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                        <p>No exercises scheduled for this day.</p>
                     </div>
-                    
-                    <div class="exercise-muscles">
-                        <i class="fas fa-running"></i>
-                        <?php echo htmlspecialchars(implode(' · ', array_filter($muscles))); ?>
-                    </div>
-                    
-                    <div class="exercise-target">
-                        <div class="exercise-sets">Target: <?php echo $total_sets; ?> × <?php echo $exercise['default_reps']; ?></div>
-                        <?php if ($last_weight > 0 || $last_reps > 0): ?>
-                            <div class="exercise-last">
-                                Last: <strong><?php echo $last_weight; ?> lbs × <?php echo $last_reps; ?></strong>
+                <?php else: ?>
+                    <?php foreach ($day_exercises as $index => $exercise): 
+                        $last_workout = $last_workout_data[$exercise['id']] ?? [];
+                        $last_set = !empty($last_workout) ? end($last_workout) : null;
+                        $last_weight = $last_set['weight'] ?? 0;
+                        $last_reps = $last_set['reps'] ?? 0;
+                        $total_sets = $exercise['default_sets'];
+                        
+                        // Get muscles
+                        $muscles = [];
+                        if ($exercise['primary_muscle']) $muscles[] = $exercise['primary_muscle'];
+                        if ($exercise['secondary_muscle']) $muscles[] = $exercise['secondary_muscle'];
+                        if ($exercise['tertiary_muscle']) $muscles[] = $exercise['tertiary_muscle'];
+                        
+                        // Extract YouTube video ID
+                        $youtube_id = '';
+                        if ($exercise['youtube_link']) {
+                            $url = $exercise['youtube_link'];
+                            if (preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/', $url, $matches)) {
+                                $youtube_id = $matches[1];
+                            }
+                        }
+                    ?>
+                        <div class="exercise-item" 
+                             data-day="<?php echo $day['day_order']; ?>"
+                             data-exercise-index="<?php echo $index; ?>"
+                             onclick="openExerciseModal(<?php echo $day['day_order']; ?>, <?php echo $index; ?>)">
+                            <div class="exercise-header">
+                                <h3 class="exercise-name"><?php echo htmlspecialchars($exercise['exercise_name']); ?></h3>
+                                <span class="exercise-status"><?php echo $total_sets; ?> sets</span>
                             </div>
-                        <?php endif; ?>
-                    </div>
-                    
-                    <div class="exercise-actions">
-                        <?php if ($exercise['youtube_link'] && $youtube_id): ?>
-                            <button class="action-button watch-button" 
-                                    onclick="event.stopPropagation(); openVideoModal('<?php echo $youtube_id; ?>', '<?php echo htmlspecialchars($exercise['exercise_name']); ?>')">
-                                <i class="fas fa-play-circle"></i> Watch Demo
-                            </button>
-                        <?php endif; ?>
-                        <button class="action-button start-button" 
-                                onclick="event.stopPropagation(); openExerciseModal(<?php echo $index; ?>)">
-                            <i class="fas fa-play"></i> Start Exercise
-                        </button>
-                    </div>
-                </div>
-            <?php endforeach; ?>
-        <?php endif; ?>
+                            
+                            <div class="exercise-muscles">
+                                <i class="fas fa-running"></i>
+                                <?php echo htmlspecialchars(implode(' · ', array_filter($muscles))); ?>
+                            </div>
+                            
+                            <div class="exercise-target">
+                                <div class="exercise-sets">Target: <?php echo $total_sets; ?> × <?php echo $exercise['default_reps']; ?></div>
+                                <?php if ($last_weight > 0 || $last_reps > 0): ?>
+                                    <div class="exercise-last">
+                                        Last: <strong><?php echo $last_weight; ?> lbs × <?php echo $last_reps; ?></strong>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                            
+                            <div class="exercise-actions">
+                                <?php if ($exercise['youtube_link'] && $youtube_id): ?>
+                                    <button class="action-button watch-button" 
+                                            onclick="event.stopPropagation(); openVideoModal('<?php echo $youtube_id; ?>', '<?php echo htmlspecialchars($exercise['exercise_name']); ?>')">
+                                        <i class="fas fa-play-circle"></i> Watch Demo
+                                    </button>
+                                <?php endif; ?>
+                                <button class="action-button start-button" 
+                                        onclick="event.stopPropagation(); openExerciseModal(<?php echo $day['day_order']; ?>, <?php echo $index; ?>)">
+                                    <i class="fas fa-play"></i> Start Exercise
+                                </button>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </div>
+        </div>
+        <?php endforeach; ?>
     </div>
 </div>
 
 <!-- Hidden Forms for ALL Days -->
 <div class="hidden-forms-container">
     <?php foreach ($all_days as $day): 
-        $day_exercises_for_form = $all_exercises_by_day[$day['day_order']] ?? [];
+        $day_exercises_for_form = $all_exercises[$day['day_order']] ?? [];
     ?>
         <form id="workoutForm-<?php echo $day['day_order']; ?>" class="workout-form" data-day-id="<?php echo $day['id']; ?>">
             <input type="hidden" name="day_id" value="<?php echo $day['id']; ?>">
@@ -1229,18 +1254,53 @@ if (!empty($day_exercises)) {
 
 <script>
     // Global variables
+    let currentDay = <?php echo $current_day_index; ?>;
     let currentExerciseIndex = 0;
     let currentSet = 1;
     let totalSets = 4;
-    let exercises = <?php echo json_encode($day_exercises); ?>;
+    let exercises = {};
     let completedSets = {};
     let timerInterval = null;
     let remainingSeconds = 120;
-    let currentDay = <?php echo $selected_day; ?>;
+
+    // Initialize exercises data for all days
+    <?php foreach ($all_days as $day): ?>
+        exercises[<?php echo $day['day_order']; ?>] = <?php echo json_encode($all_exercises[$day['day_order']]); ?>;
+    <?php endforeach; ?>
 
     // Initialize when DOM is loaded
     document.addEventListener('DOMContentLoaded', function() {
-        updateUpcomingExercises();
+        // Initialize completedSets for current day
+        initializeCompletedSets();
+        
+        // Day navigation
+        document.querySelectorAll('.day-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const dayNumber = parseInt(this.getAttribute('data-day'));
+                
+                // Update active states
+                document.querySelectorAll('.day-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.day-content').forEach(c => c.classList.remove('active'));
+                
+                this.classList.add('active');
+                document.getElementById('day-' + dayNumber).classList.add('active');
+                
+                // Update current day
+                currentDay = dayNumber;
+                currentExerciseIndex = 0;
+                currentSet = 1;
+                
+                // Re-initialize completedSets for new day
+                initializeCompletedSets();
+                
+                // Close modals
+                closeExerciseModal();
+                document.getElementById('videoModal').classList.remove('active');
+                
+                // Update exercise status for new day
+                updateExerciseStatus();
+            });
+        });
         
         // Add keyboard shortcuts
         document.addEventListener('keydown', function(e) {
@@ -1290,17 +1350,25 @@ if (!empty($day_exercises)) {
         });
     });
 
-    // Change day function
-    function changeDay(dayNumber) {
-        window.location.href = 'workout_plan.php?day=' + dayNumber;
+    // Initialize completedSets for current day
+    function initializeCompletedSets() {
+        completedSets = {};
+        const dayExercises = exercises[currentDay] || [];
+        dayExercises.forEach(exercise => {
+            completedSets[exercise.id] = {
+                completed: 0,
+                sets: []
+            };
+        });
     }
 
     // Open exercise modal
-    function openExerciseModal(index) {
+    function openExerciseModal(dayNumber, index) {
+        currentDay = dayNumber;
         currentExerciseIndex = index;
         currentSet = 1;
         
-        const exercise = exercises[index];
+        const exercise = exercises[dayNumber][index];
         if (!exercise) return;
         
         // Update modal content
@@ -1436,16 +1504,8 @@ if (!empty($day_exercises)) {
             return;
         }
         
-        const exercise = exercises[currentExerciseIndex];
+        const exercise = exercises[currentDay][currentExerciseIndex];
         if (!exercise) return;
-        
-        // Initialize completed sets for this exercise
-        if (!completedSets[exercise.id]) {
-            completedSets[exercise.id] = {
-                completed: 0,
-                sets: []
-            };
-        }
         
         // Save this set
         completedSets[exercise.id].sets.push({
@@ -1476,7 +1536,7 @@ if (!empty($day_exercises)) {
         } else {
             // Exercise completed
             // Mark exercise as completed in list
-            const exerciseItem = document.querySelector(`.exercise-item[data-exercise-index="${currentExerciseIndex}"]`);
+            const exerciseItem = document.querySelector(`.exercise-item[data-day="${currentDay}"][data-exercise-index="${currentExerciseIndex}"]`);
             if (exerciseItem) {
                 exerciseItem.classList.add('completed');
                 const status = exerciseItem.querySelector('.exercise-status');
@@ -1504,9 +1564,10 @@ if (!empty($day_exercises)) {
 
     // Navigate to next exercise
     function nextExercise() {
-        if (currentExerciseIndex < exercises.length - 1) {
+        const dayExercises = exercises[currentDay] || [];
+        if (currentExerciseIndex < dayExercises.length - 1) {
             currentExerciseIndex++;
-            openExerciseModal(currentExerciseIndex);
+            openExerciseModal(currentDay, currentExerciseIndex);
         } else {
             // Last exercise completed
             if (confirm('You have completed all exercises! Would you like to finish the workout?')) {
@@ -1519,21 +1580,23 @@ if (!empty($day_exercises)) {
     function prevExercise() {
         if (currentExerciseIndex > 0) {
             currentExerciseIndex--;
-            openExerciseModal(currentExerciseIndex);
+            openExerciseModal(currentDay, currentExerciseIndex);
         }
     }
 
     // Update navigation buttons
     function updateNavButtons() {
+        const dayExercises = exercises[currentDay] || [];
         document.getElementById('prevExercise').disabled = currentExerciseIndex === 0;
-        document.getElementById('nextExercise').disabled = currentExerciseIndex === exercises.length - 1;
+        document.getElementById('nextExercise').disabled = currentExerciseIndex === dayExercises.length - 1;
     }
 
     // Update exercise status in list
     function updateExerciseStatus() {
-        exercises.forEach((exercise, index) => {
+        const dayExercises = exercises[currentDay] || [];
+        dayExercises.forEach((exercise, index) => {
             const completed = completedSets[exercise.id]?.completed || 0;
-            const exerciseItem = document.querySelector(`.exercise-item[data-exercise-index="${index}"]`);
+            const exerciseItem = document.querySelector(`.exercise-item[data-day="${currentDay}"][data-exercise-index="${index}"]`);
             
             if (exerciseItem) {
                 if (completed > 0) {
@@ -1566,7 +1629,8 @@ if (!empty($day_exercises)) {
         
         upcomingList.innerHTML = '';
         
-        exercises.forEach((exercise, index) => {
+        const dayExercises = exercises[currentDay] || [];
+        dayExercises.forEach((exercise, index) => {
             const completed = completedSets[exercise.id]?.completed || 0;
             const total = exercise.default_sets;
             
@@ -1646,7 +1710,7 @@ if (!empty($day_exercises)) {
             `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     }
 
-    // Complete workout - UPDATED FOR MULTIPLE DAYS
+    // Complete workout
     async function completeWorkout() {
         if (!confirm('Are you sure you want to complete this workout? All logged sets will be saved.')) {
             return;
@@ -1686,7 +1750,7 @@ if (!empty($day_exercises)) {
         }
         
         // Also add current set from modal if not saved yet
-        const currentExercise = exercises[currentExerciseIndex];
+        const currentExercise = exercises[currentDay][currentExerciseIndex];
         if (currentExercise) {
             const weight = document.getElementById('weightInput').value;
             const reps = document.getElementById('repsInput').value;
