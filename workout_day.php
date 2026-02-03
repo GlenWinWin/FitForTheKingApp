@@ -841,6 +841,11 @@ if (!empty($day_exercises)) {
         50% { transform: translateY(-5px); }
     }
 
+    /* Hidden Form */
+    .hidden-form {
+        display: none;
+    }
+
     /* Animation */
     @keyframes fadeIn {
         from { opacity: 0; transform: translateY(20px); }
@@ -1043,6 +1048,26 @@ if (!empty($day_exercises)) {
     </div>
 </div>
 
+<!-- Hidden Form for AJAX Submission -->
+<div class="hidden-form">
+    <form id="workoutForm">
+        <input type="hidden" name="day_id" value="<?php echo $current_day ? $current_day['id'] : ''; ?>">
+        
+        <?php foreach ($day_exercises as $exercise): ?>
+            <?php for ($i = 1; $i <= $exercise['default_sets']; $i++): ?>
+                <input type="hidden" 
+                       name="sets[<?php echo $exercise['id']; ?>][<?php echo $i; ?>][weight]" 
+                       id="form-weight-<?php echo $exercise['id']; ?>-<?php echo $i; ?>"
+                       value="">
+                <input type="hidden" 
+                       name="sets[<?php echo $exercise['id']; ?>][<?php echo $i; ?>][reps]" 
+                       id="form-reps-<?php echo $exercise['id']; ?>-<?php echo $i; ?>"
+                       value="">
+            <?php endfor; ?>
+        <?php endforeach; ?>
+    </form>
+</div>
+
 <!-- Exercise Modal -->
 <div class="exercise-modal" id="exerciseModal">
     <div class="modal-header">
@@ -1205,7 +1230,6 @@ if (!empty($day_exercises)) {
     let completedSets = {};
     let timerInterval = null;
     let remainingSeconds = 120;
-    let currentDay = <?php echo $selected_day; ?>;
 
     // Initialize when DOM is loaded
     document.addEventListener('DOMContentLoaded', function() {
@@ -1615,24 +1639,72 @@ if (!empty($day_exercises)) {
             `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     }
 
-    // Complete workout
+    // Complete workout - WORKING VERSION
     async function completeWorkout() {
         if (!confirm('Are you sure you want to complete this workout? All logged sets will be saved.')) {
             return;
         }
         
-        // Collect all set data
-        const workoutData = {
-            day_id: <?php echo $current_day ? $current_day['id'] : 'null'; ?>,
-            exercises: []
-        };
+        // Update the hidden form with all completed sets
+        const form = document.getElementById('workoutForm');
+        if (!form) {
+            alert('Form not found. Please refresh the page.');
+            return;
+        }
+        
+        // Clear all form values first
+        const inputs = form.querySelectorAll('input[type="hidden"]');
+        inputs.forEach(input => input.value = '');
+        
+        // Update form with completed sets
+        let hasValidData = false;
         
         for (const [exerciseId, data] of Object.entries(completedSets)) {
-            workoutData.exercises.push({
-                exercise_id: exerciseId,
-                sets: data.sets
-            });
+            if (data.sets && data.sets.length > 0) {
+                data.sets.forEach((set) => {
+                    if (set.reps && set.reps > 0) {
+                        hasValidData = true;
+                        
+                        const weightInput = document.getElementById(`form-weight-${exerciseId}-${set.set}`);
+                        const repsInput = document.getElementById(`form-reps-${exerciseId}-${set.set}`);
+                        
+                        if (weightInput && repsInput) {
+                            weightInput.value = set.weight || 0;
+                            repsInput.value = set.reps || 0;
+                        }
+                    }
+                });
+            }
         }
+        
+        // Also add current set from modal if not saved yet
+        const currentExercise = exercises[currentExerciseIndex];
+        if (currentExercise) {
+            const weight = document.getElementById('weightInput').value;
+            const reps = document.getElementById('repsInput').value;
+            
+            if (reps && parseInt(reps) > 0) {
+                hasValidData = true;
+                
+                const weightInput = document.getElementById(`form-weight-${currentExercise.id}-${currentSet}`);
+                const repsInput = document.getElementById(`form-reps-${currentExercise.id}-${currentSet}`);
+                
+                if (weightInput && repsInput) {
+                    weightInput.value = parseFloat(weight) || 0;
+                    repsInput.value = parseInt(reps) || 0;
+                }
+            }
+        }
+        
+        if (!hasValidData) {
+            alert('Please enter at least one set of reps to complete your workout.');
+            return;
+        }
+        
+        // Create FormData
+        const formData = new FormData(form);
+        formData.append('ajax_complete_workout', 'true');
+        formData.append('day_id', <?php echo $current_day ? $current_day['id'] : 'null'; ?>);
         
         // Show loading
         const completeBtn = document.getElementById('completeWorkout');
@@ -1643,13 +1715,7 @@ if (!empty($day_exercises)) {
         try {
             const response = await fetch('ajax_save_workout.php', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    ajax_complete_workout: true,
-                    ...workoutData
-                })
+                body: formData
             });
             
             const result = await response.json();
@@ -1659,7 +1725,7 @@ if (!empty($day_exercises)) {
                 document.getElementById('successModal').classList.add('active');
                 document.getElementById('exerciseModal').classList.remove('active');
             } else {
-                alert('Error saving workout: ' + (result.message || 'Unknown error'));
+                alert('Error: ' + result.message);
                 completeBtn.innerHTML = originalText;
                 completeBtn.disabled = false;
             }
