@@ -18,7 +18,7 @@ if (!$user_plan) {
     exit();
 }
 
-// Get all days in plan
+// Get all days in plan with their exercises
 $days_query = 'SELECT * FROM workout_plan_days WHERE plan_id = ? ORDER BY day_order';
 $stmt = $db->prepare($days_query);
 $stmt->execute([$user_plan['id']]);
@@ -46,17 +46,19 @@ foreach ($all_days as $day) {
     }
 }
 
-if ($current_day) {
-    // Get exercises for selected day
+// Get exercises for ALL days to populate forms
+$all_exercises_by_day = [];
+foreach ($all_days as $day) {
     $exercises_query = "SELECT * FROM workout_exercises 
                        WHERE plan_day_id = ? 
                        ORDER BY id";
     $stmt = $db->prepare($exercises_query);
-    $stmt->execute([$current_day['id']]);
-    $day_exercises = $stmt->fetchAll(PDO::FETCH_ASSOC);
-} else {
-    $day_exercises = [];
+    $stmt->execute([$day['id']]);
+    $all_exercises_by_day[$day['day_order']] = $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
+
+// Get exercises for current day
+$day_exercises = $all_exercises_by_day[$selected_day] ?? [];
 
 // Get last workout data for progressive overload
 $last_workout_data = [];
@@ -841,8 +843,8 @@ if (!empty($day_exercises)) {
         50% { transform: translateY(-5px); }
     }
 
-    /* Hidden Form */
-    .hidden-form {
+    /* Hidden Form Container */
+    .hidden-forms-container {
         display: none;
     }
 
@@ -1048,24 +1050,28 @@ if (!empty($day_exercises)) {
     </div>
 </div>
 
-<!-- Hidden Form for AJAX Submission -->
-<div class="hidden-form">
-    <form id="workoutForm">
-        <input type="hidden" name="day_id" value="<?php echo $current_day ? $current_day['id'] : ''; ?>">
-        
-        <?php foreach ($day_exercises as $exercise): ?>
-            <?php for ($i = 1; $i <= $exercise['default_sets']; $i++): ?>
-                <input type="hidden" 
-                       name="sets[<?php echo $exercise['id']; ?>][<?php echo $i; ?>][weight]" 
-                       id="form-weight-<?php echo $exercise['id']; ?>-<?php echo $i; ?>"
-                       value="">
-                <input type="hidden" 
-                       name="sets[<?php echo $exercise['id']; ?>][<?php echo $i; ?>][reps]" 
-                       id="form-reps-<?php echo $exercise['id']; ?>-<?php echo $i; ?>"
-                       value="">
-            <?php endfor; ?>
-        <?php endforeach; ?>
-    </form>
+<!-- Hidden Forms for ALL Days -->
+<div class="hidden-forms-container">
+    <?php foreach ($all_days as $day): 
+        $day_exercises_for_form = $all_exercises_by_day[$day['day_order']] ?? [];
+    ?>
+        <form id="workoutForm-<?php echo $day['day_order']; ?>" class="workout-form" data-day-id="<?php echo $day['id']; ?>">
+            <input type="hidden" name="day_id" value="<?php echo $day['id']; ?>">
+            
+            <?php foreach ($day_exercises_for_form as $exercise): ?>
+                <?php for ($i = 1; $i <= $exercise['default_sets']; $i++): ?>
+                    <input type="hidden" 
+                           name="sets[<?php echo $exercise['id']; ?>][<?php echo $i; ?>][weight]" 
+                           id="form-weight-<?php echo $day['day_order']; ?>-<?php echo $exercise['id']; ?>-<?php echo $i; ?>"
+                           value="">
+                    <input type="hidden" 
+                           name="sets[<?php echo $exercise['id']; ?>][<?php echo $i; ?>][reps]" 
+                           id="form-reps-<?php echo $day['day_order']; ?>-<?php echo $exercise['id']; ?>-<?php echo $i; ?>"
+                           value="">
+                <?php endfor; ?>
+            <?php endforeach; ?>
+        </form>
+    <?php endforeach; ?>
 </div>
 
 <!-- Exercise Modal -->
@@ -1230,6 +1236,7 @@ if (!empty($day_exercises)) {
     let completedSets = {};
     let timerInterval = null;
     let remainingSeconds = 120;
+    let currentDay = <?php echo $selected_day; ?>;
 
     // Initialize when DOM is loaded
     document.addEventListener('DOMContentLoaded', function() {
@@ -1639,16 +1646,17 @@ if (!empty($day_exercises)) {
             `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     }
 
-    // Complete workout - WORKING VERSION
+    // Complete workout - UPDATED FOR MULTIPLE DAYS
     async function completeWorkout() {
         if (!confirm('Are you sure you want to complete this workout? All logged sets will be saved.')) {
             return;
         }
         
-        // Update the hidden form with all completed sets
-        const form = document.getElementById('workoutForm');
+        // Get the form for the current day
+        const formId = 'workoutForm-' + currentDay;
+        const form = document.getElementById(formId);
         if (!form) {
-            alert('Form not found. Please refresh the page.');
+            alert('Form not found for day ' + currentDay + '. Please refresh the page.');
             return;
         }
         
@@ -1665,8 +1673,8 @@ if (!empty($day_exercises)) {
                     if (set.reps && set.reps > 0) {
                         hasValidData = true;
                         
-                        const weightInput = document.getElementById(`form-weight-${exerciseId}-${set.set}`);
-                        const repsInput = document.getElementById(`form-reps-${exerciseId}-${set.set}`);
+                        const weightInput = document.getElementById(`form-weight-${currentDay}-${exerciseId}-${set.set}`);
+                        const repsInput = document.getElementById(`form-reps-${currentDay}-${exerciseId}-${set.set}`);
                         
                         if (weightInput && repsInput) {
                             weightInput.value = set.weight || 0;
@@ -1686,8 +1694,8 @@ if (!empty($day_exercises)) {
             if (reps && parseInt(reps) > 0) {
                 hasValidData = true;
                 
-                const weightInput = document.getElementById(`form-weight-${currentExercise.id}-${currentSet}`);
-                const repsInput = document.getElementById(`form-reps-${currentExercise.id}-${currentSet}`);
+                const weightInput = document.getElementById(`form-weight-${currentDay}-${currentExercise.id}-${currentSet}`);
+                const repsInput = document.getElementById(`form-reps-${currentDay}-${currentExercise.id}-${currentSet}`);
                 
                 if (weightInput && repsInput) {
                     weightInput.value = parseFloat(weight) || 0;
@@ -1704,7 +1712,6 @@ if (!empty($day_exercises)) {
         // Create FormData
         const formData = new FormData(form);
         formData.append('ajax_complete_workout', 'true');
-        formData.append('day_id', <?php echo $current_day ? $current_day['id'] : 'null'; ?>);
         
         // Show loading
         const completeBtn = document.getElementById('completeWorkout');
