@@ -34,6 +34,7 @@ $current_day_index = ($days_since_start % $total_days) + 1;
 
 // Get exercises for ALL days
 $all_exercises = [];
+$day_ids = []; // Store day IDs by day_order
 foreach ($all_days as $day) {
     $exercises_query = "SELECT * FROM workout_exercises 
                        WHERE plan_day_id = ? 
@@ -43,6 +44,7 @@ foreach ($all_days as $day) {
     $exercises = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     $all_exercises[$day['day_order']] = $exercises;
+    $day_ids[$day['day_order']] = $day['id']; // Store day ID
 }
 
 // Get last workout data for progressive overload - OPTIMIZED QUERY
@@ -976,7 +978,8 @@ if (!empty($exercise_ids)) {
         <div class="days-navigation">
             <?php foreach ($all_days as $day): ?>
             <div class="day-tab <?php echo $day['day_order'] == $current_day_index ? 'active current' : ''; ?>" 
-                 data-day="<?php echo $day['day_order']; ?>">
+                 data-day="<?php echo $day['day_order']; ?>"
+                 data-day-id="<?php echo $day['id']; ?>">
                 Day <?php echo $day['day_order']; ?>
             </div>
             <?php endforeach; ?>
@@ -991,7 +994,8 @@ if (!empty($exercise_ids)) {
             $total_exercises_day = count($day_exercises);
         ?>
         <div class="day-content <?php echo $day['day_order'] == $current_day_index ? 'active' : ''; ?>" 
-             id="day-<?php echo $day['day_order']; ?>">
+             id="day-<?php echo $day['day_order']; ?>"
+             data-day-id="<?php echo $day['id']; ?>">
             
             <!-- Day Header -->
             <div class="day-header">
@@ -1262,6 +1266,7 @@ if (!empty($exercise_ids)) {
     let completedSets = {};
     let timerInterval = null;
     let remainingSeconds = 120;
+    let dayIds = <?php echo json_encode($day_ids); ?>; // Store day IDs
 
     // Initialize exercises data for all days
     <?php foreach ($all_days as $day): ?>
@@ -1277,6 +1282,7 @@ if (!empty($exercise_ids)) {
         document.querySelectorAll('.day-tab').forEach(tab => {
             tab.addEventListener('click', function() {
                 const dayNumber = parseInt(this.getAttribute('data-day'));
+                const dayId = parseInt(this.getAttribute('data-day-id'));
                 
                 // Update active states
                 document.querySelectorAll('.day-tab').forEach(t => t.classList.remove('active'));
@@ -1710,7 +1716,7 @@ if (!empty($exercise_ids)) {
             `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     }
 
-    // Complete workout
+    // Complete workout - FIXED VERSION
     async function completeWorkout() {
         if (!confirm('Are you sure you want to complete this workout? All logged sets will be saved.')) {
             return;
@@ -1724,9 +1730,26 @@ if (!empty($exercise_ids)) {
             return;
         }
         
+        // Get the correct day ID from our stored dayIds
+        const currentDayId = dayIds[currentDay];
+        if (!currentDayId) {
+            alert('Day ID not found for day ' + currentDay + '. Please refresh the page.');
+            return;
+        }
+        
+        // Update the day_id in the form
+        const dayIdInput = form.querySelector('input[name="day_id"]');
+        if (dayIdInput) {
+            dayIdInput.value = currentDayId;
+        }
+        
         // Clear all form values first
         const inputs = form.querySelectorAll('input[type="hidden"]');
-        inputs.forEach(input => input.value = '');
+        inputs.forEach(input => {
+            if (!input.name.includes('day_id')) {
+                input.value = '';
+            }
+        });
         
         // Update form with completed sets
         let hasValidData = false;
