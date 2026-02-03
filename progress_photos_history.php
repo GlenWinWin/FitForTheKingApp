@@ -60,52 +60,137 @@ $dates = array_column($photos, 'photo_date');
             <h2 class="mobile-card-title">Compare Progress</h2>
             <p class="mobile-card-subtitle">Select two dates to see your transformation</p>
             
-            <!-- Date Selection exactly like second screenshot -->
-            <div class="date-selection-screenshot">
-                <div class="date-option" onclick="openDatePicker('start')">
-                    <div class="date-icon">
-                        <i class="fas fa-flag"></i>
-                    </div>
-                    <div class="date-input-wrapper">
-                        <div class="date-input-label">Start date</div>
-                        <div class="date-input-value" id="startDateValue">Choose start date</div>
-                    </div>
-                    <div class="date-arrow">
+            <!-- Date Selection exactly like your reference -->
+            <div class="date-selection-reference">
+                <div class="date-item-reference">
+                    <div class="date-label-reference">Start date</div>
+                    <div class="date-value-reference" onclick="openDatePicker('start')">
+                        <span id="startDateValue" class="<?php echo empty($dates) ? 'empty' : ''; ?>">
+                            <?php echo !empty($dates[1]) ? date('F j, Y', strtotime($dates[1])) : 'Select date'; ?>
+                        </span>
                         <i class="fas fa-chevron-down"></i>
                     </div>
                 </div>
                 
-                <div class="date-option" onclick="openDatePicker('end')">
-                    <div class="date-icon">
-                        <i class="fas fa-bullseye"></i>
-                    </div>
-                    <div class="date-input-wrapper">
-                        <div class="date-input-label">End date</div>
-                        <div class="date-input-value" id="endDateValue">Choose end date</div>
-                    </div>
-                    <div class="date-arrow">
+                <div class="date-item-reference">
+                    <div class="date-label-reference">End date</div>
+                    <div class="date-value-reference" onclick="openDatePicker('end')">
+                        <span id="endDateValue" class="<?php echo empty($dates) ? 'empty' : ''; ?>">
+                            <?php echo !empty($dates[0]) ? date('F j, Y', strtotime($dates[0])) : 'Select date'; ?>
+                        </span>
                         <i class="fas fa-chevron-down"></i>
                     </div>
                 </div>
             </div>
             
-            <!-- Your before & after photos will appear here -->
-            <div class="photos-placeholder">
-                <div class="placeholder-icon">
-                    <i class="fas fa-images"></i>
+            <!-- Preview Section - Photos will appear here -->
+            <div class="preview-section-reference">
+                <h3 class="preview-title">Preview Result</h3>
+                
+                <!-- Initially show placeholder -->
+                <div id="photosPlaceholder" class="photos-placeholder-reference">
+                    <div class="placeholder-icon">
+                        <i class="fas fa-images"></i>
+                    </div>
+                    <div class="placeholder-text">
+                        <p>Your before & after photos will appear here</p>
+                        <p class="placeholder-subtext">Start by selecting two dates above</p>
+                    </div>
                 </div>
-                <div class="placeholder-text">
-                    <p>Your before & after photos will appear here</p>
-                    <p class="placeholder-subtext">Start by selecting two dates above</p>
+                
+                <!-- Photos comparison will be shown here -->
+                <div id="photosComparison" class="photos-comparison" style="display: none;">
+                    <!-- View tabs for front/side/back -->
+                    <div class="comparison-view-tabs">
+                        <button class="comparison-tab-button active" data-view="front">
+                            <i class="fas fa-user"></i>
+                            <span>Front</span>
+                        </button>
+                        <button class="comparison-tab-button" data-view="side">
+                            <i class="fas fa-user-friends"></i>
+                            <span>Side</span>
+                        </button>
+                        <button class="comparison-tab-button" data-view="back">
+                            <i class="fas fa-user-circle"></i>
+                            <span>Back</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Comparison dates -->
+                    <div class="comparison-dates">
+                        <div class="comparison-date-item">
+                            <span id="comparisonStartDate">November 28, 2025</span>
+                        </div>
+                        <div class="comparison-date-item">
+                            <span id="comparisonEndDate">January 9, 2026</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Photos container -->
+                    <div class="comparison-photos-container">
+                        <!-- Front View (Default) -->
+                        <div class="comparison-view active" data-view="front">
+                            <div class="comparison-photo-column">
+                                <div class="photo-wrapper">
+                                    <img id="startFrontPhoto" src="https://via.placeholder.com/300x400/1a237e/ffffff?text=Start+Front+View" 
+                                         alt="Start Front View" 
+                                         class="comparison-photo">
+                                </div>
+                            </div>
+                            <div class="comparison-photo-column">
+                                <div class="photo-wrapper">
+                                    <img id="endFrontPhoto" src="https://via.placeholder.com/300x400/1a237e/ffffff?text=End+Front+View" 
+                                         alt="End Front View" 
+                                         class="comparison-photo">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Side View -->
+                        <div class="comparison-view" data-view="side">
+                            <div class="comparison-photo-column">
+                                <div class="photo-wrapper">
+                                    <img id="startSidePhoto" src="https://via.placeholder.com/300x400/1a237e/ffffff?text=Start+Side+View" 
+                                         alt="Start Side View" 
+                                         class="comparison-photo">
+                                </div>
+                            </div>
+                            <div class="comparison-photo-column">
+                                <div class="photo-wrapper">
+                                    <img id="endSidePhoto" src="https://via.placeholder.com/300x400/1a237e/ffffff?text=End+Side+View" 
+                                         alt="End Side View" 
+                                         class="comparison-photo">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Back View -->
+                        <div class="comparison-view" data-view="back">
+                            <div class="comparison-photo-column">
+                                <div class="photo-wrapper">
+                                    <img id="startBackPhoto" src="https://via.placeholder.com/300x400/1a237e/ffffff?text=Start+Back+View" 
+                                         alt="Start Back View" 
+                                         class="comparison-photo">
+                                </div>
+                            </div>
+                            <div class="comparison-photo-column">
+                                <div class="photo-wrapper">
+                                    <img id="endBackPhoto" src="https://via.placeholder.com/300x400/1a237e/ffffff?text=End+Back+View" 
+                                         alt="End Back View" 
+                                         class="comparison-photo">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             
             <!-- Action Buttons -->
-            <div class="action-buttons-screenshot">
-                <button class="screenshot-btn primary" id="compareNowBtn">
+            <div class="action-buttons-reference">
+                <button class="reference-btn primary" id="compareNowBtn">
                     <span>Compare Now</span>
                 </button>
-                <button class="screenshot-btn secondary" id="resetBtn">
+                <button class="reference-btn secondary" id="resetBtn">
                     <span>Reset</span>
                 </button>
             </div>
@@ -120,8 +205,6 @@ $dates = array_column($photos, 'photo_date');
             <h2 class="mobile-card-title">Photo History</h2>
             <p class="mobile-card-subtitle">Track your transformation journey</p>
             
-            <!-- Only show view tabs if there are multiple photos -->
-            <?php if (count($photos) > 0): ?>
             <div class="mobile-view-tabs">
                 <button class="view-tab-button active" data-view="front">
                     <i class="fas fa-user"></i>
@@ -186,15 +269,6 @@ $dates = array_column($photos, 'photo_date');
                 </div>
                 <?php endforeach; ?>
             </div>
-            <?php else: ?>
-            <div class="empty-state-inline">
-                <div class="empty-icon-inline">
-                    <i class="fas fa-images"></i>
-                </div>
-                <h4>No Photos Yet</h4>
-                <p>Add your first progress photos to start tracking</p>
-            </div>
-            <?php endif; ?>
         </div>
         <?php endif; ?>
     </main>
@@ -415,84 +489,82 @@ $dates = array_column($photos, 'photo_date');
     line-height: 1.4;
 }
 
-/* EXACT SCREENSHOT STYLES */
-
-/* Date Selection - like second screenshot */
-.date-selection-screenshot {
+/* Date Selection - like reference image */
+.date-selection-reference {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 16px;
     margin-bottom: 24px;
+    padding: 0 8px;
 }
 
-.date-option {
+.date-item-reference {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.date-label-reference {
+    font-size: 14px;
+    color: var(--light-text);
+    font-weight: 500;
+    padding-left: 4px;
+}
+
+.date-value-reference {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 16px;
+    justify-content: space-between;
+    padding: 14px 16px;
     background: var(--bg-color);
     border: 1px solid var(--border);
-    border-radius: 12px;
+    border-radius: 10px;
     cursor: pointer;
     transition: all 0.2s ease;
     min-height: 44px;
 }
 
-.date-option:active {
+.date-value-reference:active {
     background: rgba(var(--accent-rgb), 0.05);
     border-color: var(--accent);
 }
 
-.date-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
-    background: linear-gradient(135deg, #4CAF50, #8BC34A);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 16px;
-}
-
-.date-option:nth-child(2) .date-icon {
-    background: linear-gradient(135deg, #FF6B6B, #FFA726);
-}
-
-.date-input-wrapper {
-    flex: 1;
-}
-
-.date-input-label {
-    font-size: 13px;
-    color: var(--light-text);
-    margin-bottom: 2px;
-    font-weight: 500;
-}
-
-.date-input-value {
+.date-value-reference span {
     font-size: 15px;
     font-weight: 500;
     color: var(--text);
 }
 
-.date-input-value.empty {
+.date-value-reference span.empty {
     color: var(--light-text);
 }
 
-.date-arrow {
+.date-value-reference i {
     color: var(--light-text);
     font-size: 14px;
 }
 
+/* Preview Section - like reference image */
+.preview-section-reference {
+    background: var(--bg-color);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+}
+
+.preview-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 20px 0;
+    text-align: center;
+}
+
 /* Photos Placeholder */
-.photos-placeholder {
+.photos-placeholder-reference {
     text-align: center;
     padding: 40px 20px;
-    margin-bottom: 24px;
-    background: var(--bg-color);
-    border: 1px dashed var(--border);
-    border-radius: 12px;
 }
 
 .placeholder-icon {
@@ -517,14 +589,117 @@ $dates = array_column($photos, 'photo_date');
     opacity: 0.8;
 }
 
-/* Action Buttons - like screenshot */
-.action-buttons-screenshot {
+/* Photos Comparison */
+.photos-comparison {
+    animation: fadeIn 0.3s ease;
+}
+
+.comparison-view-tabs {
+    display: flex;
+    background: var(--bg-color);
+    border-radius: 10px;
+    padding: 4px;
+    border: 1px solid var(--border);
+    margin-bottom: 20px;
+}
+
+.comparison-tab-button {
+    flex: 1;
+    height: 40px;
+    border: none;
+    background: transparent;
+    color: var(--light-text);
+    font-size: 13px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-height: 40px;
+}
+
+.comparison-tab-button.active {
+    background: var(--card-bg);
+    color: var(--accent);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.comparison-tab-button:active {
+    background: rgba(var(--accent-rgb), 0.1);
+}
+
+.comparison-dates {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.comparison-date-item {
+    flex: 1;
+    text-align: center;
+    padding: 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+}
+
+.comparison-photos-container {
+    position: relative;
+}
+
+.comparison-view {
+    display: none;
+}
+
+.comparison-view.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+.comparison-photo-column {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.comparison-photo-column:first-child {
+    margin-bottom: 20px;
+}
+
+.photo-wrapper {
+    width: 100%;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.comparison-photo {
+    width: 100%;
+    height: auto;
+    display: block;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.comparison-photo:active {
+    transform: scale(0.98);
+}
+
+/* Action Buttons - like reference image */
+.action-buttons-reference {
     display: flex;
     gap: 12px;
     margin-top: 20px;
 }
 
-.screenshot-btn {
+.reference-btn {
     flex: 1;
     height: 44px;
     border-radius: 10px;
@@ -539,27 +714,27 @@ $dates = array_column($photos, 'photo_date');
     min-height: 44px;
 }
 
-.screenshot-btn:active {
+.reference-btn:active {
     transform: scale(0.98);
 }
 
-.screenshot-btn.primary {
+.reference-btn.primary {
     background: var(--accent);
     color: white;
     border: none;
 }
 
-.screenshot-btn.primary:active {
+.reference-btn.primary:active {
     opacity: 0.9;
 }
 
-.screenshot-btn.secondary {
+.reference-btn.secondary {
     background: transparent;
     color: var(--accent);
     border: 1.5px solid var(--accent);
 }
 
-.screenshot-btn.secondary:active {
+.reference-btn.secondary:active {
     background: rgba(var(--accent-rgb), 0.1);
 }
 
@@ -858,32 +1033,6 @@ $dates = array_column($photos, 'photo_date');
     margin: 0;
 }
 
-/* Empty State Inline */
-.empty-state-inline {
-    text-align: center;
-    padding: 40px 20px;
-}
-
-.empty-icon-inline {
-    font-size: 48px;
-    color: var(--light-text);
-    margin-bottom: 16px;
-    opacity: 0.5;
-}
-
-.empty-state-inline h4 {
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--text);
-    margin-bottom: 8px;
-}
-
-.empty-state-inline p {
-    font-size: 14px;
-    color: var(--light-text);
-    margin-bottom: 0;
-}
-
 /* Bottom Navigation */
 .mobile-bottom-nav {
     position: fixed;
@@ -1033,7 +1182,18 @@ $dates = array_column($photos, 'photo_date');
         font-size: 13px;
     }
     
-    .action-buttons-screenshot {
+    .comparison-view-tabs {
+        flex-wrap: wrap;
+    }
+    
+    .comparison-tab-button {
+        flex: 1 0 calc(33.333% - 8px);
+        min-width: 0;
+        font-size: 12px;
+        padding: 6px 4px;
+    }
+    
+    .action-buttons-reference {
         flex-direction: column;
     }
     
@@ -1092,33 +1252,37 @@ $dates = array_column($photos, 'photo_date');
 
 /* Touch feedback */
 @media (hover: none) and (pointer: coarse) {
-    .screenshot-btn,
+    .reference-btn,
+    .comparison-tab-button,
     .view-tab-button,
     .nav-item,
     .mobile-back-btn,
     .mobile-add-btn,
-    .date-option,
+    .date-value-reference,
     .available-date {
         min-height: 44px;
     }
     
-    .progress-photo {
+    .progress-photo,
+    .comparison-photo {
         cursor: default;
     }
     
     /* Remove hover effects */
-    .screenshot-btn:hover,
+    .reference-btn:hover,
+    .comparison-tab-button:hover,
     .view-tab-button:hover,
     .nav-item:hover,
-    .date-option:hover,
+    .date-value-reference:hover,
     .available-date:hover {
         transform: none;
     }
     
-    .screenshot-btn:active,
+    .reference-btn:active,
+    .comparison-tab-button:active,
     .view-tab-button:active,
     .nav-item:active,
-    .date-option:active,
+    .date-value-reference:active,
     .available-date:active {
         transform: scale(0.98);
     }
@@ -1167,6 +1331,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentDateType = ''; // 'start' or 'end'
     let selectedStartDate = null;
     let selectedEndDate = null;
+    let allPhotos = <?php echo json_encode($photos); ?>;
     
     // Open date picker
     window.openDatePicker = function(type) {
@@ -1217,8 +1382,10 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('datePickerModal').style.display = 'none';
             document.body.style.overflow = 'auto';
             
-            // Update photos placeholder if both dates are selected
-            updatePhotosPlaceholder();
+            // Update comparison preview if both dates are selected
+            if (selectedStartDate && selectedEndDate) {
+                updateComparisonPreview();
+            }
         });
     });
     
@@ -1236,9 +1403,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             
-            // Here you would redirect to comparison page
-            alert(`Comparing:\nStart: ${selectedStartDate}\nEnd: ${selectedEndDate}`);
-            // window.location.href = `compare.php?start=${selectedStartDate}&end=${selectedEndDate}`;
+            // Update comparison preview
+            updateComparisonPreview();
+            
+            // Show success message
+            showToast('Comparison loaded successfully!', 'success');
         });
     }
     
@@ -1250,105 +1419,124 @@ document.addEventListener('DOMContentLoaded', function() {
             selectedStartDate = null;
             selectedEndDate = null;
             
-            document.getElementById('startDateValue').textContent = 'Choose start date';
+            document.getElementById('startDateValue').textContent = 'Select date';
             document.getElementById('startDateValue').classList.add('empty');
-            document.getElementById('endDateValue').textContent = 'Choose end date';
+            document.getElementById('endDateValue').textContent = 'Select date';
             document.getElementById('endDateValue').classList.add('empty');
             
-            // Reset photos placeholder
-            updatePhotosPlaceholder();
+            // Hide photos comparison and show placeholder
+            document.getElementById('photosComparison').style.display = 'none';
+            document.getElementById('photosPlaceholder').style.display = 'block';
+            
+            showToast('Comparison reset', 'info');
         });
     }
     
-    // Function to update photos placeholder
-    function updatePhotosPlaceholder() {
-        const placeholder = document.querySelector('.photos-placeholder');
-        if (selectedStartDate && selectedEndDate) {
-            placeholder.innerHTML = `
-                <div class="placeholder-icon">
-                    <i class="fas fa-spinner fa-spin"></i>
-                </div>
-                <div class="placeholder-text">
-                    <p>Loading comparison...</p>
-                    <p class="placeholder-subtext">January 9, 2026 vs January 15, 2026</p>
-                </div>
-            `;
+    // Function to update comparison preview
+    function updateComparisonPreview() {
+        // Hide placeholder and show comparison
+        document.getElementById('photosPlaceholder').style.display = 'none';
+        document.getElementById('photosComparison').style.display = 'block';
+        
+        // Update comparison dates
+        const startDateText = document.getElementById('startDateValue').textContent;
+        const endDateText = document.getElementById('endDateValue').textContent;
+        
+        document.getElementById('comparisonStartDate').textContent = startDateText;
+        document.getElementById('comparisonEndDate').textContent = endDateText;
+        
+        // Find the selected photos
+        const startPhoto = allPhotos.find(photo => photo.photo_date === selectedStartDate);
+        const endPhoto = allPhotos.find(photo => photo.photo_date === selectedEndDate);
+        
+        // Update photos for each view
+        const views = ['front', 'side', 'back'];
+        views.forEach(view => {
+            const startImg = document.getElementById(`start${capitalizeFirst(view)}Photo`);
+            const endImg = document.getElementById(`end${capitalizeFirst(view)}Photo`);
             
-            // After 2 seconds, show the preview like first screenshot
-            setTimeout(() => {
-                placeholder.innerHTML = `
-                    <div class="preview-result-screenshot">
-                        <h3>Preview Result</h3>
-                        
-                        <div class="preview-dates-screenshot">
-                            <div class="preview-date-item">
-                                <span class="preview-date-label">January 9, 2026</span>
-                            </div>
-                            <div class="preview-date-item">
-                                <span class="preview-date-label">January 15, 2016</span>
-                            </div>
-                        </div>
-                        
-                        <div class="stats-screenshot">
-                            <div class="stat-row">
-                                <span class="stat-label">Weight:</span>
-                                <span class="stat-value">-1.2 kg</span>
-                            </div>
-                            <div class="stat-row">
-                                <span class="stat-label">Fasting:</span>
-                                <span class="stat-value">5 days</span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }, 2000);
-        } else {
-            placeholder.innerHTML = `
-                <div class="placeholder-icon">
-                    <i class="fas fa-images"></i>
-                </div>
-                <div class="placeholder-text">
-                    <p>Your before & after photos will appear here</p>
-                    <p class="placeholder-subtext">Start by selecting two dates above</p>
-                </div>
-            `;
-        }
+            if (startPhoto && startPhoto[view + '_photo']) {
+                startImg.src = startPhoto[view + '_photo'];
+                startImg.alt = `Start ${view} View - ${startDateText}`;
+            } else {
+                startImg.src = `https://via.placeholder.com/300x400/1a237e/ffffff?text=Start+${capitalizeFirst(view)}+View`;
+                startImg.alt = `Start ${view} View - No photo available`;
+            }
+            
+            if (endPhoto && endPhoto[view + '_photo']) {
+                endImg.src = endPhoto[view + '_photo'];
+                endImg.alt = `End ${view} View - ${endDateText}`;
+            } else {
+                endImg.src = `https://via.placeholder.com/300x400/1a237e/ffffff?text=End+${capitalizeFirst(view)}+View`;
+                endImg.alt = `End ${view} View - No photo available`;
+            }
+        });
+        
+        // Scroll to comparison
+        document.getElementById('photosComparison').scrollIntoView({ behavior: 'smooth' });
     }
     
-    // View tabs for photo timeline
-    const timelineTabs = document.querySelectorAll('.mobile-view-tabs .view-tab-button');
-    if (timelineTabs.length > 0) {
-        timelineTabs.forEach(tab => {
-            tab.addEventListener('click', function(e) {
-                e.preventDefault();
-                const view = this.dataset.view;
-                const container = this.closest('.mobile-card');
-                
-                // Update active tab in this container
-                container.querySelectorAll('.view-tab-button').forEach(t => {
-                    t.classList.remove('active');
-                });
-                this.classList.add('active');
-                
-                // Update photo views in this timeline card
-                container.querySelectorAll('.photo-view-pane').forEach(pane => {
-                    pane.classList.remove('active');
-                    if (pane.dataset.view === view) {
-                        pane.classList.add('active');
-                    }
-                });
+    // Helper function to capitalize first letter
+    function capitalizeFirst(string) {
+        return string.charAt(0).toUpperCase() + string.slice(1);
+    }
+    
+    // Comparison view tabs
+    const comparisonTabs = document.querySelectorAll('.comparison-tab-button');
+    const comparisonViews = document.querySelectorAll('.comparison-view');
+    
+    comparisonTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            const view = this.dataset.view;
+            
+            // Update active tab
+            comparisonTabs.forEach(t => {
+                t.classList.remove('active');
+            });
+            this.classList.add('active');
+            
+            // Update active view
+            comparisonViews.forEach(v => {
+                v.classList.remove('active');
+                if (v.dataset.view === view) {
+                    v.classList.add('active');
+                }
             });
         });
-    }
+    });
     
-    // Photo click handlers
+    // Photo timeline view tabs
+    const timelineTabs = document.querySelectorAll('.mobile-view-tabs .view-tab-button');
+    timelineTabs.forEach(tab => {
+        tab.addEventListener('click', function(e) {
+            e.preventDefault();
+            const view = this.dataset.view;
+            const container = this.closest('.mobile-card');
+            
+            // Update active tab in this container
+            container.querySelectorAll('.view-tab-button').forEach(t => {
+                t.classList.remove('active');
+            });
+            this.classList.add('active');
+            
+            // Update photo views in this timeline card
+            container.querySelectorAll('.photo-view-pane').forEach(pane => {
+                pane.classList.remove('active');
+                if (pane.dataset.view === view) {
+                    pane.classList.add('active');
+                }
+            });
+        });
+    });
+    
+    // Photo click handlers (for both timeline and comparison photos)
     document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('progress-photo')) {
-            const src = e.target.dataset.src;
-            const date = e.target.dataset.date;
+        if (e.target.classList.contains('progress-photo') || e.target.classList.contains('comparison-photo')) {
+            const src = e.target.src;
+            const alt = e.target.alt;
             
             document.getElementById('modalImage').src = src;
-            document.getElementById('modalDate').textContent = date;
+            document.getElementById('modalDate').textContent = alt;
             document.getElementById('photoModal').style.display = 'block';
             document.body.style.overflow = 'hidden';
         }
@@ -1380,6 +1568,67 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
+    // Toast notification
+    function showToast(message, type) {
+        const toast = document.createElement('div');
+        toast.className = 'toast-notification';
+        toast.innerHTML = `
+            <div class="toast-content ${type}">
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'info-circle'}"></i>
+                <span>${message}</span>
+            </div>
+        `;
+        
+        document.body.appendChild(toast);
+        
+        // Style
+        toast.style.cssText = `
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2002;
+            animation: toastIn 0.3s ease;
+            max-width: 90%;
+        `;
+        
+        const toastContent = toast.querySelector('.toast-content');
+        toastContent.style.cssText = `
+            background: ${type === 'success' ? 'rgba(76, 175, 80, 0.95)' : 'rgba(33, 150, 243, 0.95)'};
+            color: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        `;
+        
+        // Add animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes toastIn {
+                from { opacity: 0; transform: translate(-50%, -20px); }
+                to { opacity: 1; transform: translate(-50%, 0); }
+            }
+            @keyframes toastOut {
+                from { opacity: 1; transform: translate(-50%, 0); }
+                to { opacity: 0; transform: translate(-50%, -20px); }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Remove after delay
+        setTimeout(() => {
+            toast.style.animation = 'toastOut 0.3s ease';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    }
+    
     // Simulate haptic feedback
     function hapticFeedback() {
         if ('vibrate' in navigator) {
@@ -1388,7 +1637,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Add haptic to interactive elements
-    const interactiveElements = document.querySelectorAll('.screenshot-btn, .view-tab-button, .nav-item, .mobile-back-btn, .mobile-add-btn, .date-option, .available-date');
+    const interactiveElements = document.querySelectorAll('.reference-btn, .comparison-tab-button, .view-tab-button, .nav-item, .mobile-back-btn, .mobile-add-btn, .date-value-reference, .available-date');
     interactiveElements.forEach(el => {
         el.addEventListener('touchstart', hapticFeedback);
     });
