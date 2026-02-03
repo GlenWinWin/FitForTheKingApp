@@ -62,71 +62,60 @@ $dates = array_column($photos, 'photo_date');
                 <h2 class="mobile-card-title">Compare Progress</h2>
                 <p class="mobile-card-subtitle">Select two dates to see your transformation</p>
                 
-                <div class="mobile-date-pickers">
-                    <div class="date-picker-wrapper">
-                        <div class="date-picker-label">
-                            <i class="fas fa-flag"></i>
-                            <span>Start Date</span>
-                        </div>
-                        <select class="mobile-select" name="start_date">
-                            <option value="">Choose start date</option>
-                            <?php foreach ($dates as $date): ?>
-                                <option value="<?php echo $date; ?>"><?php echo date('M j, Y', strtotime($date)); ?></option>
-                            <?php endforeach; ?>
-                        </select>
+                <!-- Simple date selection like screenshot -->
+                <div class="simple-date-selection">
+                    <div class="date-option">
+                        <div class="date-circle selected"></div>
+                        <span class="date-text"><?php echo !empty($dates[0]) ? date('F j, Y', strtotime($dates[0])) : 'January 9, 2026'; ?></span>
                     </div>
                     
-                    <div class="date-picker-wrapper">
-                        <div class="date-picker-label">
-                            <i class="fas fa-bullseye"></i>
-                            <span>End Date</span>
-                        </div>
-                        <select class="mobile-select" name="end_date">
-                            <option value="">Choose end date</option>
-                            <?php foreach ($dates as $date): ?>
-                                <option value="<?php echo $date; ?>"><?php echo date('M j, Y', strtotime($date)); ?></option>
-                            <?php endforeach; ?>
-                        </select>
+                    <div class="date-option">
+                        <div class="date-circle"></div>
+                        <span class="date-text"><?php echo !empty($dates[1]) ? date('F j, Y', strtotime($dates[1])) : 'January 15, 2026'; ?></span>
                     </div>
                 </div>
                 
-                <div class="mobile-action-buttons">
-                    <button id="compareBtn" class="mobile-btn primary">
-                        <i class="fas fa-chart-line"></i>
-                        Compare Now
-                    </button>
-                    <button id="resetCompare" class="mobile-btn outline">
-                        <i class="fas fa-redo"></i>
-                        Reset
-                    </button>
+                <!-- Preview Result Section like screenshot -->
+                <div class="preview-section">
+                    <h3>Preview Result</h3>
+                    
+                    <div class="preview-dates">
+                        <div class="preview-date">
+                            <div class="preview-date-label">
+                                <i class="fas fa-calendar"></i>
+                                <span class="preview-date-text"><?php echo !empty($dates[0]) ? date('F j, Y', strtotime($dates[0])) : 'January 9, 2026'; ?></span>
+                            </div>
+                        </div>
+                        
+                        <div class="preview-date">
+                            <div class="preview-date-label">
+                                <i class="fas fa-calendar"></i>
+                                <span class="preview-date-text"><?php echo !empty($dates[1]) ? date('F j, Y', strtotime($dates[1])) : 'January 15, 2026'; ?></span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Stats Section like screenshot -->
+                    <div class="preview-stats">
+                        <div class="stat-row">
+                            <div class="stat-label">Weight:</div>
+                            <div class="stat-value">-1.2 kg</div>
+                        </div>
+                        <div class="stat-row">
+                            <div class="stat-label">Fasting:</div>
+                            <div class="stat-value">5 days</div>
+                        </div>
+                    </div>
                 </div>
                 
-                <!-- Comparison Results -->
-                <div id="comparisonResults" class="comparison-results" style="display: none;">
-                    <div class="results-header">
-                        <h3>
-                            <i class="fas fa-chart-bar"></i>
-                            Comparison Results
-                        </h3>
-                        <div class="time-difference" id="timeDifference"></div>
-                    </div>
-                    
-                    <div class="mobile-view-tabs">
-                        <button class="view-tab-button active" data-view="front">
-                            <i class="fas fa-user"></i>
-                            <span>Front</span>
-                        </button>
-                        <button class="view-tab-button" data-view="side">
-                            <i class="fas fa-user-friends"></i>
-                            <span>Side</span>
-                        </button>
-                        <button class="view-tab-button" data-view="back">
-                            <i class="fas fa-user-circle"></i>
-                            <span>Back</span>
-                        </button>
-                    </div>
-                    
-                    <div id="comparisonContent" class="comparison-content"></div>
+                <!-- Action Buttons like screenshot -->
+                <div class="simple-action-buttons">
+                    <button class="mobile-btn primary">
+                        <span>Compare Now</span>
+                    </button>
+                    <button class="mobile-btn outline">
+                        <span>Reset</span>
+                    </button>
                 </div>
             </div>
             <?php endif; ?>
@@ -405,79 +394,152 @@ $dates = array_column($photos, 'photo_date');
     font-size: 14px;
     color: var(--light-text);
     margin: 0 0 20px 0;
+    text-align: center;
 }
 
-/* Mobile Date Pickers */
-.mobile-date-pickers {
+/* Simple Date Selection (New for screenshot style) */
+.simple-date-selection {
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    margin-bottom: 20px;
+    gap: 12px;
+    margin-bottom: 24px;
 }
 
-.date-picker-wrapper {
+.date-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
     background: var(--bg-color);
     border: 1px solid var(--border);
     border-radius: 12px;
-    padding: 16px;
-}
-
-.date-picker-label {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 12px;
-    color: var(--text);
-    font-weight: 500;
-    font-size: 15px;
-}
-
-.date-picker-label i {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, #4CAF50, #8BC34A);
-    color: white;
-    font-size: 14px;
-}
-
-.date-picker-wrapper:nth-child(2) .date-picker-label i {
-    background: linear-gradient(135deg, #FF6B6B, #FFA726);
-}
-
-.mobile-select {
-    width: 100%;
-    height: 44px;
-    padding: 0 16px;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    background: var(--bg-color);
-    color: var(--text);
-    font-size: 15px;
-    font-weight: 500;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23666'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 16px center;
-    background-size: 16px;
     cursor: pointer;
+    transition: all 0.2s ease;
 }
 
-.mobile-select:focus {
-    outline: none;
+.date-option:hover {
     border-color: var(--accent);
 }
 
-/* Mobile Action Buttons */
-.mobile-action-buttons {
+.date-circle {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.date-circle.selected {
+    border-color: var(--accent);
+    background: var(--accent);
+}
+
+.date-circle.selected::after {
+    content: '';
+    width: 8px;
+    height: 8px;
+    background: white;
+    border-radius: 50%;
+}
+
+.date-text {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+    flex: 1;
+}
+
+/* Preview Section (New for screenshot style) */
+.preview-section {
+    background: var(--bg-color);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+}
+
+.preview-section h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 20px 0;
+    text-align: center;
+}
+
+.preview-dates {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.preview-date {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.preview-date-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    width: 100%;
+    max-width: 280px;
+}
+
+.preview-date-label i {
+    color: var(--accent);
+    font-size: 14px;
+}
+
+.preview-date-text {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+}
+
+/* Preview Stats (New for screenshot style) */
+.preview-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+}
+
+.stat-label {
+    font-size: 14px;
+    color: var(--light-text);
+    font-weight: 500;
+}
+
+.stat-value {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--accent);
+}
+
+/* Simple Action Buttons (New for screenshot style) */
+.simple-action-buttons {
     display: flex;
     gap: 12px;
 }
 
-.mobile-btn {
+.simple-action-buttons .mobile-btn {
     flex: 1;
     height: 44px;
     border-radius: 12px;
@@ -487,40 +549,33 @@ $dates = array_column($photos, 'photo_date');
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
     cursor: pointer;
     transition: all 0.2s ease;
     min-height: 44px;
-    text-decoration: none;
 }
 
-.mobile-btn:active {
+.simple-action-buttons .mobile-btn:active {
     transform: scale(0.98);
 }
 
-.mobile-btn.primary {
+.simple-action-buttons .mobile-btn.primary {
     background: var(--accent);
     color: white;
     border: none;
 }
 
-.mobile-btn.primary:active {
+.simple-action-buttons .mobile-btn.primary:active {
     opacity: 0.9;
 }
 
-.mobile-btn.outline {
+.simple-action-buttons .mobile-btn.outline {
     background: transparent;
     color: var(--accent);
     border: 1.5px solid var(--accent);
 }
 
-.mobile-btn.outline:active {
+.simple-action-buttons .mobile-btn.outline:active {
     background: rgba(var(--accent-rgb), 0.1);
-}
-
-.mobile-btn.large {
-    height: 52px;
-    font-size: 16px;
 }
 
 /* Mobile View Tabs */
@@ -694,78 +749,6 @@ $dates = array_column($photos, 'photo_date');
     font-size: 14px;
     line-height: 1.5;
     margin: 0;
-}
-
-/* Comparison Results */
-.comparison-results {
-    margin-top: 24px;
-    padding-top: 24px;
-    border-top: 1px solid var(--border);
-    animation: slideUp 0.3s ease;
-}
-
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.results-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-    gap: 12px;
-}
-
-.results-header h3 {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--text);
-    margin: 0;
-}
-
-.time-difference {
-    background: rgba(var(--accent-rgb), 0.1);
-    color: var(--accent);
-    padding: 6px 12px;
-    border-radius: 12px;
-    font-size: 13px;
-    font-weight: 600;
-}
-
-.comparison-content {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-.comparison-item {
-    text-align: center;
-}
-
-.comparison-item .date {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    color: var(--text);
-    font-weight: 600;
-    margin-bottom: 12px;
-    font-size: 14px;
-}
-
-.comparison-item .photo-container {
-    margin: 0 auto;
 }
 
 /* Bottom Navigation */
@@ -992,6 +975,10 @@ $dates = array_column($photos, 'photo_date');
     .modal-header h3 {
         font-size: 1.1rem;
     }
+    
+    .simple-action-buttons {
+        flex-direction: column;
+    }
 }
 
 /* Prevent zoom */
@@ -1099,6 +1086,72 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
+    // Date selection for comparison
+    const dateOptions = document.querySelectorAll('.date-option');
+    dateOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            // Remove selected from all
+            document.querySelectorAll('.date-circle').forEach(circle => {
+                circle.classList.remove('selected');
+            });
+            
+            // Add selected to clicked
+            this.querySelector('.date-circle').classList.add('selected');
+            
+            // Update preview if two dates are selected
+            const selectedDates = document.querySelectorAll('.date-circle.selected');
+            if (selectedDates.length === 2) {
+                // Here you would update the preview with actual comparison data
+                // For now, just show the dates are selected
+                console.log('Two dates selected for comparison');
+            }
+        });
+    });
+    
+    // Compare Now button
+    const compareBtn = document.querySelector('.simple-action-buttons .mobile-btn.primary');
+    if (compareBtn) {
+        compareBtn.addEventListener('click', function() {
+            const selectedDates = document.querySelectorAll('.date-circle.selected');
+            if (selectedDates.length < 2) {
+                alert('Please select two dates to compare');
+                return;
+            }
+            
+            // Get selected dates
+            const dateTexts = [];
+            dateOptions.forEach((option, index) => {
+                if (option.querySelector('.date-circle.selected')) {
+                    dateTexts.push(option.querySelector('.date-text').textContent);
+                }
+            });
+            
+            // Show comparison (you would redirect to actual comparison page)
+            alert(`Comparing: ${dateTexts[0]} vs ${dateTexts[1]}\n\nRedirecting to comparison view...`);
+            // window.location.href = `compare.php?date1=${dateTexts[0]}&date2=${dateTexts[1]}`;
+        });
+    }
+    
+    // Reset button
+    const resetBtn = document.querySelector('.simple-action-buttons .mobile-btn.outline');
+    if (resetBtn) {
+        resetBtn.addEventListener('click', function() {
+            // Reset date selection (select first two by default)
+            document.querySelectorAll('.date-circle').forEach((circle, index) => {
+                circle.classList.remove('selected');
+                if (index < 2) {
+                    circle.classList.add('selected');
+                }
+            });
+            
+            // Reset to default dates if available
+            const dateOptions = document.querySelectorAll('.date-option');
+            if (dateOptions.length >= 2) {
+                // Already shows first two dates by default
+            }
+        });
+    }
+    
     // Photo click handlers
     document.addEventListener('click', function(e) {
         if (e.target.classList.contains('progress-photo')) {
@@ -1133,198 +1186,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Comparison functionality
-    const compareBtn = document.getElementById('compareBtn');
-    const resetBtn = document.getElementById('resetCompare');
-    
-    if (compareBtn) {
-        compareBtn.addEventListener('click', function() {
-            const startDate = document.querySelector('select[name="start_date"]').value;
-            const endDate = document.querySelector('select[name="end_date"]').value;
-            
-            if (!startDate || !endDate) {
-                showMobileToast('Please select both dates', 'error');
-                return;
-            }
-            
-            if (startDate === endDate) {
-                showMobileToast('Please select different dates', 'error');
-                return;
-            }
-            
-            const photos = <?php echo json_encode($photos); ?>;
-            const startPhoto = photos.find(photo => photo.photo_date === startDate);
-            const endPhoto = photos.find(photo => photo.photo_date === endDate);
-            
-            if (!startPhoto || !endPhoto) {
-                showMobileToast('Could not find photos for the selected dates', 'error');
-                return;
-            }
-            
-            // Show results
-            const results = document.getElementById('comparisonResults');
-            results.style.display = 'block';
-            
-            // Scroll to results
-            results.scrollIntoView({ behavior: 'smooth' });
-            
-            // Load initial view
-            loadComparisonView('front', startPhoto, endPhoto);
-            
-            // Add tab listeners
-            const comparisonTabs = results.querySelectorAll('.view-tab-button');
-            comparisonTabs.forEach(tab => {
-                tab.addEventListener('click', function() {
-                    comparisonTabs.forEach(t => t.classList.remove('active'));
-                    this.classList.add('active');
-                    const view = this.dataset.view;
-                    loadComparisonView(view, startPhoto, endPhoto);
-                });
-            });
-            
-            showMobileToast('Comparison loaded successfully!', 'success');
-        });
-    }
-    
-    if (resetBtn) {
-        resetBtn.addEventListener('click', function() {
-            document.querySelector('select[name="start_date"]').value = '';
-            document.querySelector('select[name="end_date"]').value = '';
-            document.getElementById('comparisonResults').style.display = 'none';
-            showMobileToast('Comparison reset', 'info');
-        });
-    }
-    
-    function loadComparisonView(view, startPhoto, endPhoto) {
-        const content = document.getElementById('comparisonContent');
-        const startDateObj = new Date(startPhoto.photo_date);
-        const endDateObj = new Date(endPhoto.photo_date);
-        const daysDiff = Math.floor((endDateObj - startDateObj) / (1000 * 60 * 60 * 24));
-        
-        let timeText = '';
-        if (daysDiff >= 30) {
-            const months = Math.floor(daysDiff / 30);
-            timeText = `${months} month${months > 1 ? 's' : ''}`;
-        } else if (daysDiff >= 7) {
-            const weeks = Math.floor(daysDiff / 7);
-            timeText = `${weeks} week${weeks > 1 ? 's' : ''}`;
-        } else {
-            timeText = `${daysDiff} day${daysDiff > 1 ? 's' : ''}`;
-        }
-        
-        document.getElementById('timeDifference').textContent = timeText + ' progress';
-        
-        const placeholder = 'https://via.placeholder.com/300x350/1a237e/ffffff?text=' + 
-                          view.charAt(0).toUpperCase() + view.slice(1) + '+View';
-        
-        content.innerHTML = `
-            <div class="comparison-item">
-                <div class="date">
-                    <i class="fas fa-flag"></i>
-                    ${formatDate(startPhoto.photo_date)}
-                </div>
-                <div class="photo-container">
-                    <img src="${startPhoto[view + '_photo'] || placeholder}" 
-                         alt="Start ${view} view"
-                         class="progress-photo"
-                         data-date="${formatDate(startPhoto.photo_date)}"
-                         data-src="${startPhoto[view + '_photo'] || placeholder}">
-                </div>
-                <div style="margin-top: 8px; color: var(--light-text); font-size: 13px;">
-                    Start of journey
-                </div>
-            </div>
-            <div class="comparison-item">
-                <div class="date">
-                    <i class="fas fa-bullseye"></i>
-                    ${formatDate(endPhoto.photo_date)}
-                </div>
-                <div class="photo-container">
-                    <img src="${endPhoto[view + '_photo'] || placeholder}" 
-                         alt="End ${view} view"
-                         class="progress-photo"
-                         data-date="${formatDate(endPhoto.photo_date)}"
-                         data-src="${endPhoto[view + '_photo'] || placeholder}">
-                </div>
-                <div style="margin-top: 8px; color: var(--light-text); font-size: 13px;">
-                    Current progress
-                </div>
-            </div>
-        `;
-    }
-    
-    function formatDate(dateString) {
-        const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', { 
-            month: 'short', 
-            day: 'numeric',
-            year: 'numeric'
-        });
-    }
-    
-    function showMobileToast(message, type) {
-        // Create toast
-        const toast = document.createElement('div');
-        toast.className = 'mobile-toast';
-        toast.innerHTML = `
-            <div class="toast-content ${type}">
-                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
-                <span>${message}</span>
-            </div>
-        `;
-        
-        document.body.appendChild(toast);
-        
-        // Add styles
-        toast.style.cssText = `
-            position: fixed;
-            top: 80px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 10000;
-            animation: toastIn 0.3s ease;
-            max-width: 90%;
-        `;
-        
-        const toastContent = toast.querySelector('.toast-content');
-        toastContent.style.cssText = `
-            background: ${type === 'success' ? 'rgba(76, 175, 80, 0.95)' : 
-                         type === 'error' ? 'rgba(244, 67, 54, 0.95)' : 
-                         'rgba(33, 150, 243, 0.95)'};
-            color: white;
-            padding: 12px 20px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 14px;
-            font-weight: 500;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-        `;
-        
-        // Add animation
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes toastIn {
-                from { opacity: 0; transform: translate(-50%, -20px); }
-                to { opacity: 1; transform: translate(-50%, 0); }
-            }
-            @keyframes toastOut {
-                from { opacity: 1; transform: translate(-50%, 0); }
-                to { opacity: 0; transform: translate(-50%, -20px); }
-            }
-        `;
-        document.head.appendChild(style);
-        
-        // Remove after delay
-        setTimeout(() => {
-            toast.style.animation = 'toastOut 0.3s ease';
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
-    }
-    
     // Simulate haptic feedback
     function hapticFeedback() {
         if ('vibrate' in navigator) {
@@ -1333,7 +1194,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Add haptic to interactive elements
-    const interactiveElements = document.querySelectorAll('.mobile-btn, .view-tab-button, .nav-item, .mobile-back-btn, .mobile-add-btn');
+    const interactiveElements = document.querySelectorAll('.mobile-btn, .view-tab-button, .nav-item, .mobile-back-btn, .mobile-add-btn, .date-option');
     interactiveElements.forEach(el => {
         el.addEventListener('touchstart', hapticFeedback);
     });
