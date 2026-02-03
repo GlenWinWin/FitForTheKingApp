@@ -18,11 +18,6 @@ if (!$user_plan) {
     exit();
 }
 
-// Calculate current day in plan
-$selected_at = new DateTime($user_plan['selected_at']);
-$today = new DateTime();
-$days_since_start = $selected_at->diff($today)->days;
-
 // Get all days in plan
 $days_query = 'SELECT * FROM workout_plan_days WHERE plan_id = ? ORDER BY day_order';
 $stmt = $db->prepare($days_query);
@@ -30,28 +25,40 @@ $stmt->execute([$user_plan['id']]);
 $all_days = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 $total_days = count($all_days);
-$current_day_index = ($days_since_start % $total_days) + 1;
 
-// Get exercises for current day
+// Get selected day from URL or use current day
+if (isset($_GET['day']) && is_numeric($_GET['day']) && $_GET['day'] >= 1 && $_GET['day'] <= $total_days) {
+    $selected_day = intval($_GET['day']);
+} else {
+    // Calculate current day in plan based on start date
+    $selected_at = new DateTime($user_plan['selected_at']);
+    $today = new DateTime();
+    $days_since_start = $selected_at->diff($today)->days;
+    $selected_day = ($days_since_start % $total_days) + 1;
+}
+
+// Get selected day details
 $current_day = null;
-$day_exercises = [];
 foreach ($all_days as $day) {
-    if ($day['day_order'] == $current_day_index) {
+    if ($day['day_order'] == $selected_day) {
         $current_day = $day;
         break;
     }
 }
 
 if ($current_day) {
+    // Get exercises for selected day
     $exercises_query = "SELECT * FROM workout_exercises 
                        WHERE plan_day_id = ? 
                        ORDER BY id";
     $stmt = $db->prepare($exercises_query);
     $stmt->execute([$current_day['id']]);
     $day_exercises = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} else {
+    $day_exercises = [];
 }
 
-// Get last workout data for progressive overlay
+// Get last workout data for progressive overload
 $last_workout_data = [];
 if (!empty($day_exercises)) {
     $exercise_ids = [];
@@ -153,6 +160,72 @@ if (!empty($day_exercises)) {
         padding: 0.3rem 0.5rem;
         background: #f5f5f5;
         border-radius: 20px;
+    }
+
+    /* Day Navigation */
+    .day-navigation {
+        background: white;
+        padding: 0.75rem var(--mobile-padding);
+        border-bottom: 1px solid #e0e0e0;
+        position: sticky;
+        top: 125px;
+        z-index: 90;
+    }
+
+    .day-tabs {
+        display: flex;
+        gap: 0.5rem;
+        overflow-x: auto;
+        padding: 0.25rem 0;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+
+    .day-tabs::-webkit-scrollbar {
+        display: none;
+    }
+
+    .day-tab {
+        flex: 0 0 auto;
+        padding: 0.6rem 1rem;
+        background: #f8f9ff;
+        border: 1.5px solid #e8eaf6;
+        border-radius: 10px;
+        color: #3f51b5;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+        font-size: 0.85rem;
+        min-width: 70px;
+        text-align: center;
+    }
+
+    .day-tab:hover {
+        border-color: #3f51b5;
+    }
+
+    .day-tab.active {
+        background: linear-gradient(135deg, #3f51b5 0%, #1a237e 100%);
+        color: white;
+        border-color: #3f51b5;
+        box-shadow: var(--active-shadow);
+    }
+
+    .day-tab.current-day {
+        position: relative;
+    }
+
+    .day-tab.current-day::after {
+        content: '';
+        position: absolute;
+        top: -4px;
+        right: -4px;
+        width: 8px;
+        height: 8px;
+        background: #4CAF50;
+        border-radius: 50%;
+        border: 2px solid white;
     }
 
     /* Exercise List - Like Design */
@@ -359,7 +432,7 @@ if (!empty($day_exercises)) {
         color: #3f51b5;
     }
 
-    /* Demo Video Section */
+    /* Demo Video Section - FIXED YOUTUBE */
     .demo-section {
         margin-bottom: 1.5rem;
     }
@@ -367,58 +440,48 @@ if (!empty($day_exercises)) {
     .demo-video {
         position: relative;
         width: 100%;
+        height: 200px;
         border-radius: var(--border-radius);
         overflow: hidden;
         margin-bottom: 0.75rem;
+        background: #000;
     }
 
-    .demo-video video {
+    .demo-video iframe {
         width: 100%;
-        height: auto;
-        display: block;
+        height: 100%;
+        border: none;
     }
 
-    .video-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.3);
+    .video-placeholder {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #1a237e 0%, #3f51b5 100%);
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
-        opacity: 0;
-        transition: opacity 0.3s ease;
+        color: white;
+        text-align: center;
+        padding: 1rem;
     }
 
-    .demo-video:hover .video-overlay {
-        opacity: 1;
+    .video-placeholder i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.8;
     }
 
-    .play-button {
-        width: 60px;
-        height: 60px;
-        background: rgba(255, 255, 255, 0.9);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
-        color: #3f51b5;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-
-    .play-button:hover {
-        transform: scale(1.1);
-        background: white;
+    .video-placeholder span {
+        font-size: 0.9rem;
+        opacity: 0.9;
     }
 
     .video-info {
         font-size: 0.8rem;
         color: #666;
         text-align: center;
+        margin-top: 0.5rem;
     }
 
     /* Set Logging Section */
@@ -472,6 +535,14 @@ if (!empty($day_exercises)) {
         text-align: center;
         background: white;
         color: #333;
+        -webkit-appearance: none;
+        -moz-appearance: textfield;
+    }
+
+    .number-input::-webkit-inner-spin-button,
+    .number-input::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
     }
 
     .number-input:focus {
@@ -675,6 +746,101 @@ if (!empty($day_exercises)) {
         transition: width 0.3s ease;
     }
 
+    /* Video Modal */
+    .video-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.95);
+        z-index: 2000;
+        justify-content: center;
+        align-items: center;
+        padding: 1rem;
+    }
+
+    .video-modal-content {
+        width: 100%;
+        max-width: 800px;
+        position: relative;
+    }
+
+    .video-modal-iframe {
+        width: 100%;
+        height: 450px;
+        border: none;
+        border-radius: var(--border-radius);
+    }
+
+    .close-video {
+        position: absolute;
+        top: -50px;
+        right: 0;
+        background: none;
+        border: none;
+        color: white;
+        font-size: 1.5rem;
+        cursor: pointer;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+
+    .close-video:hover {
+        color: #3f51b5;
+        transform: scale(1.1);
+    }
+
+    /* Success Modal */
+    .success-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 3000;
+        justify-content: center;
+        align-items: center;
+        padding: 1rem;
+        backdrop-filter: blur(3px);
+    }
+
+    .success-card {
+        background: white;
+        border-radius: 16px;
+        padding: 2rem 1.5rem;
+        text-align: center;
+        width: 100%;
+        max-width: 300px;
+        box-shadow: var(--modal-shadow);
+        animation: successPop 0.5s ease;
+    }
+
+    @keyframes successPop {
+        0% { transform: scale(0.9); opacity: 0; }
+        70% { transform: scale(1.05); }
+        100% { transform: scale(1); opacity: 1; }
+    }
+
+    .success-icon {
+        font-size: 3rem;
+        color: #4CAF50;
+        margin-bottom: 1rem;
+        animation: bounce 0.5s ease;
+    }
+
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-5px); }
+    }
+
     /* Animation */
     @keyframes fadeIn {
         from { opacity: 0; transform: translateY(20px); }
@@ -683,6 +849,16 @@ if (!empty($day_exercises)) {
 
     .exercise-modal.active {
         display: block;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .video-modal.active {
+        display: flex;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .success-modal.active {
+        display: flex;
         animation: fadeIn 0.3s ease;
     }
 
@@ -710,6 +886,14 @@ if (!empty($day_exercises)) {
             width: calc(100% - 2rem);
             bottom: 1rem;
         }
+
+        .demo-video {
+            height: 250px;
+        }
+
+        .video-modal-iframe {
+            height: 500px;
+        }
     }
 
     @media (max-width: 380px) {
@@ -725,6 +909,10 @@ if (!empty($day_exercises)) {
 
         .action-buttons {
             flex-direction: column;
+        }
+
+        .demo-video {
+            height: 180px;
         }
     }
 </style>
@@ -746,23 +934,50 @@ if (!empty($day_exercises)) {
             </div>
             <div class="meta-item">
                 <i class="fas fa-clock"></i>
-                <span>Current: Day <?php echo $current_day_index; ?></span>
+                <span>Current: Day <?php echo $selected_day; ?></span>
             </div>
         </div>
     </div>
 
-    <!-- Current Day Header -->
-    <div style="background: linear-gradient(135deg, #3f51b5 0%, #1a237e 100%); color: white; padding: 1rem var(--mobile-padding);">
-        <div style="font-size: 0.9rem; opacity: 0.9;">Day <?php echo $current_day_index; ?> of <?php echo $total_days; ?></div>
-        <div style="font-size: 1.2rem; font-weight: 700;"><?php echo htmlspecialchars($current_day['title'] ?? 'Workout Day'); ?></div>
+    <!-- Day Navigation -->
+    <div class="day-navigation">
+        <div class="day-tabs">
+            <?php 
+            // Calculate current day based on start date
+            $selected_at = new DateTime($user_plan['selected_at']);
+            $today = new DateTime();
+            $days_since_start = $selected_at->diff($today)->days;
+            $calculated_current_day = ($days_since_start % $total_days) + 1;
+            
+            foreach ($all_days as $day): 
+                $is_current_day = ($day['day_order'] == $calculated_current_day);
+            ?>
+                <div class="day-tab <?php echo $day['day_order'] == $selected_day ? 'active' : ''; ?> <?php echo $is_current_day ? 'current-day' : ''; ?>" 
+                     data-day="<?php echo $day['day_order']; ?>"
+                     onclick="changeDay(<?php echo $day['day_order']; ?>)">
+                    Day <?php echo $day['day_order']; ?>
+                </div>
+            <?php endforeach; ?>
+        </div>
     </div>
+
+    <!-- Current Day Header -->
+    <?php if ($current_day): ?>
+    <div style="background: linear-gradient(135deg, #3f51b5 0%, #1a237e 100%); color: white; padding: 1rem var(--mobile-padding);">
+        <div style="font-size: 0.9rem; opacity: 0.9;">Day <?php echo $selected_day; ?> of <?php echo $total_days; ?></div>
+        <div style="font-size: 1.2rem; font-weight: 700;"><?php echo htmlspecialchars($current_day['title']); ?></div>
+        <?php if ($current_day['description']): ?>
+            <div style="font-size: 0.85rem; opacity: 0.8; margin-top: 0.25rem;"><?php echo htmlspecialchars($current_day['description']); ?></div>
+        <?php endif; ?>
+    </div>
+    <?php endif; ?>
 
     <!-- Exercise List -->
     <div class="exercise-list">
         <?php if (empty($day_exercises)): ?>
             <div style="text-align: center; padding: 3rem 1rem; color: #666;">
                 <i class="fas fa-dumbbell" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
-                <p>No exercises scheduled for today.</p>
+                <p>No exercises scheduled for this day.</p>
             </div>
         <?php else: ?>
             <?php foreach ($day_exercises as $index => $exercise): 
@@ -771,8 +986,26 @@ if (!empty($day_exercises)) {
                 $last_weight = $last_set['weight'] ?? 0;
                 $last_reps = $last_set['reps'] ?? 0;
                 $total_sets = $exercise['default_sets'];
+                
+                // Get muscles
+                $muscles = [];
+                if ($exercise['primary_muscle']) $muscles[] = $exercise['primary_muscle'];
+                if ($exercise['secondary_muscle']) $muscles[] = $exercise['secondary_muscle'];
+                if ($exercise['tertiary_muscle']) $muscles[] = $exercise['tertiary_muscle'];
+                
+                // Extract YouTube video ID
+                $youtube_id = '';
+                if ($exercise['youtube_link']) {
+                    $url = $exercise['youtube_link'];
+                    if (preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/', $url, $matches)) {
+                        $youtube_id = $matches[1];
+                    }
+                }
             ?>
-                <div class="exercise-item" data-exercise-id="<?php echo $exercise['id']; ?>">
+                <div class="exercise-item" 
+                     data-exercise-id="<?php echo $exercise['id']; ?>"
+                     data-exercise-index="<?php echo $index; ?>"
+                     onclick="openExerciseModal(<?php echo $index; ?>)">
                     <div class="exercise-header">
                         <h3 class="exercise-name"><?php echo htmlspecialchars($exercise['exercise_name']); ?></h3>
                         <span class="exercise-status"><?php echo $total_sets; ?> sets</span>
@@ -780,12 +1013,7 @@ if (!empty($day_exercises)) {
                     
                     <div class="exercise-muscles">
                         <i class="fas fa-running"></i>
-                        <?php 
-                        $muscles = [];
-                        if ($exercise['primary_muscle']) $muscles[] = $exercise['primary_muscle'];
-                        if ($exercise['secondary_muscle']) $muscles[] = $exercise['secondary_muscle'];
-                        echo htmlspecialchars(implode(' · ', $muscles));
-                        ?>
+                        <?php echo htmlspecialchars(implode(' · ', array_filter($muscles))); ?>
                     </div>
                     
                     <div class="exercise-target">
@@ -798,12 +1026,14 @@ if (!empty($day_exercises)) {
                     </div>
                     
                     <div class="exercise-actions">
-                        <?php if ($exercise['youtube_link']): ?>
-                            <button class="action-button watch-button" data-video="<?php echo htmlspecialchars($exercise['youtube_link']); ?>">
+                        <?php if ($exercise['youtube_link'] && $youtube_id): ?>
+                            <button class="action-button watch-button" 
+                                    onclick="event.stopPropagation(); openVideoModal('<?php echo $youtube_id; ?>', '<?php echo htmlspecialchars($exercise['exercise_name']); ?>')">
                                 <i class="fas fa-play-circle"></i> Watch Demo
                             </button>
                         <?php endif; ?>
-                        <button class="action-button start-button" data-exercise-index="<?php echo $index; ?>">
+                        <button class="action-button start-button" 
+                                onclick="event.stopPropagation(); openExerciseModal(<?php echo $index; ?>)">
                             <i class="fas fa-play"></i> Start Exercise
                         </button>
                     </div>
@@ -817,7 +1047,7 @@ if (!empty($day_exercises)) {
 <div class="exercise-modal" id="exerciseModal">
     <div class="modal-header">
         <h2 class="modal-title" id="modalExerciseName">Exercise Name</h2>
-        <button class="close-modal" id="closeModal">
+        <button class="close-modal" onclick="closeExerciseModal()">
             <i class="fas fa-times"></i>
         </button>
     </div>
@@ -829,19 +1059,12 @@ if (!empty($day_exercises)) {
         </div>
         
         <!-- Demo Video Section -->
-        <div class="demo-section" id="demoSection" style="display: none;">
-            <div class="demo-video">
-                <div id="videoPlaceholder" style="width: 100%; height: 200px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; border-radius: var(--border-radius);">
-                    <i class="fas fa-play-circle" style="font-size: 3rem; color: #ccc;"></i>
-                </div>
-                <div class="video-overlay">
-                    <div class="play-button" id="playVideo">
-                        <i class="fas fa-play"></i>
-                    </div>
-                </div>
+        <div class="demo-section" id="demoSection">
+            <div class="demo-video" id="demoVideo">
+                <!-- YouTube iframe will be inserted here -->
             </div>
-            <div class="video-info">
-                <span id="videoDuration">0:45</span> Demo
+            <div class="video-info" id="videoInfo">
+                Click play to watch demo
             </div>
         </div>
         
@@ -858,7 +1081,7 @@ if (!empty($day_exercises)) {
                                placeholder="125"
                                step="0.5"
                                min="0"
-                               value="<?php echo $last_weight > 0 ? $last_weight : ''; ?>">
+                               value="">
                         <span class="unit-label">lbs</span>
                     </div>
                 </div>
@@ -872,13 +1095,13 @@ if (!empty($day_exercises)) {
                                placeholder="8"
                                min="0"
                                max="100"
-                               value="<?php echo $last_reps > 0 ? $last_reps : $exercise['default_reps'] ?? 8; ?>">
+                               value="">
                         <span class="unit-label">reps</span>
                     </div>
                 </div>
                 
                 <div class="action-buttons">
-                    <button type="button" class="action-button complete-set-btn" id="completeSet">
+                    <button type="button" class="action-button complete-set-btn" onclick="completeCurrentSet()">
                         <i class="fas fa-check-circle"></i> Complete Set
                     </button>
                 </div>
@@ -907,15 +1130,30 @@ if (!empty($day_exercises)) {
     
     <!-- Bottom Navigation -->
     <div class="bottom-nav">
-        <button class="nav-button prev" id="prevExercise" disabled>
+        <button class="nav-button prev" id="prevExercise" onclick="prevExercise()" disabled>
             <i class="fas fa-chevron-left"></i> Previous
         </button>
-        <button class="nav-button complete" id="completeWorkout">
+        <button class="nav-button complete" id="completeWorkout" onclick="completeWorkout()">
             <i class="fas fa-check-circle"></i> Complete Workout
         </button>
-        <button class="nav-button prev" id="nextExercise">
+        <button class="nav-button prev" id="nextExercise" onclick="nextExercise()">
             Next <i class="fas fa-chevron-right"></i>
         </button>
+    </div>
+</div>
+
+<!-- Video Modal -->
+<div class="video-modal" id="videoModal">
+    <div class="video-modal-content">
+        <button class="close-video" onclick="closeVideoModal()">
+            <i class="fas fa-times"></i>
+        </button>
+        <iframe class="video-modal-iframe" id="videoModalIframe" 
+                src="" 
+                frameborder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowfullscreen>
+        </iframe>
     </div>
 </div>
 
@@ -925,7 +1163,7 @@ if (!empty($day_exercises)) {
         <h3 style="margin-bottom: 1rem;">Rest Timer</h3>
         <div class="timer-display" id="timerDisplay">02:00</div>
         <div style="margin: 1.5rem 0;">
-            <select id="timerPreset" class="number-input" style="width: 100%;">
+            <select id="timerPreset" class="number-input" style="width: 100%;" onchange="updateTimerDisplay()">
                 <option value="60">1 minute</option>
                 <option value="90">1:30 minutes</option>
                 <option value="120" selected>2 minutes</option>
@@ -934,13 +1172,27 @@ if (!empty($day_exercises)) {
             </select>
         </div>
         <div class="action-buttons">
-            <button id="startTimer" class="action-button complete-set-btn">
+            <button id="startTimer" class="action-button complete-set-btn" onclick="startTimer()">
                 <i class="fas fa-play"></i> Start Timer
             </button>
-            <button id="closeTimerModal" class="action-button watch-button">
+            <button id="closeTimerModal" class="action-button watch-button" onclick="closeTimerModal()">
                 <i class="fas fa-times"></i> Close
             </button>
         </div>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div class="success-modal" id="successModal">
+    <div class="success-card">
+        <div class="success-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <h3 style="margin: 0 0 1rem 0; color: #333;">Workout Completed!</h3>
+        <p style="margin: 0 0 2rem 0; color: #666;">Great job! Your workout has been saved successfully.</p>
+        <button class="action-button complete-set-btn" onclick="redirectToDashboard()" style="width: 100%;">
+            <i class="fas fa-tachometer-alt"></i> Continue to Dashboard
+        </button>
     </div>
 </div>
 
@@ -953,53 +1205,64 @@ if (!empty($day_exercises)) {
     let completedSets = {};
     let timerInterval = null;
     let remainingSeconds = 120;
+    let currentDay = <?php echo $selected_day; ?>;
 
     // Initialize when DOM is loaded
     document.addEventListener('DOMContentLoaded', function() {
-        // Setup exercise click handlers
-        document.querySelectorAll('.exercise-item .start-button').forEach((button, index) => {
-            button.addEventListener('click', function() {
-                openExerciseModal(index);
-            });
-        });
-
-        // Watch demo buttons
-        document.querySelectorAll('.watch-button').forEach(button => {
-            button.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const videoUrl = this.getAttribute('data-video');
-                if (videoUrl) {
-                    openVideoModal(videoUrl);
-                }
-            });
-        });
-
-        // Modal controls
-        document.getElementById('closeModal').addEventListener('click', closeExerciseModal);
-        document.getElementById('completeSet').addEventListener('click', completeCurrentSet);
-        document.getElementById('completeWorkout').addEventListener('click', completeWorkout);
-        document.getElementById('nextExercise').addEventListener('click', nextExercise);
-        document.getElementById('prevExercise').addEventListener('click', prevExercise);
-
-        // Timer controls
-        document.getElementById('closeTimerModal').addEventListener('click', closeTimerModal);
-        document.getElementById('startTimer').addEventListener('click', startTimer);
-        document.getElementById('timerPreset').addEventListener('change', updateTimerDisplay);
-
-        // Play video button
-        document.getElementById('playVideo').addEventListener('click', playDemoVideo);
-
-        // Close modal on escape key
+        updateUpcomingExercises();
+        
+        // Add keyboard shortcuts
         document.addEventListener('keydown', function(e) {
+            // Only handle shortcuts when exercise modal is open
+            if (!document.getElementById('exerciseModal').classList.contains('active')) {
+                return;
+            }
+            
+            // Enter to complete set
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                completeCurrentSet();
+            }
+            
+            // Space to play/pause timer
+            if (e.key === ' ' && document.getElementById('restTimerModal').style.display === 'flex') {
+                e.preventDefault();
+                if (timerInterval) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                } else {
+                    startTimer();
+                }
+            }
+            
+            // Arrow keys for navigation
+            if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                nextExercise();
+            }
+            
+            if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                prevExercise();
+            }
+            
+            // Escape to close modals
             if (e.key === 'Escape') {
-                closeExerciseModal();
-                closeTimerModal();
+                if (document.getElementById('restTimerModal').style.display === 'flex') {
+                    closeTimerModal();
+                } else if (document.getElementById('videoModal').classList.contains('active')) {
+                    closeVideoModal();
+                } else {
+                    closeExerciseModal();
+                }
             }
         });
-
-        // Update upcoming exercises list
-        updateUpcomingExercises();
     });
+
+    // Change day function
+    function changeDay(dayNumber) {
+        window.location.href = 'workout_plan.php?day=' + dayNumber;
+    }
 
     // Open exercise modal
     function openExerciseModal(index) {
@@ -1013,6 +1276,7 @@ if (!empty($day_exercises)) {
         document.getElementById('modalExerciseName').textContent = exercise.exercise_name;
         document.getElementById('currentSet').textContent = currentSet;
         document.getElementById('totalSets').textContent = exercise.default_sets;
+        totalSets = exercise.default_sets;
         
         // Get last workout data for this exercise
         const lastWeight = exercise.last_weight || '';
@@ -1025,18 +1289,14 @@ if (!empty($day_exercises)) {
         const completedCount = completedSets[exercise.id]?.completed || 0;
         updateProgress(completedCount, exercise.default_sets);
         
-        // Show/hide demo section
-        const demoSection = document.getElementById('demoSection');
-        if (exercise.youtube_link) {
-            demoSection.style.display = 'block';
-            // Store video URL for later use
-            demoSection.dataset.videoUrl = exercise.youtube_link;
-        } else {
-            demoSection.style.display = 'none';
-        }
+        // Setup YouTube video
+        setupYouTubeVideo(exercise);
         
         // Update navigation buttons
         updateNavButtons();
+        
+        // Update upcoming exercises
+        updateUpcomingExercises();
         
         // Show modal
         document.getElementById('exerciseModal').classList.add('active');
@@ -1046,6 +1306,87 @@ if (!empty($day_exercises)) {
         setTimeout(() => {
             document.getElementById('weightInput').focus();
         }, 300);
+    }
+
+    // Setup YouTube video
+    function setupYouTubeVideo(exercise) {
+        const demoVideo = document.getElementById('demoVideo');
+        const videoInfo = document.getElementById('videoInfo');
+        
+        if (exercise.youtube_link) {
+            // Extract YouTube video ID
+            const url = exercise.youtube_link;
+            let videoId = '';
+            
+            if (url.includes('youtu.be/')) {
+                videoId = url.split('youtu.be/')[1].split('?')[0];
+            } else if (url.includes('youtube.com/watch?v=')) {
+                videoId = url.split('v=')[1].split('&')[0];
+            } else if (url.includes('youtube.com/embed/')) {
+                videoId = url.split('embed/')[1].split('?')[0];
+            }
+            
+            if (videoId) {
+                // Create YouTube embed URL
+                const embedUrl = `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1`;
+                
+                // Create iframe
+                demoVideo.innerHTML = `
+                    <iframe 
+                        src="${embedUrl}" 
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                        allowfullscreen>
+                    </iframe>
+                `;
+                
+                videoInfo.textContent = "Demo Video";
+            } else {
+                // Invalid YouTube URL
+                demoVideo.innerHTML = `
+                    <div class="video-placeholder">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span>Invalid YouTube URL</span>
+                    </div>
+                `;
+                videoInfo.textContent = "Invalid video link";
+            }
+        } else {
+            // No video available
+            demoVideo.innerHTML = `
+                <div class="video-placeholder">
+                    <i class="fas fa-video-slash"></i>
+                    <span>No demo video available</span>
+                </div>
+            `;
+            videoInfo.textContent = "No demo available";
+        }
+    }
+
+    // Open video modal
+    function openVideoModal(videoId, exerciseName) {
+        const videoModal = document.getElementById('videoModal');
+        const iframe = document.getElementById('videoModalIframe');
+        
+        // Set iframe source with autoplay
+        iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1&showinfo=0`;
+        
+        // Show modal
+        videoModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    // Close video modal
+    function closeVideoModal() {
+        const videoModal = document.getElementById('videoModal');
+        const iframe = document.getElementById('videoModalIframe');
+        
+        // Stop video
+        iframe.src = iframe.src.replace('autoplay=1', 'autoplay=0');
+        
+        // Hide modal
+        videoModal.classList.remove('active');
+        document.body.style.overflow = 'auto';
     }
 
     // Close exercise modal
@@ -1103,10 +1444,8 @@ if (!empty($day_exercises)) {
             showRestTimer();
         } else {
             // Exercise completed
-            alert(`Great! You've completed all sets for ${exercise.exercise_name}.`);
-            
             // Mark exercise as completed in list
-            const exerciseItem = document.querySelector(`.exercise-item:nth-child(${currentExerciseIndex + 1})`);
+            const exerciseItem = document.querySelector(`.exercise-item[data-exercise-index="${currentExerciseIndex}"]`);
             if (exerciseItem) {
                 exerciseItem.classList.add('completed');
                 const status = exerciseItem.querySelector('.exercise-status');
@@ -1122,6 +1461,7 @@ if (!empty($day_exercises)) {
         
         // Update exercise list status
         updateExerciseStatus();
+        updateUpcomingExercises();
     }
 
     // Update progress bar
@@ -1162,7 +1502,7 @@ if (!empty($day_exercises)) {
     function updateExerciseStatus() {
         exercises.forEach((exercise, index) => {
             const completed = completedSets[exercise.id]?.completed || 0;
-            const exerciseItem = document.querySelector(`.exercise-item:nth-child(${index + 1})`);
+            const exerciseItem = document.querySelector(`.exercise-item[data-exercise-index="${index}"]`);
             
             if (exerciseItem) {
                 if (completed > 0) {
@@ -1275,61 +1615,6 @@ if (!empty($day_exercises)) {
             `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     }
 
-    // Play demo video
-    function playDemoVideo() {
-        const demoSection = document.getElementById('demoSection');
-        const videoUrl = demoSection.dataset.videoUrl;
-        
-        if (videoUrl) {
-            // Extract video ID from YouTube URL
-            const videoId = videoUrl.split('v=')[1];
-            const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
-            
-            const videoPlaceholder = document.getElementById('videoPlaceholder');
-            videoPlaceholder.innerHTML = `
-                <iframe 
-                    width="100%" 
-                    height="200" 
-                    src="${embedUrl}" 
-                    frameborder="0" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                    allowfullscreen>
-                </iframe>
-            `;
-            
-            // Hide play button
-            document.getElementById('playVideo').style.display = 'none';
-        }
-    }
-
-    // Open video in modal (for watch demo buttons)
-    function openVideoModal(videoUrl) {
-        // Extract video ID from YouTube URL
-        const videoId = videoUrl.split('v=')[1];
-        const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
-        
-        const modalContent = `
-            <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 2000; display: flex; align-items: center; justify-content: center;">
-                <div style="position: relative; width: 90%; max-width: 800px;">
-                    <button onclick="this.parentElement.parentElement.remove()" style="position: absolute; top: -40px; right: 0; background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer;">
-                        <i class="fas fa-times"></i>
-                    </button>
-                    <div style="position: relative; padding-bottom: 56.25%; height: 0;">
-                        <iframe 
-                            src="${embedUrl}" 
-                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" 
-                            frameborder="0" 
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                            allowfullscreen>
-                        </iframe>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        document.body.insertAdjacentHTML('beforeend', modalContent);
-    }
-
     // Complete workout
     async function completeWorkout() {
         if (!confirm('Are you sure you want to complete this workout? All logged sets will be saved.')) {
@@ -1338,7 +1623,7 @@ if (!empty($day_exercises)) {
         
         // Collect all set data
         const workoutData = {
-            day_id: <?php echo $current_day['id']; ?>,
+            day_id: <?php echo $current_day ? $current_day['id'] : 'null'; ?>,
             exercises: []
         };
         
@@ -1370,11 +1655,9 @@ if (!empty($day_exercises)) {
             const result = await response.json();
             
             if (result.success) {
-                // Show success message
-                alert('Workout completed successfully!');
-                
-                // Redirect to dashboard
-                window.location.href = 'dashboard.php?workout_completed=true';
+                // Show success modal
+                document.getElementById('successModal').classList.add('active');
+                document.getElementById('exerciseModal').classList.remove('active');
             } else {
                 alert('Error saving workout: ' + (result.message || 'Unknown error'));
                 completeBtn.innerHTML = originalText;
@@ -1388,50 +1671,15 @@ if (!empty($day_exercises)) {
         }
     }
 
-    // Keyboard shortcuts
-    document.addEventListener('keydown', function(e) {
-        // Only handle shortcuts when exercise modal is open
-        if (!document.getElementById('exerciseModal').classList.contains('active')) {
-            return;
-        }
-        
-        // Enter to complete set
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            document.getElementById('completeSet').click();
-        }
-        
-        // Space to play/pause timer
-        if (e.key === ' ' && document.getElementById('restTimerModal').style.display === 'flex') {
-            e.preventDefault();
-            if (timerInterval) {
-                clearInterval(timerInterval);
-                timerInterval = null;
-            } else {
-                startTimer();
-            }
-        }
-        
-        // Arrow keys for navigation
-        if (e.key === 'ArrowRight') {
-            e.preventDefault();
-            document.getElementById('nextExercise').click();
-        }
-        
-        if (e.key === 'ArrowLeft') {
-            e.preventDefault();
-            document.getElementById('prevExercise').click();
-        }
-        
-        // Escape to close modals
-        if (e.key === 'Escape') {
-            if (document.getElementById('restTimerModal').style.display === 'flex') {
-                closeTimerModal();
-            } else {
-                closeExerciseModal();
-            }
-        }
-    });
+    // Redirect to dashboard
+    function redirectToDashboard() {
+        window.location.href = 'dashboard.php?workout_completed=true';
+    }
+
+    // Close success modal
+    function closeSuccessModal() {
+        document.getElementById('successModal').classList.remove('active');
+    }
 </script>
 
 <?php require_once 'footer.php'; ?>
